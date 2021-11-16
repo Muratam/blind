@@ -1,15 +1,18 @@
 # Strattera
 
-## Standalone
+## run example
 
 1. build client wasm binary
 
 ```sh
-cargo build --bin strattera-example-client
+$ cargo install wasm-pack
+$ cd impl/client
+$ wasm-pack build --target web --no-typescript
 ```
 
-2. run server binary
+2. run example server binary
 
 ```sh
-cargo run --bin strattera-example-server
+$ cd impl/server
+$ cargo run --example server
 ```
