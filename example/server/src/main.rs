@@ -1,5 +1,8 @@
-use strattera_server::{serve};
+use strattera_server::*;
 
 fn main() {
-  serve(8088);
+  serve(&ServerConfig{
+    port: 8080,
+    host: String::from("127.0.0.1")
+  });
 }

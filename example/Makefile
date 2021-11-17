@@ -6,11 +6,11 @@ setup:
 	cargo install wasm-pack
 
 .PHONY: wasm
-client:
-	cd example/wasm &&\
+wasm:
+	cd wasm &&\
 	wasm-pack build --target web --no-typescript --out-dir ../server/dist/js --out-name strattera
 
 .PHONY: server
 server:
-	cd example/server &&\
+	cd server &&\
 	cargo run

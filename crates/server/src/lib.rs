@@ -1,29 +1,68 @@
-use actix_web::{web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{*};
+use actix_files::{*};
+mod sandbox;
 
+// SPA のルート階層
 async fn get_index() -> impl Responder {
-  HttpResponse::Ok().body("Hello world!")
+  HttpResponse::Ok()
+    .content_type("text/html")
+    .body(
+r###"
+<!DOCTYPE html>
+<html lang="">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="icon" href="./favicon.ico">
+    <title>aaaaa</title>
+  </head>
+  <body>
+    <noscript>
+      <strong>We're sorry but doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+    </noscript>
+    <script src="./dist/js/strattera.js"></script>
+  </body>
+</html>
+"###)
 }
 
-async fn get_json_echo(echo: web::Path<String>) -> impl Responder {
-  HttpResponse::Ok().json(format!("{}", echo))
+// やりとりは　WebSocket
+
+
+#[derive(Debug)]
+pub struct ServerConfig {
+  pub port: i32,
+  pub host: String
 }
 
-async fn get_echo(req_body: String) -> impl Responder {
-  HttpResponse::Ok().body(req_body)
-}
 
-#[actix_rt::main]
-pub async fn serve(port: i32) -> std::io::Result<()>  {
-  let host = "127.0.0.1";
-  let address = format!("{}:{}", host, port);
-  println!("Start Rust Server at {}", address);
+#[actix_web::main]
+pub async fn serve(config: &ServerConfig) -> std::io::Result<()>  {
+  let address = format!("{}:{}", config.host, config.port);
+  println!("Start Strattera Server at {}", address);
   HttpServer::new(|| {
-    App::new()
-      .route("/", web::get().to(get_index))
-      .route("/sandbox/json/{echo}", web::get().to(get_json_echo))
-      .route("/sandbox/echo", web::get().to(get_echo))
+    let mut app = App::new();
+    // sandbox
+    app = app.route("/", web::get().to(get_index))
+      .route("/sandbox/json/{echo}", web::get().to(sandbox::get_json))
+      .route("/sandbox/echo", web::get().to(sandbox::get_echo));
+
+    // file
+    async fn favicon() -> Result<NamedFile> {
+      Ok(NamedFile::open("./dist/favicon.ico")?)
+    }
+    app = app.route("/favicon.ico", web::get().to(favicon));
+    let files = Files::new("/dist", "./dist");
+    if cfg!(debug_assertions) {
+      app = app.service(files.show_files_listing());
+    } else {
+      app = app.service(files);
+    }
+    app
   })
-  .bind(address)?
+  .bind(address)
+  .expect("Can not Start Strattera Server")
   .run()
   .await
 }

@@ -3,5 +3,6 @@
 ## run example
 
 ```
+$ cd example
 $ make
 ```
