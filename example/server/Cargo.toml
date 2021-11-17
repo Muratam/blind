@@ -6,7 +6,3 @@ edition = "2021"
 [dependencies]
 example-common = { path = "../common" }
 strattera-server = { path = "../../crates/server" }
-
-# todo: move tot strattera
-actix-web = "4.0.0-beta.10"
-actix-rt = "2.4.0"

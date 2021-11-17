@@ -1,9 +1,7 @@
-# Strattera
+# Rust Strattera Package
 
 ## run example
 
 ```
-$ make setup
-$ make wasm
-$ make server
+$ make
 ```

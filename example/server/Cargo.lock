@@ -387,13 +387,14 @@ dependencies = [
 [[package]]
 name = "example-common"
 version = "0.1.0"
+dependencies = [
+ "strattera-common",
+]
 
 [[package]]
 name = "example-server"
 version = "0.1.0"
 dependencies = [
- "actix-rt",
- "actix-web",
  "example-common",
  "strattera-server",
 ]
