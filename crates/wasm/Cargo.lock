@@ -48,9 +48,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "strattera-client"
+name = "strattera-common"
+version = "0.1.0"
+
+[[package]]
+name = "strattera-wasm"
 version = "0.1.0"
 dependencies = [
+ "strattera-common",
  "wasm-bindgen",
 ]
 

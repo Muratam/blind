@@ -79,25 +79,12 @@ DB(like localStorege)
 
 - サーバー・クライアント両者のコードをまとめて管理するのが必須。
 - 全てRustで書いて、 クライアントは wasm(+ html + glsl + js(for lib))になる
-  - Cargo.toml (?)
-  - strattera/ ライブラリ部分
-    - Cargo.toml
-    - target/release/
-      - Rustサーバーバイナリ
-        - 配信するhtmlws呼び出し)もここが持つ
-      - Rustクライアント用ws
-        - shaderコードもここが持つ
-        - jsをコンパイルしたものもここで(?)
-    - src/
-      - common/ (server と client 共通コード)
-      - server/
-      - client/
-      - resource/ (サーバーやクライアントのビルド不要に置換できる)
-      - standalone/ ()
-  - locke/　(ロック用のロジックコード)
-    - Cargo.toml (teru/ を全て参照できる)
-    - src/
-      - ...
+- dist/ 以下はそのまま配信する
+  - client は /dist/js/strattera.js にコードを生成する. Single Page Application.
+  - client/src/common は src/common と共通(なので, 共通コードが書ける)
+- example の扱い
+  - serverライブラリ用のコードは src/ を見れるので書けるのでそのままテストできる(固有ロジックはexamplesに実装できる)
+
 
 # 世界観
 - UI/パーティクルは, 世界観を統一したい

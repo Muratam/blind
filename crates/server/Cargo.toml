@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 actix-web = "4.0.0-beta.10"
 actix-rt = "2.4.0"
+strattera-common = { path = "../common" }
 
 [[example]]
-name = "server"
+name = "simple"
