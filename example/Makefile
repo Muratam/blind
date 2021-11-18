@@ -1,14 +1,14 @@
 .PHONY: all
-all: setup wasm server
+all: setup client server
 
 .PHONY: setup
 setup:
 	cargo install wasm-pack
 
-.PHONY: wasm
-wasm:
-	cd wasm &&\
-	wasm-pack build --target web --no-typescript --out-dir ../server/dist/js --out-name strattera
+.PHONY: client
+client:
+	cd client &&\
+	wasm-pack build --target web --no-typescript --out-dir ../server/dist/js --out-name blind
 
 .PHONY: server
 server:

@@ -1,5 +1,5 @@
 [package]
-name = "strattera-server"
+name = "blind-server"
 version = "0.1.0"
 edition = "2021"
 
@@ -9,4 +9,4 @@ actix-http = "3.0.0-beta.9"
 actix-multipart = "0.4.0-beta.5"
 actix-session = "0.5.0-beta.2"
 actix-web = "4.0.0-beta.8"
-strattera-common = { path = "../common" }
+blind-anywhere = { path = "../anywhere" }

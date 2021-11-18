@@ -1,5 +1,5 @@
 [package]
-name = "example-wasm"
+name = "example-client"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,8 +7,8 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-example-common = { path = "../common" }
-strattera-wasm = { path = "../../crates/wasm/" }
+example-anywhere = { path = "../anywhere" }
+blind-client = { path = "../../crates/client/" }
 
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = false

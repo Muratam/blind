@@ -3,6 +3,18 @@
 version = 3
 
 [[package]]
+name = "blind-any"
+version = "0.1.0"
+
+[[package]]
+name = "blind-client"
+version = "0.1.0"
+dependencies = [
+ "blind-any",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "bumpalo"
 version = "3.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -13,21 +25,6 @@ name = "cfg-if"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
-
-[[package]]
-name = "example-common"
-version = "0.1.0"
-dependencies = [
- "strattera-common",
-]
-
-[[package]]
-name = "example-wasm"
-version = "0.1.0"
-dependencies = [
- "example-common",
- "strattera-wasm",
-]
 
 [[package]]
 name = "lazy_static"
@@ -60,18 +57,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "38bc8cc6a5f2e3655e0899c1b848643b2562f853f114bfec7be120678e3ace05"
 dependencies = [
  "proc-macro2",
-]
-
-[[package]]
-name = "strattera-common"
-version = "0.1.0"
-
-[[package]]
-name = "strattera-wasm"
-version = "0.1.0"
-dependencies = [
- "strattera-common",
- "wasm-bindgen",
 ]
 
 [[package]]

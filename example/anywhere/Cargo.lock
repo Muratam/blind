@@ -3,12 +3,12 @@
 version = 3
 
 [[package]]
-name = "example-common"
+name = "blind-anywhere"
 version = "0.1.0"
-dependencies = [
- "strattera-common",
-]
 
 [[package]]
-name = "strattera-common"
+name = "example-anywhere"
 version = "0.1.0"
+dependencies = [
+ "blind-anywhere",
+]

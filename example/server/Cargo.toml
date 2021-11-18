@@ -4,5 +4,5 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-example-common = { path = "../common" }
-strattera-server = { path = "../../crates/server" }
+example-anywhere = { path = "../anywhere" }
+blind-server = { path = "../../crates/server" }

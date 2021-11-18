@@ -1,35 +1,36 @@
-use actix_web::{*};
-use actix_files::{*};
-use crate::const_params::{*};
+use crate::const_params::*;
 use crate::html;
+use actix_files::*;
+use actix_web::*;
 
 #[derive(Debug)]
 pub struct ServerConfig {
   pub port: i32,
-  pub host: String
+  pub host: String,
 }
 
 impl Default for ServerConfig {
   fn default() -> ServerConfig {
     ServerConfig {
       port: 7272,
-      host: String::from("127.0.0.1")
+      host: String::from("127.0.0.1"),
     }
   }
 }
 
-
 // SPA のルート階層
 async fn get_index() -> impl Responder {
   // todo: シーン毎対応して複数階層のページが閲覧できるように
-  let config = html::WebPageConfig{..Default::default()};
+  let config = html::WebPageConfig {
+    ..Default::default()
+  };
   html::respond_html(&config)
 }
 
 #[actix_web::main]
 pub async fn serve(config: &ServerConfig) {
   let address = format!("{}:{}", config.host, config.port);
-  println!("Start Strattera Server at {}", address);
+  println!("Start Blind Server at {}", address);
   let _ = HttpServer::new(|| {
     let mut app = App::new();
     // scenes
@@ -55,7 +56,7 @@ pub async fn serve(config: &ServerConfig) {
     app
   })
   .bind(address)
-  .expect("Can not Start Strattera Server")
+  .expect("Can not Start Blind Server")
   .run()
   .await;
 }

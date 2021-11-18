@@ -353,6 +353,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
+name = "blind-any"
+version = "0.1.0"
+
+[[package]]
+name = "blind-server"
+version = "0.1.0"
+dependencies = [
+ "actix-files",
+ "actix-http",
+ "actix-multipart",
+ "actix-session",
+ "actix-web",
+ "blind-any",
+]
+
+[[package]]
 name = "block-buffer"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1323,22 +1339,6 @@ name = "stdweb-internal-runtime"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "213701ba3370744dcd1a12960caa4843b3d68b4d1c0a5d575e0d65b2ee9d16c0"
-
-[[package]]
-name = "strattera-common"
-version = "0.1.0"
-
-[[package]]
-name = "strattera-server"
-version = "0.1.0"
-dependencies = [
- "actix-files",
- "actix-http",
- "actix-multipart",
- "actix-session",
- "actix-web",
- "strattera-common",
-]
 
 [[package]]
 name = "subtle"
