@@ -4,6 +4,29 @@ Rust の入門兼色々やるためのSandboxなサーバー
 
 # データの種類
 
+## Sync
+```bash
+データの同期ポリシー(最終的には key-value(時系列) store)
+- 所有者(Client xor Server)
+- 伝達必要性
+- 保存先(localStorage / ServerStorage(like Redis))
+- N件保存する(-1なら無制限)
+- 文脈(一意のキー(client-id, scene, ...)が必要)
+todo: Get/Post(適宜コネクションを張りたい場合)
+    : ボタンをクリックして増加するサンプル(データはClient保存)
+todo: WebSocket(常にコネクションを張りたい場合)
+todo: 認証
+# こういうデータを保持したいとして
+#[policy(Client, 10)]
+struct A { int x, string y; struct X{int x; string y; } };
+struct StorePolicy {} // どこにどう保存するか、どう同期するか
+- データの定義はCommonに書く。そのcrate名が分かるはずなので一意になるはず!
+- clientId/SyncPolicy(一括でやるので) が第一のキー
+- clientId == 0 が server(Client非依存)
+Store<A> a (StorePolicy {}, StoreContext{})
+a.get().x; == a.frame(-1).x;
+```
+
 ## Logic Data
 ```
 DB(like Redis)
@@ -64,7 +87,7 @@ DB(like localStorege)
   - 以下の階層構造で描画
     1. Main3D + MainEffect(WebGL Canvas)
     2. MainUI2D + Projected3D + ProjectedEffect (2D Canvas)
-    3. Other HTML(グラフ描画ライブラリや文字入力テキストボックス)
+    3. Other HTML(グラフ描画ライブラリや文字入力テキストボックスやSVGやコピーしたいもの)
   - 統一的に扱って裏で動かしたい
     - パーティクルエフェクト
       - Instancing + TF でなんとか

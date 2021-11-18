@@ -2,16 +2,26 @@ use actix_web::{*};
 use crate::const_params::{*};
 
 #[derive(Debug)]
-pub struct HtmlRensponceConfig {
-  pub port: i32,
-  pub host: String
+pub struct WebPageConfig {
+  pub description: String,
+  pub title: String,
+  pub allow_publish: bool
 }
 
-pub fn respond_html() -> impl Responder {
-  let description = "";
-  let allow_publish = false;
+impl Default for WebPageConfig {
+  fn default() -> WebPageConfig {
+    WebPageConfig {
+      description: String::from(""),
+      title: String::from(""),
+      allow_publish: true
+    }
+  }
+}
 
-  let robots = if allow_publish { "index,follow" } else { "noindex,nofollow" };
+pub fn respond_html(config: &WebPageConfig) -> impl Responder {
+  let robots =
+    if config.allow_publish { "index,follow" }
+    else { "noindex,nofollow" };
   HttpResponse::Ok()
     .content_type("text/html")
     .body(format!(
@@ -26,18 +36,21 @@ r###"
     <meta name="format-detection" content="email=no,telephone=no,address=no">
     <meta name="robots" content="{robots}">
     <link rel="icon" href="{root}/favicon.ico">
-    <title></title>
+    <title>{title}</title>
   </head>
   <body>
     <noscript>
       <strong>We're sorry but doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
     </noscript>
+    <div id="{root_id}"></div>
     <script src="{root}/js/strattera.js"></script>
   </body>
 </html>
 "###,
   root=format!("./{}/", RESOURCE_ROOT_DIR_NAME),
-  description=description,
+  root_id=HTML_ROOT_DIV_ID,
+  description=config.description,
+  title=config.title,
   robots=robots,
 ))
   // TODO: OGP
