@@ -1,5 +1,5 @@
 [package]
-name = "example-client"
+name = "hoge-client"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,8 +7,8 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-example-anywhere = { path = "../anywhere" }
-prpr-client = { path = "../../crates/client" }
+hoge = { path = "../hoge" }
+prpr-client = { path = "../../crates/prpr_client" }
 
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = false

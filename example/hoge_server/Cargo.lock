@@ -694,6 +694,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "hoge"
+version = "0.1.0"
+dependencies = [
+ "prpr",
+]
+
+[[package]]
+name = "hoge-server"
+version = "0.1.0"
+dependencies = [
+ "hoge",
+ "prpr-server",
+]
+
+[[package]]
 name = "http"
 version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -718,9 +733,9 @@ checksum = "acd94fdbe1d4ff688b67b04eee2e17bd50995534a61539e45adfefb45e5e5503"
 
 [[package]]
 name = "httpdate"
-version = "1.0.1"
+version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6456b8a6c8f33fee7d958fcd1b60d55b11940a79e63ae87013e6d22e26034440"
+checksum = "c4a1e36c821dbe04574f602848a19f742f4fb3c98d40449f11bcad18d6b17421"
 
 [[package]]
 name = "idna"
@@ -1023,7 +1038,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "prpr-anywhere"
+name = "prpr"
 version = "0.1.0"
 
 [[package]]
@@ -1035,7 +1050,7 @@ dependencies = [
  "actix-multipart",
  "actix-session",
  "actix-web",
- "prpr-anywhere",
+ "prpr",
 ]
 
 [[package]]

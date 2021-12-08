@@ -1,6 +1,6 @@
 use crate::const_params::*;
 use actix_web::*;
-use prpr_anywhere::*;
+use prpr::*;
 
 #[derive(Debug)]
 pub struct WebPageConfig {

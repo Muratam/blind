@@ -48,14 +48,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "prpr-anywhere"
+name = "prpr"
 version = "0.1.0"
 
 [[package]]
 name = "prpr-client"
 version = "0.1.0"
 dependencies = [
- "prpr-anywhere",
+ "prpr",
  "wasm-bindgen",
  "web-sys",
 ]

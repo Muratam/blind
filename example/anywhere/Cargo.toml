@@ -1,7 +1,0 @@
-[package]
-name = "example-anywhere"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-prpr-anywhere = { path = "../../crates/anywhere" }

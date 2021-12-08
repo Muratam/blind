@@ -15,17 +15,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
-name = "example-anywhere"
+name = "hoge"
 version = "0.1.0"
 dependencies = [
- "prpr-anywhere",
+ "prpr",
 ]
 
 [[package]]
-name = "example-client"
+name = "hoge-client"
 version = "0.1.0"
 dependencies = [
- "example-anywhere",
+ "hoge",
  "prpr-client",
 ]
 
@@ -63,14 +63,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "prpr-anywhere"
+name = "prpr"
 version = "0.1.0"
 
 [[package]]
 name = "prpr-client"
 version = "0.1.0"
 dependencies = [
- "prpr-anywhere",
+ "prpr",
  "wasm-bindgen",
  "web-sys",
 ]
