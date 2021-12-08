@@ -45,7 +45,6 @@ r###"
     <noscript>
       <strong>We're sorry but doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
     </noscript>
-    <div id="{root_id}"></div>
     <script type="module">
       import init, {{ entry_point }} from "./{root}/js/prpr.js";
       init().then(entry_point);
@@ -54,7 +53,6 @@ r###"
 </html>
 "###,
   root=format!("./{}/", RESOURCE_ROOT_DIR_NAME),
-  root_id=HTML_ROOT_DIV_ID,
   description=config.description,
   title=config.title,
   robots=robots,

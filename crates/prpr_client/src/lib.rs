@@ -13,7 +13,11 @@ fn greet(name: &str) {
 
 #[wasm_bindgen]
 pub fn entry_point() {
-  let document = web_sys::window().unwrap().document().unwrap();
-  let root = document.get_element_by_id(HTML_ROOT_DIV_ID).unwrap();
-  root.set_inner_html("aaaaaaaa");
+  let window = web_sys::window().expect("no global `window` exists");
+  let document = window.document().expect("should have a document on window");
+  let body = document.body().expect("document should have a body");
+  let root = document.create_element("div").unwrap();
+  root.set_text_content(Some("Hello from Rust!"));
+  body.append_child(&root).unwrap();
+  // greet("abc");
 }
