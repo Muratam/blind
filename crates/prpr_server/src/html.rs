@@ -42,13 +42,8 @@ r###"
     <title>{title}</title>
   </head>
   <body>
-    <noscript>
-      <strong>We're sorry but doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
-    </noscript>
-    <script type="module">
-      import init, {{ entry_point }} from "./{root}/js/prpr.js";
-      init().then(entry_point);
-    </script>
+    <noscript> We're sorry but doesn't work properly without JavaScript enabled. Please enable it to continue. </noscript>
+    <script type="module"> import init from "./{root}/js/prpr.js"; init(); </script>
   </body>
 </html>
 "###,
