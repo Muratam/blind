@@ -16,6 +16,7 @@ features = [
   'HtmlDivElement',
   'HtmlCanvasElement',
   "CanvasRenderingContext2d",
+  "WebGlRenderingContext",
   'Node',
   'Text',
   'Window',
