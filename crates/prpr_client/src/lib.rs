@@ -29,6 +29,7 @@ mod js {
     }) as Box<dyn FnMut()>));
     request_animation_frame(g.borrow().as_ref().unwrap());
   }
+  // #[macro_export] macro_rules! start_main_loop { ( $( $x:expr )? ) => { $(js::start_main_loop(Box::new($x)))*  };}
 }
 
 mod scene {
@@ -57,10 +58,8 @@ mod scene {
     use WebGlRenderingContext as gl;
     let gl = gl_canvas.get_webgl_context();
     gl.viewport(0, 0, canvas.width() as i32, canvas.height() as i32);
-    gl.clear_color(0.0, 0.0, 0.0, 1.0);
     gl.enable(gl::DEPTH_TEST);
     gl.depth_func(gl::LEQUAL);
-    gl.clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
     let node = html::append_div(&root);
     node.set_text_content(Some("Hello from Rust!"));
     console::log(&context);
@@ -69,21 +68,14 @@ mod scene {
     console::log(&root);
     console::log(1 + 2);
     let mut i = 0;
-    let loop_impl = move || {
-      if i > 300 {
-        node.set_text_content(Some("All done!"));
-        return;
-      }
+    js::start_main_loop(Box::new(move || {
       i += 1;
       let text = format!("requestAnimationFrame has been called {} times.", i);
       node.set_text_content(Some(&text));
-    };
-    js::start_main_loop(Box::new(loop_impl));
-    js::start_main_loop(Box::new(|| console::log(4)));
-    js::start_main_loop(Box::new(log2));
-  }
-  fn log2() {
-    console::log(2);
+      let f = ((i % 100) as f32) / 100.0;
+      gl.clear_color(f, f, f, 1.0);
+      gl.clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
+    }));
   }
 }
 
