@@ -10,21 +10,45 @@ mod html;
 use html::*;
 use prpr::*;
 
+mod js {
+  use crate::*;
+  use std::cell::RefCell;
+  use std::rc::Rc;
+  use wasm_bindgen::JsCast;
+  pub fn start_main_loop(mut a: Box<dyn FnMut()>) {
+    fn request_animation_frame(f: &Closure<dyn FnMut()>) {
+      html::window()
+        .request_animation_frame(f.as_ref().unchecked_ref())
+        .expect("should register `requestAnimationFrame` OK");
+    }
+    let f = Rc::new(RefCell::new(None));
+    let g = f.clone();
+    *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
+      a();
+      request_animation_frame(f.borrow().as_ref().unwrap());
+    }) as Box<dyn FnMut()>));
+    request_animation_frame(g.borrow().as_ref().unwrap());
+  }
+}
+
 mod scene {
   use crate::*;
-  fn render_sample(context: &web_sys::CanvasRenderingContext2d) {
+  #[allow(unused_must_use)]
+  fn render_sample(ctx: &web_sys::CanvasRenderingContext2d) {
     use std::f64::consts::PI;
-    context.begin_path();
-    context.arc(75.0, 75.0, 50.0, 0.0, PI * 2.0).ok();
-    context.move_to(110.0, 75.0);
-    context.arc(75.0, 75.0, 35.0, 0.0, PI).ok();
-    context.move_to(65.0, 65.0);
-    context.arc(60.0, 65.0, 5.0, 0.0, PI * 2.0).ok();
-    context.move_to(95.0, 65.0);
-    context.arc(90.0, 65.0, 5.0, 0.0, PI * 2.0).ok();
-    context.stroke();
+    ctx.begin_path();
+    ctx.arc(75.0, 75.0, 50.0, 0.0, PI * 2.0);
+    ctx.move_to(110.0, 75.0);
+    ctx.arc(75.0, 75.0, 35.0, 0.0, PI);
+    ctx.move_to(65.0, 65.0);
+    ctx.arc(60.0, 65.0, 5.0, 0.0, PI * 2.0);
+    ctx.move_to(95.0, 65.0);
+    ctx.arc(90.0, 65.0, 5.0, 0.0, PI * 2.0);
+    ctx.stroke();
   }
-  pub fn create() {
+  // 三次元の理想的なシーン作成
+  // オーバーレイしたりしたい
+  pub fn create_fullscreen_3d() {
     let root = html::create_root();
     let canvas = html::append_canvas(&root);
     let context = canvas.get_2d_context();
@@ -44,12 +68,26 @@ mod scene {
     console::log("abc");
     console::log(&root);
     console::log(1 + 2);
+    let mut i = 0;
+    let loop_impl = move || {
+      if i > 300 {
+        node.set_text_content(Some("All done!"));
+        return;
+      }
+      i += 1;
+      let text = format!("requestAnimationFrame has been called {} times.", i);
+      node.set_text_content(Some(&text));
+    };
+    js::start_main_loop(Box::new(loop_impl));
+    js::start_main_loop(Box::new(|| console::log(4)));
+    js::start_main_loop(Box::new(log2));
+  }
+  fn log2() {
+    console::log(2);
   }
 }
 
-// #[wasm_bindgen] extern "C" { pub fn alert(s: &str); }
-
 #[wasm_bindgen(start)]
 pub fn start() {
-  scene::create();
+  scene::create_fullscreen_3d();
 }
