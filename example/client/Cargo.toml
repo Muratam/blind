@@ -8,7 +8,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 example-anywhere = { path = "../anywhere" }
-blind-client = { path = "../../crates/client/" }
+prpr-client = { path = "../../crates/client/" }
 
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = false

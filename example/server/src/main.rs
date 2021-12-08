@@ -1,4 +1,4 @@
-use blind_server::*;
+use prpr_server::*;
 
 fn main() {
   let config = ServerConfig {

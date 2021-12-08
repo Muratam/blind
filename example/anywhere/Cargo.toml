@@ -4,4 +4,4 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-blind-anywhere = { path = "../../crates/anywhere" }
+prpr-anywhere = { path = "../../crates/anywhere" }

@@ -8,7 +8,7 @@ setup:
 .PHONY: client
 client:
 	cd client &&\
-	wasm-pack build --target web --no-typescript --out-dir ../server/dist/js --out-name blind
+	wasm-pack build --target web --no-typescript --out-dir ../server/dist/js --out-name prpr
 
 .PHONY: server
 server:

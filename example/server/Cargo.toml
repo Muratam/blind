@@ -5,4 +5,4 @@ edition = "2021"
 
 [dependencies]
 example-anywhere = { path = "../anywhere" }
-blind-server = { path = "../../crates/server" }
+prpr-server = { path = "../../crates/server" }

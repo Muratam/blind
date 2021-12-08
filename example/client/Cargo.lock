@@ -3,18 +3,6 @@
 version = 3
 
 [[package]]
-name = "blind-anywhere"
-version = "0.1.0"
-
-[[package]]
-name = "blind-client"
-version = "0.1.0"
-dependencies = [
- "blind-anywhere",
- "wasm-bindgen",
-]
-
-[[package]]
 name = "bumpalo"
 version = "3.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -30,15 +18,15 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 name = "example-anywhere"
 version = "0.1.0"
 dependencies = [
- "blind-anywhere",
+ "prpr-anywhere",
 ]
 
 [[package]]
 name = "example-client"
 version = "0.1.0"
 dependencies = [
- "blind-client",
  "example-anywhere",
+ "prpr-client",
 ]
 
 [[package]]
@@ -63,6 +51,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ba508cc11742c0dc5c1659771673afbab7a0efab23aa17e854cbab0837ed0b43"
 dependencies = [
  "unicode-xid",
+]
+
+[[package]]
+name = "prpr-anywhere"
+version = "0.1.0"
+
+[[package]]
+name = "prpr-client"
+version = "0.1.0"
+dependencies = [
+ "prpr-anywhere",
+ "wasm-bindgen",
 ]
 
 [[package]]

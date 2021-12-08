@@ -45,7 +45,7 @@ r###"
       <strong>We're sorry but doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
     </noscript>
     <div id="{root_id}"></div>
-    <script src="{root}/js/blind.js"></script>
+    <script src="{root}/js/prpr.js"></script>
   </body>
 </html>
 "###,

@@ -353,22 +353,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
-name = "blind-any"
-version = "0.1.0"
-
-[[package]]
-name = "blind-server"
-version = "0.1.0"
-dependencies = [
- "actix-files",
- "actix-http",
- "actix-multipart",
- "actix-session",
- "actix-web",
- "blind-any",
-]
-
-[[package]]
 name = "block-buffer"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1036,6 +1020,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ba508cc11742c0dc5c1659771673afbab7a0efab23aa17e854cbab0837ed0b43"
 dependencies = [
  "unicode-xid",
+]
+
+[[package]]
+name = "prpr-anywhere"
+version = "0.1.0"
+
+[[package]]
+name = "prpr-server"
+version = "0.1.0"
+dependencies = [
+ "actix-files",
+ "actix-http",
+ "actix-multipart",
+ "actix-session",
+ "actix-web",
+ "prpr-anywhere",
 ]
 
 [[package]]

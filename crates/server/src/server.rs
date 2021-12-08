@@ -30,7 +30,7 @@ async fn get_index() -> impl Responder {
 #[actix_web::main]
 pub async fn serve(config: &ServerConfig) {
   let address = format!("{}:{}", config.host, config.port);
-  println!("Start Blind Server at {}", address);
+  println!("Start prpr Server at {}", address);
   let _ = HttpServer::new(|| {
     let mut app = App::new();
     // scenes
@@ -56,7 +56,7 @@ pub async fn serve(config: &ServerConfig) {
     app
   })
   .bind(address)
-  .expect("Can not Start Blind Server")
+  .expect("Can not Start prpr Server")
   .run()
   .await;
 }

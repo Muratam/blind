@@ -1,4 +1,4 @@
-# Rust Sandbox Server
+# Rust PRPR Server
 
 Rust の入門兼色々やるためのSandboxなサーバー
 
@@ -103,8 +103,9 @@ DB(like localStorege)
 - サーバー・クライアント両者のコードをまとめて管理するのが必須。
 - 全てRustで書いて、 クライアントは wasm(+ html + glsl + js(for lib))になる
 - dist/ 以下はそのまま配信する
-  - client は /dist/js/blind.js にコードを生成する. Single Page Application.
-  - client/src/common は src/common と共通(なので, 共通コードが書ける)
+  - client は /dist/js/prpr.js にコードを生成する. Single Page Application.
+  - client/src/
+   は src/common と共通(なので, 共通コードが書ける)
 - example の扱い
   - serverライブラリ用のコードは src/ を見れるので書けるのでそのままテストできる(固有ロジックはexamplesに実装できる)
 

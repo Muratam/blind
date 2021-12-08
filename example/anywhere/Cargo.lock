@@ -3,12 +3,12 @@
 version = 3
 
 [[package]]
-name = "blind-anywhere"
-version = "0.1.0"
-
-[[package]]
 name = "example-anywhere"
 version = "0.1.0"
 dependencies = [
- "blind-anywhere",
+ "prpr-anywhere",
 ]
+
+[[package]]
+name = "prpr-anywhere"
+version = "0.1.0"
