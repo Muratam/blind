@@ -45,7 +45,10 @@ r###"
       <strong>We're sorry but doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
     </noscript>
     <div id="{root_id}"></div>
-    <script src="{root}/js/prpr.js"></script>
+    <script type="module">
+      import init, {{ entry_point }} from "./{root}/js/prpr.js";
+      init().then(entry_point);
+    </script>
   </body>
 </html>
 "###,

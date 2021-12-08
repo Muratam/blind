@@ -6,8 +6,11 @@ use wasm_bindgen::prelude::*;
 extern "C" {
   pub fn alert(s: &str);
 }
+fn greet(name: &str) {
+  alert(&format!("Hello, {}!", name));
+}
 
 #[wasm_bindgen]
-pub fn greet(name: &str) {
-  alert(&format!("Hello, {}!", name));
+pub fn entry_point() {
+  greet("PRPR");
 }
