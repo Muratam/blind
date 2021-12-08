@@ -1,12 +1,14 @@
+use std::f64;
+use wasm_bindgen::prelude::*;
+use web_sys::*;
+
 extern crate wasm_bindgen;
 extern crate web_sys;
+
 pub mod console;
 mod html;
 use html::*;
 use prpr::*;
-use std::f64;
-use wasm_bindgen::prelude::*;
-use web_sys::*;
 
 // #[wasm_bindgen] extern "C" { pub fn alert(s: &str); }
 

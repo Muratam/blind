@@ -1,4 +1,6 @@
-// HTML
+pub mod canvas;
+pub use canvas::*;
+
 pub fn window() -> web_sys::Window {
   web_sys::window().expect("no global `window` exists")
 }
@@ -27,19 +29,4 @@ pub fn append_canvas(parent: &web_sys::HtmlElement) -> web_sys::HtmlCanvasElemen
 }
 pub fn create_root() -> web_sys::HtmlDivElement {
   append_div(&body())
-}
-
-// Canvas
-pub trait Canvas {
-  fn get_2d_context(&self) -> web_sys::CanvasRenderingContext2d;
-}
-impl Canvas for web_sys::HtmlCanvasElement {
-  fn get_2d_context(&self) -> web_sys::CanvasRenderingContext2d {
-    let context = self
-      .get_context("2d")
-      .expect("failed to get context 2d")
-      .expect("failed to get context 2d");
-    wasm_bindgen::JsCast::dyn_into::<web_sys::CanvasRenderingContext2d>(context)
-      .expect("failed to cast to CanvasRenderingContext2d")
-  }
 }
