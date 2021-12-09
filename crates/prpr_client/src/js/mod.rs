@@ -5,7 +5,7 @@ use wasm_bindgen::closure::Closure;
 use wasm_bindgen::JsCast;
 
 // #[macro_export] macro_rules! start_main_loop { ( $( $x:expr )? ) => { $(js::start_main_loop(Box::new($x)))*  };}
-pub fn start_animation_frame_loop(mut a: Box<dyn FnMut()>) {
+pub fn start_animation_frame_loop(mut a: Box<dyn FnMut(i32)>) {
   fn request_animation_frame(f: &Closure<dyn FnMut()>) {
     html::window()
       .request_animation_frame(f.as_ref().unchecked_ref())
@@ -13,17 +13,21 @@ pub fn start_animation_frame_loop(mut a: Box<dyn FnMut()>) {
   }
   let f = Rc::new(RefCell::new(None));
   let g = f.clone();
+  let mut i = 0;
   *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
-    a();
+    a(i);
+    i += 1;
     request_animation_frame(f.borrow().as_ref().unwrap());
   }) as Box<dyn FnMut()>));
   request_animation_frame(g.borrow().as_ref().unwrap());
 }
 
 pub mod console {
+  #[allow(dead_code)]
   pub fn log<T: Into<wasm_bindgen::JsValue>>(value: T) {
     web_sys::console::log_1(&value.into());
   }
+  #[allow(dead_code)]
   pub fn error<T: Into<wasm_bindgen::JsValue>>(value: T) {
     web_sys::console::error_1(&value.into());
   }
