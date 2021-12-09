@@ -3,12 +3,13 @@ all: setup client server
 
 .PHONY: setup
 setup:
-	cargo install wasm-pack
+	cargo install wasm-pack -q
 
 .PHONY: client
 client:
 	cd hoge_client &&\
 	wasm-pack build  --target web --no-typescript --out-dir ../hoge_server/dist/js --out-name prpr
+  #  --profiling / --release
 
 .PHONY: server
 server:

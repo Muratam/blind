@@ -1,12 +1,7 @@
 // use prpr::*;
-use wasm_bindgen::prelude::*;
-extern crate wasm_bindgen;
+pub use wasm_bindgen::prelude::wasm_bindgen as entry_point;
+pub extern crate wasm_bindgen;
 
 mod html;
 mod js;
 pub mod world;
-
-#[wasm_bindgen(start)]
-pub fn start() {
-  world::create();
-}
