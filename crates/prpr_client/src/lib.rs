@@ -5,32 +5,10 @@ use web_sys::*;
 extern crate wasm_bindgen;
 extern crate web_sys;
 
-pub mod console;
 mod html;
+mod js;
 use html::*;
 use prpr::*;
-
-mod js {
-  use crate::*;
-  use std::cell::RefCell;
-  use std::rc::Rc;
-  use wasm_bindgen::JsCast;
-  pub fn start_main_loop(mut a: Box<dyn FnMut()>) {
-    fn request_animation_frame(f: &Closure<dyn FnMut()>) {
-      html::window()
-        .request_animation_frame(f.as_ref().unchecked_ref())
-        .expect("should register `requestAnimationFrame` OK");
-    }
-    let f = Rc::new(RefCell::new(None));
-    let g = f.clone();
-    *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
-      a();
-      request_animation_frame(f.borrow().as_ref().unwrap());
-    }) as Box<dyn FnMut()>));
-    request_animation_frame(g.borrow().as_ref().unwrap());
-  }
-  // #[macro_export] macro_rules! start_main_loop { ( $( $x:expr )? ) => { $(js::start_main_loop(Box::new($x)))*  };}
-}
 
 mod scene {
   use crate::*;
@@ -62,13 +40,13 @@ mod scene {
     gl.depth_func(gl::LEQUAL);
     let node = html::append_div(&root);
     node.set_text_content(Some("Hello from Rust!"));
-    console::log(&context);
-    console::log(&gl);
-    console::log("abc");
-    console::log(&root);
-    console::log(1 + 2);
+    js::console::log(&context);
+    js::console::log(&gl);
+    js::console::log("abc");
+    js::console::log(&root);
+    js::console::error(1 + 2);
     let mut i = 0;
-    js::start_main_loop(Box::new(move || {
+    js::start_animation_frame_loop(Box::new(move || {
       i += 1;
       let text = format!("requestAnimationFrame has been called {} times.", i);
       node.set_text_content(Some(&text));
