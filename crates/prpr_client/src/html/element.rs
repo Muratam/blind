@@ -9,11 +9,12 @@ pub fn document() -> web_sys::Document {
 pub fn body() -> web_sys::HtmlElement {
   document().body().expect("document should have a body")
 }
-pub fn append_tag(parent: &web_sys::HtmlElement, tag: &str) -> web_sys::Node {
+pub fn append_tag(parent: &web_sys::HtmlElement, tag: &str) -> web_sys::HtmlElement {
   let created = document().create_element(tag).unwrap();
-  parent
+  let elem = parent
     .append_child(&created)
-    .expect(&format!("failed to append child ({})", tag))
+    .expect(&format!("failed to append child ({})", tag));
+  wasm_bindgen::JsCast::dyn_into::<web_sys::HtmlElement>(elem).expect("failed cast to div")
 }
 pub fn append_div(parent: &web_sys::HtmlElement) -> web_sys::HtmlDivElement {
   let div = append_tag(parent, "div");
@@ -24,6 +25,12 @@ pub fn append_canvas(parent: &web_sys::HtmlElement) -> web_sys::HtmlCanvasElemen
   wasm_bindgen::JsCast::dyn_into::<web_sys::HtmlCanvasElement>(canvas)
     .expect("failed cast to canvas")
 }
-pub fn create_root() -> web_sys::HtmlDivElement {
-  append_div(&body())
+pub fn append_css(parent: &web_sys::HtmlElement, text: &str) -> web_sys::HtmlStyleElement {
+  let tag = "style";
+  let created = document().create_element(tag).unwrap();
+  created.set_text_content(Some(text));
+  let elem = parent
+    .append_child(&created)
+    .expect(&format!("failed to append child ({})", tag));
+  wasm_bindgen::JsCast::dyn_into::<web_sys::HtmlStyleElement>(elem).expect("failed cast to style")
 }
