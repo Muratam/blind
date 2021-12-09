@@ -4,8 +4,7 @@ use std::rc::Rc;
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::JsCast;
 
-// #[macro_export] macro_rules! start_main_loop { ( $( $x:expr )? ) => { $(js::start_main_loop(Box::new($x)))*  };}
-pub fn start_animation_frame_loop(mut a: Box<dyn FnMut(i32)>) {
+pub fn start_animation_frame_loop(mut a: Box<dyn FnMut(i64)>) {
   fn request_animation_frame(f: &Closure<dyn FnMut()>) {
     html::window()
       .request_animation_frame(f.as_ref().unchecked_ref())

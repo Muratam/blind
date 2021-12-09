@@ -9,6 +9,7 @@ fn setup_global_style(parent: &web_sys::HtmlElement) {
   }"###;
   let _ = append_css(parent, css);
 }
+
 fn setup_layer(elem: &web_sys::HtmlElement, z_index: i64) {
   let style = elem.style();
   style.set_property("position", "absolute").ok();
@@ -24,6 +25,8 @@ pub struct FullScreenLayers {
   // overlay3d_layer: web_sys::HtmlCanvasElement,
   // overlay2d_layer: web_sys::HtmlCanvasElement,
   html_layer: web_sys::HtmlDivElement,
+  width: i64,
+  height: i64,
 }
 
 impl FullScreenLayers {
@@ -35,6 +38,24 @@ impl FullScreenLayers {
   }
   pub fn get_html_layer(&self) -> &web_sys::HtmlDivElement {
     &self.html_layer
+  }
+  pub fn check_resized(&mut self) {
+    let mut updated = false;
+    if let Some(width) = window().inner_width().unwrap().as_f64() {
+      self.width = width as i64;
+      updated = true;
+    }
+    if let Some(height) = window().inner_height().unwrap().as_f64() {
+      self.height = height as i64;
+      updated = true;
+    }
+    if !updated {
+      return;
+    }
+    for c in vec![&self.main_2d_layer, &self.main_3d_layer] {
+      c.set_attribute("width", &self.width.to_string()).ok();
+      c.set_attribute("height", &self.height.to_string()).ok();
+    }
   }
 }
 
@@ -48,9 +69,13 @@ pub fn new() -> FullScreenLayers {
   let html_layer = html::append_div(&root_element);
   setup_layer(&html_layer, 2);
   html_layer.style().set_property("overflow", "scroll").ok();
-  FullScreenLayers {
+  let mut result = FullScreenLayers {
     main_2d_layer: main_2d_layer,
     main_3d_layer: main_3d_layer,
     html_layer: html_layer,
-  }
+    width: 0,
+    height: 0,
+  };
+  result.check_resized();
+  result
 }
