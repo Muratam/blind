@@ -1,0 +1,8 @@
+[package]
+name = "minimal-server"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+minimal = { path = "../minimal" }
+prpr-server = { path = "../../../crates/prpr_server" }

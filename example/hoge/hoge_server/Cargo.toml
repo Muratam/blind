@@ -5,4 +5,4 @@ edition = "2021"
 
 [dependencies]
 hoge = { path = "../hoge" }
-prpr-server = { path = "../../crates/prpr_server" }
+prpr-server = { path = "../../../crates/prpr_server" }

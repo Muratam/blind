@@ -1,0 +1,14 @@
+[package]
+name = "minimal-client"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+minimal = { path = "../minimal" }
+prpr-client = { path = "../../../crates/prpr_client" }
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = false

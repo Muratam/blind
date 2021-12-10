@@ -1,8 +1,15 @@
 # Rust PRPR Web Framework
 
-## run example
+## run developping example
 
 ```
-$ cd example
+$ cd example/hoge
+$ make
+```
+
+## try minimal template example
+
+```
+$ cd example/template
 $ make
 ```
