@@ -9,7 +9,7 @@ mod html;
 mod js;
 mod prgl;
 mod system;
-pub use system::{run, System};
+pub use system::{run, Core, System};
 
 struct SampleSystem {
   surface: prgl::Texture,
@@ -18,23 +18,27 @@ struct SampleSystem {
 }
 
 impl System for SampleSystem {
-  fn new(core: &system::Core) -> Self {
-    let prgl = core.main_prgl();
-    let surface = prgl.new_texture();
-    let renderpass = prgl.new_renderpass();
-    let pipeline = prgl.new_pipeline();
+  fn new(core: &Core) -> Self {
+    let prgl = core.get_main_prgl();
+    let surface = prgl.new_sandbox_surface();
+    let renderpass = prgl.new_sandbox_renderpass();
+    let pipeline = prgl.new_sandbox_pipeline();
     Self {
       surface,
       renderpass,
       pipeline,
     }
   }
-  fn update(&mut self, core: &system::Core) {
-    core.main_prgl().update(&self.surface);
-    let frame = core.frame();
-    self.render_sample(&core.main_2d_context());
+  fn update(&mut self, core: &Core) {
+    // ~ update までの流れは別途モジュール化する
+    self.renderpass.bind();
+    self.pipeline.draw();
+    core.get_main_prgl().update(&self.surface);
+    //
+    let frame = core.get_frame();
+    self.render_sample(&core.get_main_2d_context());
     if frame < 200 {
-      let html_layer = core.html_layer();
+      let html_layer = core.get_html_layer();
       let text = format!("requestAnimationFrame has been called {} times.", frame);
       let pre_text = html_layer.text_content().unwrap();
       html_layer.set_text_content(Some(&format!("{}{}", &pre_text, &text)));

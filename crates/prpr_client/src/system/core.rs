@@ -24,18 +24,18 @@ impl Core {
     self.frame += 1;
     self.layers.adjust_screen_size();
   }
-  pub fn frame(&self) -> i64 {
+  pub fn get_frame(&self) -> i64 {
     self.frame
   }
-  pub fn main_prgl(&self) -> &prgl::Instance {
+  pub fn get_main_prgl(&self) -> &prgl::Instance {
     &self.main_prgl
   }
   // depracated(もっとラップする)
-  pub fn main_2d_context(&self) -> web_sys::CanvasRenderingContext2d {
+  pub fn get_main_2d_context(&self) -> web_sys::CanvasRenderingContext2d {
     self.layers.get_main_2d_context()
   }
   // depracated(もっとラップする)
-  pub fn html_layer(&self) -> &web_sys::HtmlDivElement {
+  pub fn get_html_layer(&self) -> &web_sys::HtmlDivElement {
     self.layers.get_html_layer()
   }
 }
