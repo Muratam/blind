@@ -10,8 +10,8 @@ pub struct WebPageConfig {
 }
 
 impl Default for WebPageConfig {
-  fn default() -> WebPageConfig {
-    WebPageConfig {
+  fn default() -> Self {
+    Self {
       description: String::from(""),
       title: String::from(""),
       allow_publish: true,

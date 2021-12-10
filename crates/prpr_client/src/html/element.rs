@@ -9,6 +9,9 @@ pub fn document() -> web_sys::Document {
 pub fn body() -> web_sys::HtmlElement {
   document().body().expect("document should have a body")
 }
+pub fn screen() -> web_sys::Screen {
+  window().screen().expect("should have a screen on window")
+}
 pub fn append_tag(parent: &web_sys::HtmlElement, tag: &str) -> web_sys::HtmlElement {
   let created = document().create_element(tag).unwrap();
   let elem = parent

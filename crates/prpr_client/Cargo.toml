@@ -22,5 +22,6 @@ features = [
   'Node',
   'Text',
   'Window',
+  "Screen",
   "console",
 ]

@@ -10,8 +10,8 @@ pub struct ServerConfig {
 }
 
 impl Default for ServerConfig {
-  fn default() -> ServerConfig {
-    ServerConfig {
+  fn default() -> Self {
+    Self {
       port: 7272,
       host: String::from("127.0.0.1"),
     }
