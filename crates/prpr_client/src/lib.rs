@@ -9,10 +9,10 @@ mod html;
 mod js;
 mod prgl;
 mod system;
-use system::*;
+pub use system::{run, Runnable, System};
 
 struct Sample {
-  system: system::System,
+  system: System,
   surface: prgl::Texture,
   renderpass: prgl::RenderPass,
   pipeline: prgl::Pipeline,
@@ -21,15 +21,7 @@ struct Sample {
 impl Runnable for Sample {
   fn update(&mut self) {
     self.system.update();
-    self.system.main_prgl().update(&self.surface);
-    let frame = self.system.frame();
-    self.render_sample(&self.system.main_2d_context());
-    if frame < 200 {
-      let html_layer = self.system.html_layer();
-      let text = format!("requestAnimationFrame has been called {} times.", frame);
-      let pre_text = html_layer.text_content().unwrap();
-      html_layer.set_text_content(Some(&format!("{}{}", &pre_text, &text)));
-    }
+    self.update_impl()
   }
 }
 impl Sample {
@@ -44,6 +36,17 @@ impl Sample {
       surface,
       renderpass,
       pipeline,
+    }
+  }
+  fn update_impl(&mut self) {
+    self.system.main_prgl().update(&self.surface);
+    let frame = self.system.frame();
+    self.render_sample(&self.system.main_2d_context());
+    if frame < 200 {
+      let html_layer = self.system.html_layer();
+      let text = format!("requestAnimationFrame has been called {} times.", frame);
+      let pre_text = html_layer.text_content().unwrap();
+      html_layer.set_text_content(Some(&format!("{}{}", &pre_text, &text)));
     }
   }
   fn render_sample(&mut self, ctx: &web_sys::CanvasRenderingContext2d) {

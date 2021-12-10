@@ -1,10 +1,10 @@
 use crate::js;
 use crate::prgl;
 mod layers;
-use layers::*;
+use layers::Layers;
 
 pub trait Runnable {
-  fn update(&mut self) {}
+  fn update(&mut self);
 }
 
 pub fn run<T: 'static + Runnable>(mut runnable: T) {

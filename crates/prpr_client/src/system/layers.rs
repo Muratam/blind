@@ -1,5 +1,5 @@
 use crate::html;
-use crate::html::*;
+use crate::html::Canvas;
 
 fn setup_global_style(parent: &web_sys::HtmlElement) {
   let css = r###" * {
@@ -7,7 +7,7 @@ fn setup_global_style(parent: &web_sys::HtmlElement) {
     border: 0px;
     margin: 0px;
   }"###;
-  let _ = append_css(parent, css);
+  let _ = html::append_css(parent, css);
 }
 
 fn setup_layer(elem: &web_sys::HtmlElement, z_index: i64) {
@@ -31,7 +31,7 @@ pub struct Layers {
 
 impl Layers {
   pub fn new() -> Self {
-    let root_element = append_div(&body());
+    let root_element = html::append_div(&html::body());
     setup_global_style(&root_element);
     let main_3d_layer = html::append_canvas(&root_element);
     setup_layer(&main_3d_layer, 0);
@@ -62,11 +62,11 @@ impl Layers {
   }
   pub fn adjust_screen_size(&mut self) {
     let mut updated = false;
-    if let Some(width) = window().inner_width().unwrap().as_f64() {
+    if let Some(width) = html::window().inner_width().unwrap().as_f64() {
       self.width = width as i64;
       updated = true;
     }
-    if let Some(height) = window().inner_height().unwrap().as_f64() {
+    if let Some(height) = html::window().inner_height().unwrap().as_f64() {
       self.height = height as i64;
       updated = true;
     }
