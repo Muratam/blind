@@ -9,46 +9,40 @@ mod html;
 mod js;
 mod prgl;
 mod system;
-pub use system::{run, Runnable, System};
+pub use system::{run, System};
 
-struct Sample {
-  system: System,
+struct SampleSystem {
   surface: prgl::Texture,
   renderpass: prgl::RenderPass,
   pipeline: prgl::Pipeline,
 }
 
-impl Runnable for Sample {
-  fn update(&mut self) {
-    self.system.update();
-    self.update_impl()
-  }
-}
-impl Sample {
-  fn new() -> Self {
-    let system = System::new();
-    let prgl = system.main_prgl();
+impl System for SampleSystem {
+  fn new(core: &system::Core) -> Self {
+    let prgl = core.main_prgl();
     let surface = prgl.new_texture();
     let renderpass = prgl.new_renderpass();
     let pipeline = prgl.new_pipeline();
     Self {
-      system,
       surface,
       renderpass,
       pipeline,
     }
   }
-  fn update_impl(&mut self) {
-    self.system.main_prgl().update(&self.surface);
-    let frame = self.system.frame();
-    self.render_sample(&self.system.main_2d_context());
+  fn update(&mut self, core: &system::Core) {
+    core.main_prgl().update(&self.surface);
+    let frame = core.frame();
+    self.render_sample(&core.main_2d_context());
     if frame < 200 {
-      let html_layer = self.system.html_layer();
+      let html_layer = core.html_layer();
       let text = format!("requestAnimationFrame has been called {} times.", frame);
       let pre_text = html_layer.text_content().unwrap();
       html_layer.set_text_content(Some(&format!("{}{}", &pre_text, &text)));
     }
   }
+}
+
+impl SampleSystem {
   fn render_sample(&mut self, ctx: &web_sys::CanvasRenderingContext2d) {
     use std::f64::consts::PI;
     ctx.begin_path();
@@ -65,5 +59,5 @@ impl Sample {
 
 pub fn run_sample() {
   js::console::log("create prpr world !!");
-  run(Sample::new());
+  run::<SampleSystem>();
 }
