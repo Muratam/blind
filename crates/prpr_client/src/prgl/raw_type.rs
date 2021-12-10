@@ -15,7 +15,8 @@ mod todo_move_to_prpr {
 use todo_move_to_prpr::*;
 
 // 実態として必要な情報を全て詰め込んだもの
-pub use web_sys::WebGlRenderingContext as Gl;
+pub use web_sys::WebGlRenderingContext as gl;
+pub use web_sys::WebGlRenderingContext as WebGlContext;
 pub const SWAP_COUNT: i64 = 2;
 struct RawBuffer {
   need_swap: bool,
