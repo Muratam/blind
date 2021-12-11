@@ -1,18 +1,4 @@
-mod todo_move_to_prpr {
-  pub struct Vec4 {
-    pub x: f64,
-    pub y: f64,
-    pub z: f64,
-    pub w: f64,
-  }
-  pub struct Rect<T> {
-    pub x: T,
-    pub y: T,
-    pub width: T,
-    pub height: T,
-  }
-}
-use todo_move_to_prpr::*;
+use prpr::math::*;
 
 // 実態として必要な情報を全て詰め込んだもの
 pub use web_sys::WebGlRenderingContext as gl;
@@ -59,6 +45,6 @@ struct RawRenderPass {
   stencil_attachment: RawStencilRenderTarget,
   frame_buffer: RawFrameBuffer,
   render_buffer: RawRenderBuffer,
-  viewport: Rect<f64>,
-  scissor: Rect<i64>,
+  viewport: Option<Rect<f64>>,
+  scissor: Option<Rect<i64>>,
 }

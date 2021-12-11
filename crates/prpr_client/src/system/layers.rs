@@ -6,6 +6,7 @@ fn setup_global_style(parent: &web_sys::HtmlElement) {
     padding: 0px;
     border: 0px;
     margin: 0px;
+    overscroll-behavior-y: none;
   }"###;
   let _ = html::append_css(parent, css);
 }

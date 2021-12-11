@@ -22,12 +22,17 @@ impl Pipeline {
 }
 pub struct RenderPass {
   gl: Rc<gl>,
+  sandbox_value: f32,
 }
 impl RenderPass {
   pub fn bind(&self) {
     let gl = &self.gl;
-    gl.clear_color(0.5, 0.5, 0.5, 1.0);
+    let v = self.sandbox_value;
+    gl.clear_color(v, v, v, 1.0);
     gl.clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
+  }
+  pub fn update_sandbox_value(&mut self, v: f32) {
+    self.sandbox_value = v;
   }
 }
 
@@ -44,7 +49,7 @@ impl Instance {
   // 諸々更新が終わった後このテクスチャを利用する
   pub fn update(&self, surface: &Texture) {
     let gl = &self.gl;
-    // gl.flush();
+    gl.flush();
   }
   // create gpu objects
   // pub fn new_shader(&self) {}
@@ -68,6 +73,7 @@ impl Instance {
   pub fn new_sandbox_renderpass(&self) -> RenderPass {
     RenderPass {
       gl: Rc::clone(&self.gl),
+      sandbox_value: 0.5,
     }
   }
 }

@@ -30,12 +30,15 @@ impl System for SampleSystem {
     }
   }
   fn update(&mut self, core: &Core) {
+    let frame = core.get_frame();
     // ~ update までの流れは別途モジュール化する
+    self
+      .renderpass
+      .update_sandbox_value(((frame as f32) / 100.0).sin() * 0.25 + 0.75);
     self.renderpass.bind();
     self.pipeline.draw();
     core.get_main_prgl().update(&self.surface);
     //
-    let frame = core.get_frame();
     self.render_sample(&core.get_main_2d_context());
     if frame < 200 {
       let html_layer = core.get_html_layer();
