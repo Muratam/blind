@@ -19,6 +19,8 @@ struct SampleSystem {
 
 impl System for SampleSystem {
   fn new(core: &Core) -> Self {
+    let v2 = prpr::math::Vec2::new(0.0, 0.0);
+    js::console::log(v2.x);
     let prgl = core.get_main_prgl();
     let surface = prgl.new_sandbox_surface();
     let renderpass = prgl.new_sandbox_renderpass();

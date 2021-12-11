@@ -21,6 +21,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
+name = "glam"
+version = "0.20.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "68270e16582ea40f9c5b2fcd588fbc9cb696577222e04a64d9085cc314806a8a"
+
+[[package]]
 name = "hoge"
 version = "0.1.0"
 dependencies = [
@@ -81,6 +87,7 @@ dependencies = [
 name = "prpr"
 version = "0.1.0"
 dependencies = [
+ "glam",
  "num-traits",
 ]
 
