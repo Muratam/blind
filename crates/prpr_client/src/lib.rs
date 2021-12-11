@@ -22,7 +22,9 @@ impl System for SampleSystem {
   fn new(core: &Core) -> Self {
     let prgl = core.get_main_prgl();
     let surface = prgl.new_surface();
-    let renderpass = prgl.new_renderpass();
+    let mut renderpass = prgl.new_renderpass();
+    renderpass.set_color_target(&surface);
+    renderpass.set_color_target(&surface);
     let pipeline = prgl.new_pipeline();
     Self {
       surface,
@@ -32,12 +34,14 @@ impl System for SampleSystem {
   }
   fn update(&mut self, core: &Core) {
     let frame = core.get_frame();
-    // TODO: GLの update までの流れは別途モジュール化する
-    let v = ((frame as f32) / 100.0).sin() * 0.25 + 0.75;
-    self.renderpass.set_clear_color(Vec4::new(v, v, v, 1.0));
-    self.renderpass.bind();
-    self.pipeline.draw();
-    core.get_main_prgl().update(&self.surface);
+    {
+      // TODO: GLの update までの流れは別途モジュール化する
+      let v = ((frame as f32) / 100.0).sin() * 0.25 + 0.75;
+      self.renderpass.set_clear_color(Vec4::new(v, v, v, 1.0));
+      self.renderpass.bind();
+      self.pipeline.draw();
+      core.get_main_prgl().swap_surface(&self.surface);
+    }
     // TODO: 2D
     self.render_sample(&core.get_main_2d_context());
     // TODO: HTML
