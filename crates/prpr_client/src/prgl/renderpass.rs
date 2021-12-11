@@ -24,7 +24,7 @@ impl RenderPass {
   }
   pub fn bind(&self) {
     let gl = &self.gl;
-    // TODO: 今はゼロスロット目のみ
+    // TODO: 今はゼロスロット目のみ. 今はテクスチャバインドなし
     let mut flag = 0;
     if let Some(color) = self.clear_colors[0] {
       gl.clear_color(color.x, color.y, color.z, color.w);

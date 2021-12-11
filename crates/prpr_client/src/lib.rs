@@ -24,7 +24,8 @@ impl System for SampleSystem {
     let surface = prgl.new_surface();
     let mut renderpass = prgl.new_renderpass();
     renderpass.set_color_target(&surface);
-    let pipeline = prgl.new_sample_pipeline();
+    let mut pipeline = prgl.new_pipeline();
+    pipeline.setup_sample();
     Self {
       surface,
       renderpass,
