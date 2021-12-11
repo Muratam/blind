@@ -1,8 +1,9 @@
 // WebGlをラップしたもの
 mod raw_type;
+use self::raw_type::*;
 use crate::html;
+use crate::system::log;
 use prpr::math::*;
-use raw_type::*;
 use std::rc::Rc;
 pub struct Instance {
   gl: Rc<WebGlContext>,
@@ -35,7 +36,7 @@ impl RenderPass {
   }
   pub fn bind(&self) {
     let gl = &self.gl;
-    // TODO: 今はゼロスロット目のみ
+    // TODO: 今はゼロスロット目のみなのをなおす
     let color = self.clear_colors[0];
     gl.clear_color(color.x, color.y, color.z, color.w);
     gl.clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
@@ -45,11 +46,7 @@ impl RenderPass {
   }
   pub fn set_clear_color_by_slot(&mut self, clear_color: Vec4, slot: i32) {
     if slot < 0 || slot >= MAX_OUTPUT_SLOT as i32 {
-      // TODO:
-      // prpr::log::info()
-      // prpr::log::warning()
-      // prpr::log::error()
-      // js::console::error()
+      log::error(format!("Invalid SetClearColor Slot {}", slot));
       return;
     }
     self.clear_colors[slot as usize] = clear_color;

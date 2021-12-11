@@ -2,6 +2,7 @@ use crate::js;
 mod core;
 mod layers;
 pub use self::core::Core;
+pub mod log;
 
 pub trait System {
   fn new(core: &Core) -> Self;
