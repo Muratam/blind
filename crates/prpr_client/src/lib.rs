@@ -24,7 +24,7 @@ impl System for SampleSystem {
     let surface = prgl.new_surface();
     let mut renderpass = prgl.new_renderpass();
     renderpass.set_color_target(&surface);
-    let pipeline = prgl.new_pipeline();
+    let pipeline = prgl.new_sample_pipeline();
     Self {
       surface,
       renderpass,
@@ -36,9 +36,8 @@ impl System for SampleSystem {
     {
       // TODO: GLの update までの流れは別途モジュール化する
       let v = ((frame as f32) / 100.0).sin() * 0.25 + 0.75;
-      self
-        .renderpass
-        .set_clear_color(Some(Vec4::new(v, v, v, 1.0)));
+      let color = Vec4::new(v, v, v, 1.0);
+      self.renderpass.set_clear_color(Some(color));
       self.renderpass.bind();
       self.pipeline.draw();
       core.get_main_prgl().swap_surface(&self.surface);

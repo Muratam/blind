@@ -18,7 +18,7 @@ features = [
   "HtmlStyleElement",
   "CssStyleDeclaration",
   "CanvasRenderingContext2d",
-  "WebGlRenderingContext",
+  "WebGl2RenderingContext",
   'Node',
   'Text',
   'Window',

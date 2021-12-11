@@ -55,8 +55,8 @@ impl Layers {
   pub fn get_main_2d_context(&self) -> web_sys::CanvasRenderingContext2d {
     self.main_2d_layer.get_2d_context()
   }
-  pub fn get_main_3d_context(&self) -> web_sys::WebGlRenderingContext {
-    self.main_3d_layer.get_webgl_context()
+  pub fn get_main_3d_context(&self) -> web_sys::WebGl2RenderingContext {
+    self.main_3d_layer.get_webgl2_context()
   }
   pub fn get_html_layer(&self) -> &web_sys::HtmlDivElement {
     &self.html_layer

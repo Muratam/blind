@@ -18,6 +18,7 @@ impl Instance {
   }
   // 諸々更新が終わった後このテクスチャを利用する
   pub fn swap_surface(&self, surface: &Texture) {
+    // WARN: surfaceテクスチャを使う
     let gl = &self.gl;
     gl.flush();
   }
@@ -35,10 +36,8 @@ impl Instance {
       gl: Rc::clone(&self.gl),
     }
   }
-  pub fn new_pipeline(&self) -> Pipeline {
-    Pipeline {
-      gl: Rc::clone(&self.gl),
-    }
+  pub fn new_sample_pipeline(&self) -> Pipeline {
+    Pipeline::new(Rc::clone(&self.gl))
   }
   pub fn new_renderpass(&self) -> RenderPass {
     RenderPass::new(Rc::clone(&self.gl))
