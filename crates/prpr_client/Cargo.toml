@@ -10,18 +10,36 @@ prpr = { path = "../prpr" }
 [dependencies.web-sys]
 version = "0.3.55"
 features = [
+  # Objects
   'Document',
   'Element',
-  'HtmlElement',
-  'HtmlDivElement',
-  'HtmlCanvasElement',
-  "HtmlStyleElement",
-  "CssStyleDeclaration",
-  "CanvasRenderingContext2d",
-  "WebGl2RenderingContext",
   'Node',
   'Text',
   'Window',
   "Screen",
   "console",
+  "CssStyleDeclaration",
+  "CanvasRenderingContext2d",
+  # HTML
+  'HtmlElement',
+  'HtmlDivElement',
+  'HtmlCanvasElement',
+  "HtmlStyleElement",
+  # WebGL
+  "WebGl2RenderingContext",
+  "WebGlShader",
+  "WebGlProgram",
+  "WebGlBuffer",
+  "WebGlFramebuffer",
+  "WebGlRenderbuffer",
+  "WebGlTexture",
+  "WebGlSampler",
+  "WebGlTransformFeedback",
+  "WebGlVertexArrayObject",
+  "WebGlSync",
+  "WebGlQuery",
+  "WebGlActiveInfo",
+  "WebGlUniformLocation",
+  "WebGlContextAttributes",
+  "WebGlShaderPrecisionFormat",
 ]

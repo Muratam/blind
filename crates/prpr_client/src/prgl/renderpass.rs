@@ -14,8 +14,8 @@ pub struct RenderPass {
   // stencil_target: RawStencRawTextureilRenderTarget,
 }
 impl RenderPass {
-  pub fn new(gl: Rc<WebGlContext>) -> RenderPass {
-    RenderPass {
+  pub fn new(gl: Rc<WebGlContext>) -> Self {
+    Self {
       gl: Rc::clone(&gl),
       clear_colors: [None; MAX_OUTPUT_SLOT],
       clear_depth: None,
@@ -43,9 +43,6 @@ impl RenderPass {
   pub fn set_color_target(&mut self, target: &Texture) {
     self.set_color_target_by_slot(target, 0);
   }
-  pub fn set_color_target_by_slot(&mut self, target: &Texture, slot: i32) {
-    log::error("set_color_target_by_slot: not implemented");
-  }
   pub fn set_clear_color(&mut self, value: Option<Vec4>) {
     self.set_clear_color_by_slot(value, 0);
   }
@@ -54,6 +51,9 @@ impl RenderPass {
   }
   pub fn set_clear_stencil(&mut self, value: Option<i32>) {
     self.clear_stencil = value;
+  }
+  pub fn set_color_target_by_slot(&mut self, target: &Texture, slot: i32) {
+    log::error("set_color_target_by_slot: not implemented");
   }
   pub fn set_clear_color_by_slot(&mut self, value: Option<Vec4>, slot: i32) {
     if slot < 0 || slot >= MAX_OUTPUT_SLOT as i32 {

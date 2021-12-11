@@ -5,6 +5,8 @@ mod pipeline;
 pub use self::pipeline::*;
 mod instance;
 pub use self::instance::*;
+mod shader;
+pub use self::shader::*;
 // mod raw_type;
 // use self::raw_type::*;
 use crate::html;
@@ -13,6 +15,7 @@ use prpr::math::*;
 use std::rc::Rc;
 use web_sys::WebGl2RenderingContext as gl;
 use web_sys::WebGl2RenderingContext as WebGlContext;
+
 pub struct Texture {
   gl: Rc<WebGlContext>,
 }

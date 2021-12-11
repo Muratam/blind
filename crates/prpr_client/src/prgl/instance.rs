@@ -21,6 +21,7 @@ impl Instance {
     // WARN: surfaceテクスチャを使う
     let gl = &self.gl;
     gl.flush();
+    // client_wait_sync ?
   }
   // create gpu objects
   // pub fn new_shader(&self) {}
