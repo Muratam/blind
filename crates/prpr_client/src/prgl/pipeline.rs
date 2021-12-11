@@ -14,8 +14,8 @@ use super::*;
 mod draw {
   use super::*;
   pub struct Arrays {
-    pub first: u32,
-    pub count: u32,
+    pub first: i32,
+    pub count: i32,
   }
   pub enum Command {
     Arrays(Arrays),
@@ -25,6 +25,7 @@ mod draw {
     // Buffers([buf])
     // RangeElements(u32, u32, u32, u32) // start, end, count, (type), offset
   }
+  #[derive(Copy, Clone)]
   pub enum Mode {
     Points = gl::POINTS as isize,
     LineStrip = gl::LINE_STRIP as isize,
@@ -62,12 +63,18 @@ impl Pipeline {
     self.set_draw_arrays(0, 0);
   }
   pub fn draw(&self) {
-    if self.draw_command.is_none() {
+    let draw_mode = self.draw_mode as u32;
+    if let Some(command) = &self.draw_command {
+      match &command {
+        draw::Command::Arrays(command) => {
+          self.gl.draw_arrays(draw_mode, command.first, command.count);
+        }
+      }
+    } else {
       log::error("No Draw Command");
-      return;
     }
   }
-  pub fn set_draw_arrays(&mut self, first: u32, count: u32) {
+  pub fn set_draw_arrays(&mut self, first: i32, count: i32) {
     self.draw_command = Some(draw::Command::Arrays(draw::Arrays {
       first: first,
       count: count,
