@@ -9,6 +9,7 @@ mod html;
 mod js;
 mod prgl;
 mod system;
+use prpr::math::*;
 pub use system::{run, Core, System};
 
 struct SampleSystem {
@@ -19,12 +20,10 @@ struct SampleSystem {
 
 impl System for SampleSystem {
   fn new(core: &Core) -> Self {
-    let v2 = prpr::math::Vec2::new(0.0, 0.0);
-    js::console::log(v2.x);
     let prgl = core.get_main_prgl();
-    let surface = prgl.new_sandbox_surface();
-    let renderpass = prgl.new_sandbox_renderpass();
-    let pipeline = prgl.new_sandbox_pipeline();
+    let surface = prgl.new_surface();
+    let renderpass = prgl.new_renderpass();
+    let pipeline = prgl.new_pipeline();
     Self {
       surface,
       renderpass,
@@ -33,15 +32,15 @@ impl System for SampleSystem {
   }
   fn update(&mut self, core: &Core) {
     let frame = core.get_frame();
-    // ~ update までの流れは別途モジュール化する
-    self
-      .renderpass
-      .update_sandbox_value(((frame as f32) / 100.0).sin() * 0.25 + 0.75);
+    // TODO: GLの update までの流れは別途モジュール化する
+    let v = ((frame as f32) / 100.0).sin() * 0.25 + 0.75;
+    self.renderpass.set_clear_color(Vec4::new(v, v, v, 1.0));
     self.renderpass.bind();
     self.pipeline.draw();
     core.get_main_prgl().update(&self.surface);
-    //
+    // TODO: 2D
     self.render_sample(&core.get_main_2d_context());
+    // TODO: HTML
     if frame < 200 {
       let html_layer = core.get_html_layer();
       let text = format!("requestAnimationFrame has been called {} times.", frame);

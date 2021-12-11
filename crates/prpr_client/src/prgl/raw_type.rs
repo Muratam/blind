@@ -31,7 +31,7 @@ struct RawColorRenderTarget {
 }
 struct RawDepthRenderTarget {
   texture: Option<RawTexture>,
-  clear_value: f64,
+  clear_value: f32,
   is_clear: bool,
 }
 struct RawStencilRenderTarget {
@@ -45,6 +45,6 @@ struct RawRenderPass {
   stencil_attachment: RawStencilRenderTarget,
   frame_buffer: RawFrameBuffer,
   render_buffer: RawRenderBuffer,
-  viewport: Option<Rect<f64>>,
-  scissor: Option<Rect<i64>>,
+  viewport: Option<Rect<f32>>,
+  scissor: Option<Rect<i32>>,
 }

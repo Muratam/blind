@@ -1,6 +1,7 @@
 // WebGlをラップしたもの
 mod raw_type;
 use crate::html;
+use prpr::math::*;
 use raw_type::*;
 use std::rc::Rc;
 pub struct Instance {
@@ -14,6 +15,7 @@ pub struct Texture {
 pub struct Buffer {
   gl: Rc<WebGlContext>,
 }
+pub const MAX_OUTPUT_SLOT: usize = 8;
 pub struct Pipeline {
   gl: Rc<WebGlContext>,
 }
@@ -21,18 +23,36 @@ impl Pipeline {
   pub fn draw(&self) {}
 }
 pub struct RenderPass {
-  gl: Rc<gl>,
-  sandbox_value: f32,
+  gl: Rc<WebGlContext>,
+  clear_colors: [Vec4; MAX_OUTPUT_SLOT],
 }
 impl RenderPass {
+  pub fn new(gl: Rc<WebGlContext>) -> RenderPass {
+    RenderPass {
+      gl: Rc::clone(&gl),
+      clear_colors: [Vec4::ZERO; MAX_OUTPUT_SLOT],
+    }
+  }
   pub fn bind(&self) {
     let gl = &self.gl;
-    let v = self.sandbox_value;
-    gl.clear_color(v, v, v, 1.0);
+    // TODO: 今はゼロスロット目のみ
+    let color = self.clear_colors[0];
+    gl.clear_color(color.x, color.y, color.z, color.w);
     gl.clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
   }
-  pub fn update_sandbox_value(&mut self, v: f32) {
-    self.sandbox_value = v;
+  pub fn set_clear_color(&mut self, clear_color: Vec4) {
+    self.set_clear_color_by_slot(clear_color, 0);
+  }
+  pub fn set_clear_color_by_slot(&mut self, clear_color: Vec4, slot: i32) {
+    if slot < 0 || slot >= MAX_OUTPUT_SLOT as i32 {
+      // TODO:
+      // prpr::log::info()
+      // prpr::log::warning()
+      // prpr::log::error()
+      // js::console::error()
+      return;
+    }
+    self.clear_colors[slot as usize] = clear_color;
   }
 }
 
@@ -60,20 +80,17 @@ impl Instance {
   // pub fn new_buffer(&self) -> Buffer {
   //   Buffer {}
   // }
-  pub fn new_sandbox_surface(&self) -> Texture {
+  pub fn new_surface(&self) -> Texture {
     Texture {
       gl: Rc::clone(&self.gl),
     }
   }
-  pub fn new_sandbox_pipeline(&self) -> Pipeline {
+  pub fn new_pipeline(&self) -> Pipeline {
     Pipeline {
       gl: Rc::clone(&self.gl),
     }
   }
-  pub fn new_sandbox_renderpass(&self) -> RenderPass {
-    RenderPass {
-      gl: Rc::clone(&self.gl),
-      sandbox_value: 0.5,
-    }
+  pub fn new_renderpass(&self) -> RenderPass {
+    RenderPass::new(Rc::clone(&self.gl))
   }
 }
