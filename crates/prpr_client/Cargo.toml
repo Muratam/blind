@@ -40,6 +40,6 @@ features = [
   "WebGlQuery",
   "WebGlActiveInfo",
   "WebGlUniformLocation",
-  "WebGlContextAttributes",
   "WebGlShaderPrecisionFormat",
+  "WebGlContextAttributes",
 ]

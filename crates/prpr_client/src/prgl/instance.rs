@@ -1,11 +1,10 @@
 use super::*;
 
 pub struct Instance {
-  gl: Rc<WebGlContext>,
+  gl: Rc<GlContext>,
   max_width: i32,
   max_height: i32,
 }
-
 impl Instance {
   pub fn new(gl: gl) -> Self {
     // 一度生成したら固定

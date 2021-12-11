@@ -1,7 +1,7 @@
 use super::*;
 
 pub struct RenderPass {
-  gl: Rc<WebGlContext>,
+  gl: Rc<GlContext>,
   clear_colors: [Option<Vec4>; MAX_OUTPUT_SLOT],
   clear_depth: Option<f32>,
   clear_stencil: Option<i32>,
@@ -14,7 +14,7 @@ pub struct RenderPass {
   // stencil_target: RawStencRawTextureilRenderTarget,
 }
 impl RenderPass {
-  pub fn new(gl: Rc<WebGlContext>) -> Self {
+  pub fn new(gl: Rc<GlContext>) -> Self {
     Self {
       gl: Rc::clone(&gl),
       clear_colors: [None; MAX_OUTPUT_SLOT],

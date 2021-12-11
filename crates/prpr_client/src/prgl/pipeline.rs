@@ -1,30 +1,22 @@
 use super::*;
 
-// // 実態として必要な情報を全て詰め込んだもの
-// pub const SWAP_COUNT: i64 = 2;
-// struct RawBuffer {
-//   need_swap: bool,
-// }
-// struct RawTexture {
-//   need_swap: bool,
-// }
-// struct RawSampler {}
-// struct RawExtensions {}
-
-pub struct DrawArrays {
+struct DrawArrays {
   pub first: i32,
   pub count: i32,
 }
-pub enum DrawCommand {
+enum DrawCommand {
+  // draw
   Arrays(DrawArrays),
   // ArraysInstanced(u32, u32, u32), // first, count, instance_count
+  // draw_indexed
   // Elements(u32, u32),             // count, (type), offset
   // ElementsInstanced(u32, u32, u32), // count, (type), offset, instance_count
   // Buffers([buf])
   // RangeElements(u32, u32, u32, u32) // start, end, count, (type), offset
 }
+
 #[derive(Clone, Copy)]
-pub enum DrawMode {
+pub enum PrimitiveToporogy {
   Points = gl::POINTS as isize,
   LineStrip = gl::LINE_STRIP as isize,
   LineLoop = gl::LINE_LOOP as isize,
@@ -35,19 +27,19 @@ pub enum DrawMode {
 }
 
 pub struct Pipeline {
-  gl: Rc<WebGlContext>,
+  gl: Rc<GlContext>,
   draw_command: Option<DrawCommand>,
-  draw_mode: DrawMode,
+  primitive_topology: PrimitiveToporogy,
   //   is_enabled_depth_test: bool,
   // gl.depth_func(gl::LEQUAL);
   raw_shader_program: Option<RawShaderProgram>,
 }
 impl Pipeline {
-  pub fn new(gl: Rc<WebGlContext>) -> Self {
+  pub fn new(gl: Rc<GlContext>) -> Self {
     Self {
       gl: Rc::clone(&gl),
       draw_command: None,
-      draw_mode: DrawMode::Triangles,
+      primitive_topology: PrimitiveToporogy::Triangles,
       raw_shader_program: None,
     }
   }
@@ -68,8 +60,9 @@ impl Pipeline {
         self.raw_shader_program = RawShaderProgram::new(gl.as_ref(), &vec![vs_shader, fs_shader]);
       }
     }
-    // create vbo
-    self.set_draw_arrays(0, 0);
+    let vertex_buffer = RawBuffer::new(gl.as_ref(), 10, BufferUsage::Vertex);
+    vertex_buffer.execute_bind_buffer_command(gl.as_ref());
+    self.set_draw(0, 3);
   }
   pub fn draw(&self) {
     if let Some(program) = &self.raw_shader_program {
@@ -78,11 +71,11 @@ impl Pipeline {
       log::error("No Shader Program");
       return;
     }
-    let draw_mode = self.draw_mode as u32;
+    let topology = self.primitive_topology as u32;
     if let Some(command) = &self.draw_command {
       match &command {
         DrawCommand::Arrays(command) => {
-          self.gl.draw_arrays(draw_mode, command.first, command.count);
+          self.gl.draw_arrays(topology, command.first, command.count);
         }
       }
     } else {
@@ -90,13 +83,13 @@ impl Pipeline {
       return;
     }
   }
-  pub fn set_draw_arrays(&mut self, first: i32, count: i32) {
+  pub fn set_draw(&mut self, first: i32, count: i32) {
     self.draw_command = Some(DrawCommand::Arrays(DrawArrays {
       first: first,
       count: count,
     }));
   }
-  pub fn set_draw_mode(&mut self, mode: DrawMode) {
-    self.draw_mode = mode;
+  pub fn set_draw_mode(&mut self, primitive_topology: PrimitiveToporogy) {
+    self.primitive_topology = primitive_topology;
   }
 }

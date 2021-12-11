@@ -1,17 +1,17 @@
-// TODO: いい感じにコンパイル時にCPU-GPUの割当を完全にしたい
 use super::*;
+
 #[derive(PartialEq)]
 pub enum ShaderType {
   VertexShader,
   FragmentShader,
 }
+
 pub struct RawShader {
   shader: web_sys::WebGlShader,
   shader_type: ShaderType,
 }
-
 impl RawShader {
-  pub fn new(gl: &WebGlContext, code: &str, shader_type: ShaderType) -> Option<Self> {
+  pub fn new(gl: &GlContext, code: &str, shader_type: ShaderType) -> Option<Self> {
     let create_flag = match &shader_type {
       ShaderType::VertexShader => gl::VERTEX_SHADER,
       ShaderType::FragmentShader => gl::FRAGMENT_SHADER,
@@ -43,7 +43,7 @@ pub struct RawShaderProgram {
   program: web_sys::WebGlProgram,
 }
 impl RawShaderProgram {
-  pub fn new(gl: &WebGlContext, shaders: &Vec<RawShader>) -> Option<Self> {
+  pub fn new(gl: &GlContext, shaders: &Vec<RawShader>) -> Option<Self> {
     let program = gl
       .create_program()
       .expect("failed to create shader program");
@@ -63,7 +63,7 @@ impl RawShaderProgram {
     }
     return Some(Self { program });
   }
-  pub fn use_program(&self, gl: &WebGlContext) {
+  pub fn use_program(&self, gl: &GlContext) {
     gl.use_program(Some(&self.program));
   }
 }
