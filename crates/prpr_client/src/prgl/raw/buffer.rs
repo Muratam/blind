@@ -82,25 +82,25 @@ impl RawGpuBuffer {
     self.usage as u32
   }
 }
-pub struct RawVertexBufferAttrs {}
-impl RawVertexBufferAttrs {
-  pub fn new(gl: &GlContext, buffer: &RawGpuBuffer) {
-    let vao = gl
-      .create_vertex_array()
-      .expect("failed to create vertex array");
-    // gl.bind_vertex_array(Some(&vao));
-    // for i in vboDataArray {
-    //   vbo = gl.create_buffer();
-    //   gl.bind_buffer(gl::ARRAY_BUFFER, vbo);
-    //   gl.enable_vertex_attrib_array(attr_locs[i]);
-    //   gl.vertex_attrib_pointer_with_i32(attr_locs[i], attS[i], gl::FLOAT, false, 0, 0);
-    // }
-    // if loc >= 0 {
-    //   gl.enable_vertex_attrib_array(loc as u32);
-    //   gl.vertex_attrib_pointer_with_i32(loc as u32, 3, gl::FLOAT, false, 0, 0);
-    // }
-  }
-}
+// pub struct RawVertexBufferAttrs {}
+// impl RawVertexBufferAttrs {
+//   pub fn new(gl: &GlContext, buffer: &RawGpuBuffer) {
+//     let vao = gl
+//       .create_vertex_array()
+//       .expect("failed to create vertex array");
+//     // gl.bind_vertex_array(Some(&vao));
+//     // for i in vboDataArray {
+//     //   vbo = gl.create_buffer();
+//     //   gl.bind_buffer(gl::ARRAY_BUFFER, vbo);
+//     //   gl.enable_vertex_attrib_array(attr_locs[i]);
+//     //   gl.vertex_attrib_pointer_with_i32(attr_locs[i], attS[i], gl::FLOAT, false, 0, 0);
+//     // }
+//     // if loc >= 0 {
+//     //   gl.enable_vertex_attrib_array(loc as u32);
+//     //   gl.vertex_attrib_pointer_with_i32(loc as u32, 3, gl::FLOAT, false, 0, 0);
+//     // }
+//   }
+// }
 
 // pub struct RawBuffer<T: Sized + Default> {
 //   buffer: RawUntypedGpuBuffer,

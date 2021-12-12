@@ -104,13 +104,15 @@ impl Pipeline {
       gl.enable_vertex_attrib_array(1);
       gl.vertex_attrib_pointer_with_i32(1, 4, gl::FLOAT, false, v_type_size, 4);
       gl.bind_buffer(i_buffer.raw_target(), Some(i_buffer.raw_buffer()));
+      if SET_BIND_NONE_AFTER_WORK {
+        gl.bind_vertex_array(None);
+        gl.bind_buffer(v_buffer.raw_target(), None);
+        gl.bind_buffer(i_buffer.raw_target(), None);
+      }
+      gl.bind_vertex_array(Some(&vao));
       // log::debug(vertex_size);
       // log::debug(std::mem::size_of::<Vec3>());
       // log::debug(std::mem::align_of::<VertexType>());
-      // gl.bind_vertex_array(None);
-      // gl.bind_buffer(v_buffer.raw_target(), None);
-      // gl.bind_buffer(i_buffer.raw_target(), None);
-      // gl.bind_vertex_array(Some(&vao));
     }
     self.set_draw_indexed(0, 3);
   }
