@@ -55,15 +55,6 @@ impl Pipeline {
     }
   }
   pub fn setup_sample(&mut self) {
-    /*
-    vertex_attribute! {
-      position: vec3,
-      color: vec4
-    }
-    -> Vec<RawVertexAttribute>,
-      "layout(location = 0) in vec3 vs_in_position;
-       layout(location = 1) in vec4 vs_in_color;"
-    */
     let gl = self.gl.as_ref();
     #[repr(C)]
     struct VertexType {
@@ -84,53 +75,25 @@ impl Pipeline {
         location: 1,
       },
     ];
-    let v_data = vec![
-      VertexType {
-        position: Vec3Attr::new(Vec3::Y),
-        color: Vec4Attr::new(Vec4::X + Vec4::W),
-      },
-      VertexType {
-        position: Vec3Attr::new(Vec3::X),
-        color: Vec4Attr::new(Vec4::ZERO),
-      },
-      VertexType {
-        position: Vec3Attr::new(-Vec3::X),
-        color: Vec4Attr::new(Vec4::ZERO),
-      },
-      VertexType {
-        position: Vec3Attr::new(-Vec3::Y),
-        color: Vec4Attr::new(Vec4::X + Vec4::W),
-      },
-    ];
-    let i_data: Vec<IndexBufferType> = vec![0, 1, 2, 2, 3, 1];
     let common_header = "#version 300 es\nprecision highp float;";
-    let vs_in_layouts = "
-      layout(location = 0) in vec3 vs_in_position;
-      layout(location = 1) in vec4 vs_in_color;
-    ";
-    let vs_code = format!(
-      "{common_header}\n{vs_in_layouts}\n{body}",
-      common_header = common_header,
-      vs_in_layouts = vs_in_layouts,
-      body = "
+    let vs_in_layouts = v_attrs
+      .iter()
+      .map(|x| x.to_layout_location_str())
+      .collect::<String>();
+    let vs_code = "
       out vec4 fs_in_color;
-      // centroid out for msaa / smooth / flat /
       void main() {
         fs_in_color = vs_in_color;
         gl_Position = vec4(vs_in_position, 1.0);
       }
-      "
-    );
-    let fs_code = format!(
-      "{common_header}\n{body}",
-      common_header = common_header,
-      body = "
+    ";
+    let fs_code = "
       in vec4 fs_in_color;
       out vec4 out_color;
       void main() { out_color = fs_in_color; }
-      "
-    );
-
+    ";
+    let vs_code = format!("{}\n{}\n{}", common_header, vs_in_layouts, vs_code);
+    let fs_code = format!("{}\n{}", common_header, fs_code);
     // shader
     let vertex_shader = RawShader::new(gl, &vs_code, ShaderType::VertexShader);
     let fragment_shader = RawShader::new(gl, &fs_code, ShaderType::FragmentShader);
@@ -141,10 +104,30 @@ impl Pipeline {
         fragment_shader,
       },
     );
+    // buffer
+    let v_data = vec![
+      VertexType {
+        position: Vec3Attr::new(Vec3::Y),
+        color: Vec4Attr::new(Vec4::X + Vec4::W),
+      },
+      VertexType {
+        position: Vec3Attr::new(Vec3::X),
+        color: Vec4Attr::new(Vec4::Y + Vec4::W),
+      },
+      VertexType {
+        position: Vec3Attr::new(-Vec3::X),
+        color: Vec4Attr::new(Vec4::Z + Vec4::W),
+      },
+      VertexType {
+        position: Vec3Attr::new(-Vec3::Y),
+        color: Vec4Attr::new(Vec4::ONE),
+      },
+    ];
+    let i_data: Vec<IndexBufferType> = vec![0, 1, 2, 2, 3, 1];
     let v_buffer = RawGpuBuffer::new(gl, v_data.as_slice(), BufferUsage::Vertex);
     let i_buffer = RawGpuBuffer::new(gl, i_data.as_slice(), BufferUsage::Index);
     self.raw_vao = Some(RawVao::new(gl, &v_attrs, &v_buffer, Some(&i_buffer)));
-    self.set_draw_indexed(0, 6);
+    self.set_draw_indexed(0, i_data.len() as i32);
   }
   pub fn draw(&self) {
     let gl = &self.gl;

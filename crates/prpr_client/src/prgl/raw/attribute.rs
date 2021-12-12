@@ -60,14 +60,14 @@ impl RawVertexAttribute {
       "layout(location = {}) in {} vs_in_{};\n",
       self.location,
       match self.primitive_type {
-        RawVertexAttributePrimitiveType::u16 => match self.count {
+        RawVertexAttributePrimitiveType::f32 => match self.count {
           1 => "float",
           2 => "vec2",
           3 => "vec3",
           4 => "vec4",
           _ => "vec_over4",
         },
-        RawVertexAttributePrimitiveType::f32 => match self.count {
+        RawVertexAttributePrimitiveType::u16 => match self.count {
           1 => "uint",
           2 => "uvec2",
           3 => "uvec3",
