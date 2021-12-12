@@ -1,6 +1,6 @@
 use super::*;
 use std::ops::{Index, IndexMut};
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum BufferUsage {
   Vertex = gl::ARRAY_BUFFER as isize,
   Index = gl::ELEMENT_ARRAY_BUFFER as isize,
@@ -83,84 +83,18 @@ impl RawGpuBuffer {
   }
 }
 
-pub struct RawVao {
-  vao: web_sys::WebGlVertexArrayObject,
-}
-impl RawVao {
-  pub fn new(gl: &GlContext, v_buffer: &RawGpuBuffer, i_buffer: Option<&RawGpuBuffer>) -> Self {
-    let vao = gl.create_vertex_array().expect("failed to create vao");
-    gl.bind_vertex_array(Some(&vao));
-    gl.bind_buffer(v_buffer.raw_target(), Some(v_buffer.raw_buffer()));
-    let v_type_size = 32;
-    gl.enable_vertex_attrib_array(0);
-    gl.vertex_attrib_pointer_with_i32(0, 3, gl::FLOAT, false, v_type_size, 0);
-    gl.enable_vertex_attrib_array(1);
-    gl.vertex_attrib_pointer_with_i32(1, 4, gl::FLOAT, false, v_type_size, 4);
-    if let Some(i_buffer) = i_buffer {
-      gl.bind_buffer(i_buffer.raw_target(), Some(i_buffer.raw_buffer()));
-    }
-    if SET_BIND_NONE_AFTER_WORK {
-      gl.bind_vertex_array(None);
-      gl.bind_buffer(v_buffer.raw_target(), None);
-      if let Some(i_buffer) = i_buffer {
-        gl.bind_buffer(i_buffer.raw_target(), None);
-      }
-    }
-    Self { vao }
-  }
-  pub fn get_raw_vao(&self) -> &web_sys::WebGlVertexArrayObject {
-    &self.vao
-  }
-}
-
-// pub struct RawVertexBufferAttrs {}
-// impl RawVertexBufferAttrs {
-//   pub fn new(gl: &GlContext, buffer: &RawGpuBuffer) {
-//     let vao = gl
-//       .create_vertex_array()
-//       .expect("failed to create vertex array");
-//     // gl.bind_vertex_array(Some(&vao));
-//     // for i in vboDataArray {
-//     //   vbo = gl.create_buffer();
-//     //   gl.bind_buffer(gl::ARRAY_BUFFER, vbo);
-//     //   gl.enable_vertex_attrib_array(attr_locs[i]);
-//     //   gl.vertex_attrib_pointer_with_i32(attr_locs[i], attS[i], gl::FLOAT, false, 0, 0);
-//     // }
-//     // if loc >= 0 {
-//     //   gl.enable_vertex_attrib_array(loc as u32);
-//     //   gl.vertex_attrib_pointer_with_i32(loc as u32, 3, gl::FLOAT, false, 0, 0);
-//     // }
-//   }
-// }
-
-// pub struct RawBuffer<T: Sized + Default> {
+// pub struct Buffer<T: Sized + Default> {
 //   buffer: RawUntypedGpuBuffer,
 //   data: Vec<T>,
 //   is_dirty: bool,
 // }
-// impl<T: Sized + Default> RawBuffer<T> {
-//   pub fn new(gl: &GlContext, count: usize, usage: BufferUsage) -> Self {
-//     let u8_size = std::mem::size_of::<T>() * count;
-//     Self {
-//       buffer: RawUntypedGpuBuffer::new(gl, u8_size as i32, usage),
-//       data: vec![Default::default(); count],
-//       is_dirty: true,
-//     }
-//   }
-//   pub fn apply(&mut self, gl: &GlContext) {
-//     if !self.is_dirty {
-//       return;
-//     }
-//     self.is_dirty = false;
-//   }
-// }
-// impl<T: Sized + Default> Index<usize> for RawBuffer<T> {
+// impl<T: Sized + Default> Index<usize> for Buffer<T> {
 //   type Output = T;
 //   fn index(&self, index: usize) -> &Self::Output {
 //     &self.data[index]
 //   }
 // }
-// impl<T: Sized + Default> IndexMut<usize> for RawBuffer<T> {
+// impl<T: Sized + Default> IndexMut<usize> for Buffer<T> {
 //   fn index_mut(&mut self, index: usize) -> &mut Self::Output {
 //     self.is_dirty = true;
 //     &mut self.data[index]
