@@ -53,13 +53,13 @@ impl Pipeline {
   pub fn setup_sample(&mut self) {
     let gl = &self.gl;
     let vs_code = "#version 300 es
-    layout(location = 0) in vec4 vs_in_position;
+    layout(location = 0) in vec3 vs_in_position;
     layout(location = 1) in vec4 vs_in_color;
     out vec4 fs_in_color;
     // centroid out for msaa / smooth / flat /
     void main() {
       fs_in_color = vs_in_color;
-      gl_Position = vec4(vs_in_position.xyz, 1.0);
+      gl_Position = vec4(vs_in_position, 1.0);
     }
     ";
     let fs_code = "#version 300 es
@@ -77,36 +77,45 @@ impl Pipeline {
     {
       #[repr(C)]
       struct VertexType {
-        position: Vec4,
+        position: Vec3,
         color: Vec4,
       }
-      log::debug(std::mem::size_of::<VertexType>());
+      let vertex_size = std::mem::size_of::<VertexType>();
+      log::debug(vertex_size);
+      log::debug(std::mem::size_of::<Vec3>());
+      log::debug(std::mem::align_of::<VertexType>());
       let data = vec![
         VertexType {
-          position: Vec4::Y,
+          position: Vec3::Y,
           color: Vec4::X + Vec4::W,
         },
         VertexType {
-          position: Vec4::X,
+          position: Vec3::X,
           color: Vec4::ZERO,
         },
         VertexType {
-          position: -Vec4::X,
+          position: -Vec3::X,
           color: Vec4::ZERO,
         },
       ];
-      let count = data.len();
-      let buffer = RawGpuBuffer::new::<VertexType>(gl.as_ref(), count, BufferUsage::Vertex);
-      buffer.write::<VertexType>(gl.as_ref(), 0, data.as_slice());
+      let v_count = data.len();
+      let v_buffer = RawGpuBuffer::new::<VertexType>(gl.as_ref(), v_count, BufferUsage::Vertex);
+      v_buffer.write::<VertexType>(gl.as_ref(), 0, data.as_slice());
+      let i_count = 3;
+      let i_buffer = RawGpuBuffer::new::<u16>(gl.as_ref(), i_count, BufferUsage::Vertex);
+      i_buffer.write::<i16>(gl.as_ref(), 0, vec![0, 1, 2].as_slice());
       let vao = gl.create_vertex_array().expect("failed to create vao");
       gl.bind_vertex_array(Some(&vao));
-      gl.bind_buffer(buffer.raw_target(), Some(buffer.raw_buffer()));
+      gl.bind_buffer(v_buffer.raw_target(), Some(v_buffer.raw_buffer()));
       gl.enable_vertex_attrib_array(0);
-      gl.vertex_attrib_pointer_with_i32(0, 4, gl::FLOAT, false, 4 * 4 * 2, 0);
+      gl.vertex_attrib_pointer_with_i32(0, 3, gl::FLOAT, false, vertex_size as i32, 0);
       gl.enable_vertex_attrib_array(1);
-      gl.vertex_attrib_pointer_with_i32(1, 4, gl::FLOAT, false, 4 * 4 * 2, 4);
-      // gl.bind_vertex_array(None);
-      // gl.bind_buffer(buffer.raw_target(), None);
+      gl.vertex_attrib_pointer_with_i32(1, 4, gl::FLOAT, false, vertex_size as i32, 4);
+      gl.bind_buffer(i_buffer.raw_target(), Some(i_buffer.raw_buffer()));
+      gl.bind_vertex_array(None);
+      gl.bind_buffer(v_buffer.raw_target(), None);
+      gl.bind_buffer(i_buffer.raw_target(), None);
+      gl.bind_vertex_array(Some(&vao));
     }
     self.set_draw(0, 3);
   }
