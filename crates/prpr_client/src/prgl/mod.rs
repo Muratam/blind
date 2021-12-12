@@ -18,7 +18,4 @@ use web_sys::WebGl2RenderingContext as GlContext;
 pub struct Texture {
   gl: Rc<GlContext>,
 }
-pub struct Buffer {
-  gl: Rc<GlContext>,
-}
 pub const MAX_OUTPUT_SLOT: usize = 8;

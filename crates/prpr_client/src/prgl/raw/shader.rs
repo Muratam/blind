@@ -21,10 +21,7 @@ impl RawShader {
       .expect("failed to create shader");
     gl.shader_source(&shader, code);
     gl.compile_shader(&shader);
-    let ok = gl
-      .get_shader_parameter(&shader, gl::COMPILE_STATUS)
-      .as_bool();
-    if ok.is_none() || !ok.unwrap() {
+    if !is_evaluated_as_true(gl.get_shader_parameter(&shader, gl::COMPILE_STATUS)) {
       if let Some(info_log) = gl.get_shader_info_log(&shader) {
         log::error("failed to compile shader");
         log::error(code);
@@ -51,19 +48,31 @@ impl RawShaderProgram {
       gl.attach_shader(&program, &shader.shader);
     }
     gl.link_program(&program);
-    let ok = gl
-      .get_program_parameter(&program, gl::LINK_STATUS)
-      .as_bool();
-    if ok.is_none() || !ok.unwrap() {
+    if !is_evaluated_as_true(gl.get_program_parameter(&program, gl::LINK_STATUS)) {
       if let Some(info_log) = gl.get_program_info_log(&program) {
         log::error("failed to link shader");
         log::error(info_log);
       }
       return None;
     }
+    gl.validate_program(&program);
+    if !is_evaluated_as_true(gl.get_program_parameter(&program, gl::VALIDATE_STATUS)) {
+      if let Some(info_log) = gl.get_program_info_log(&program) {
+        log::error("failed to validate shader");
+        log::error(info_log);
+      }
+      return None;
+    }
     return Some(Self { program });
   }
-  pub fn use_program(&self, gl: &GlContext) {
-    gl.use_program(Some(&self.program));
+  pub fn raw_program(&self) -> &web_sys::WebGlProgram {
+    &self.program
   }
+}
+
+fn is_evaluated_as_true(v: wasm_bindgen::JsValue) -> bool {
+  if let Some(ok) = v.as_bool() {
+    return ok;
+  }
+  return false;
 }

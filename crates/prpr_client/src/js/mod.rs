@@ -36,4 +36,8 @@ pub mod console {
   pub fn info<T: Into<wasm_bindgen::JsValue>>(value: T) {
     web_sys::console::info_1(&value.into());
   }
+  #[allow(dead_code)]
+  pub fn debug<T: Into<wasm_bindgen::JsValue>>(value: T) {
+    web_sys::console::debug_1(&value.into());
+  }
 }
