@@ -19,3 +19,5 @@ pub struct Texture {
   gl: Rc<GlContext>,
 }
 pub const MAX_OUTPUT_SLOT: usize = 8;
+type IndexBufferType = u32;
+const SET_BIND_NONE_AFTER_WORK: bool = false;

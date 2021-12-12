@@ -1,16 +1,14 @@
 use super::*;
 
 enum DrawCommand {
-  // draw
-  Arrays { first: i32, count: i32 },
-  // ArraysInstanced {
+  Draw { first: i32, count: i32 },
+  // DrawInstanced {
   //   first: i32,
   //   count: i32,
   //   instance_count: i32,
   // },
-  // draw_indexed
-  // Elements(u32, u32),             // count, (type), offset
-  // ElementsInstanced(u32, u32, u32), // count, (type), offset, instance_count
+  DrawIndexed { first: i32, count: i32 },
+  // DrawIndexedInstanced(u32, u32, u32), // count, (type), offset, instance_count
   // Buffers([buf])
   // RangeElements(u32, u32, u32, u32) // start, end, count, (type), offset
 }
@@ -80,11 +78,7 @@ impl Pipeline {
         position: Vec3,
         color: Vec4,
       }
-      let vertex_size = std::mem::size_of::<VertexType>();
-      log::debug(vertex_size);
-      log::debug(std::mem::size_of::<Vec3>());
-      log::debug(std::mem::align_of::<VertexType>());
-      let data = vec![
+      let v_data = vec![
         VertexType {
           position: Vec3::Y,
           color: Vec4::X + Vec4::W,
@@ -98,30 +92,32 @@ impl Pipeline {
           color: Vec4::ZERO,
         },
       ];
-      let v_count = data.len();
-      let v_buffer = RawGpuBuffer::new::<VertexType>(gl.as_ref(), v_count, BufferUsage::Vertex);
-      v_buffer.write::<VertexType>(gl.as_ref(), 0, data.as_slice());
-      let i_count = 3;
-      let i_buffer = RawGpuBuffer::new::<u16>(gl.as_ref(), i_count, BufferUsage::Vertex);
-      i_buffer.write::<i16>(gl.as_ref(), 0, vec![0, 1, 2].as_slice());
+      let v_buffer = RawGpuBuffer::new(gl.as_ref(), v_data.as_slice(), BufferUsage::Vertex);
+      let i_data: Vec<IndexBufferType> = vec![0, 1, 2];
+      let i_buffer = RawGpuBuffer::new(gl.as_ref(), i_data.as_slice(), BufferUsage::Index);
       let vao = gl.create_vertex_array().expect("failed to create vao");
       gl.bind_vertex_array(Some(&vao));
       gl.bind_buffer(v_buffer.raw_target(), Some(v_buffer.raw_buffer()));
+      let v_type_size = std::mem::size_of::<VertexType>() as i32;
       gl.enable_vertex_attrib_array(0);
-      gl.vertex_attrib_pointer_with_i32(0, 3, gl::FLOAT, false, vertex_size as i32, 0);
+      gl.vertex_attrib_pointer_with_i32(0, 3, gl::FLOAT, false, v_type_size, 0);
       gl.enable_vertex_attrib_array(1);
-      gl.vertex_attrib_pointer_with_i32(1, 4, gl::FLOAT, false, vertex_size as i32, 4);
+      gl.vertex_attrib_pointer_with_i32(1, 4, gl::FLOAT, false, v_type_size, 4);
       gl.bind_buffer(i_buffer.raw_target(), Some(i_buffer.raw_buffer()));
-      gl.bind_vertex_array(None);
-      gl.bind_buffer(v_buffer.raw_target(), None);
-      gl.bind_buffer(i_buffer.raw_target(), None);
-      gl.bind_vertex_array(Some(&vao));
+      // log::debug(vertex_size);
+      // log::debug(std::mem::size_of::<Vec3>());
+      // log::debug(std::mem::align_of::<VertexType>());
+      // gl.bind_vertex_array(None);
+      // gl.bind_buffer(v_buffer.raw_target(), None);
+      // gl.bind_buffer(i_buffer.raw_target(), None);
+      // gl.bind_vertex_array(Some(&vao));
     }
-    self.set_draw(0, 3);
+    self.set_draw_indexed(0, 3);
   }
   pub fn draw(&self) {
+    let gl = &self.gl;
     if let Some(program) = &self.raw_shader_program {
-      self.gl.use_program(Some(program.raw_program()));
+      gl.use_program(Some(program.raw_program()));
     } else {
       log::error("No Shader Program");
       return;
@@ -129,8 +125,11 @@ impl Pipeline {
     let topology = self.primitive_topology as u32;
     if let Some(command) = &self.draw_command {
       match &command {
-        DrawCommand::Arrays { first, count } => {
-          self.gl.draw_arrays(topology, *first, *count);
+        DrawCommand::Draw { first, count } => {
+          gl.draw_arrays(topology, *first, *count);
+        }
+        DrawCommand::DrawIndexed { first, count } => {
+          gl.draw_elements_with_i32(topology, *count, gl::UNSIGNED_INT, *first);
         }
       }
     } else {
@@ -139,7 +138,10 @@ impl Pipeline {
     }
   }
   pub fn set_draw(&mut self, first: i32, count: i32) {
-    self.draw_command = Some(DrawCommand::Arrays { first, count });
+    self.draw_command = Some(DrawCommand::Draw { first, count });
+  }
+  pub fn set_draw_indexed(&mut self, first: i32, count: i32) {
+    self.draw_command = Some(DrawCommand::DrawIndexed { first, count });
   }
   pub fn set_draw_mode(&mut self, primitive_topology: PrimitiveToporogy) {
     self.primitive_topology = primitive_topology;
