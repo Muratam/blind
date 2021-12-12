@@ -4,6 +4,9 @@
 pub use wasm_bindgen::prelude::wasm_bindgen as entry_point;
 pub extern crate wasm_bindgen;
 
+#[macro_use]
+extern crate assert_type_eq;
+
 // for publish
 mod html;
 mod js;

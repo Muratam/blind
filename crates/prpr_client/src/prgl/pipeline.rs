@@ -129,6 +129,7 @@ impl Pipeline {
           gl.draw_arrays(topology, *first, *count);
         }
         DrawCommand::DrawIndexed { first, count } => {
+          assert_type_eq!(u32, IndexBufferType);
           gl.draw_elements_with_i32(topology, *count, gl::UNSIGNED_INT, *first);
         }
       }
