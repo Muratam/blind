@@ -60,35 +60,29 @@ impl Pipeline {
     let fs_code = "#version 300 es
     precision highp float;
     out vec4 out_color;
-    void main() { out_color = vec4(1.0f, 0.0f, 0.0f, 1.0f); }
+    void main() { out_color = vec4(1.0f, 1.0f, 1.0f, 1.0f); }
     ";
-    let vs_code = "attribute vec3 pos;void main(){gl_Position = vec4(pos, 1.0);}";
-    let fs_code = "void main(){ gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);}";
     if let Some(vs_shader) = RawShader::new(gl.as_ref(), vs_code, ShaderType::VertexShader) {
       if let Some(fs_shader) = RawShader::new(gl.as_ref(), fs_code, ShaderType::FragmentShader) {
         self.raw_shader_program = RawShaderProgram::new(gl.as_ref(), &vec![vs_shader, fs_shader]);
       }
     }
-    let vertex_buffer = RawGpuBuffer::new::<f32>(gl.as_ref(), 9, BufferUsage::Vertex);
-    vertex_buffer.write::<f32>(
-      gl.as_ref(),
-      0,
-      vec![
-        0.0, 1.0, 0.0, //
-        1.0, 0.0, 0.0, //
-        -1.0, 0.0, 0.0, //
-      ]
-      .as_slice(),
-    );
-    if let Some(program) = &self.raw_shader_program {
-      gl.bind_buffer(vertex_buffer.raw_target(), Some(vertex_buffer.raw_buffer()));
-      let loc = gl.get_attrib_location(program.raw_program(), "pos");
-      if loc >= 0 {
-        gl.enable_vertex_attrib_array(loc as u32);
-        gl.vertex_attrib_pointer_with_i32(loc as u32, 3, gl::FLOAT, false, 0, 0);
-      } else {
-        log::error("no attr pos");
-      }
+    {
+      // vertex buffer
+      // log::debug(std::mem::size_of::<VertexType>());
+      type VertexType = Vec3;
+      let data = vec![Vec3::Y, Vec3::X, -1.0 * Vec3::X];
+      let location = 0;
+      let attr_type = gl::FLOAT;
+      let stride = 3;
+      //
+      let count = data.len();
+      let buffer = RawGpuBuffer::new::<VertexType>(gl.as_ref(), count, BufferUsage::Vertex);
+      buffer.write::<VertexType>(gl.as_ref(), 0, data.as_slice());
+      gl.bind_buffer(buffer.raw_target(), Some(buffer.raw_buffer()));
+      gl.enable_vertex_attrib_array(location);
+      gl.vertex_attrib_pointer_with_i32(location, stride, attr_type, false, 0, 0);
+      gl.bind_buffer(buffer.raw_target(), None);
     }
     self.set_draw(0, 3);
   }
