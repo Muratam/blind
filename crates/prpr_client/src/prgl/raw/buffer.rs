@@ -82,6 +82,37 @@ impl RawGpuBuffer {
     self.usage as u32
   }
 }
+
+pub struct RawVao {
+  vao: web_sys::WebGlVertexArrayObject,
+}
+impl RawVao {
+  pub fn new(gl: &GlContext, v_buffer: &RawGpuBuffer, i_buffer: Option<&RawGpuBuffer>) -> Self {
+    let vao = gl.create_vertex_array().expect("failed to create vao");
+    gl.bind_vertex_array(Some(&vao));
+    gl.bind_buffer(v_buffer.raw_target(), Some(v_buffer.raw_buffer()));
+    let v_type_size = 32;
+    gl.enable_vertex_attrib_array(0);
+    gl.vertex_attrib_pointer_with_i32(0, 3, gl::FLOAT, false, v_type_size, 0);
+    gl.enable_vertex_attrib_array(1);
+    gl.vertex_attrib_pointer_with_i32(1, 4, gl::FLOAT, false, v_type_size, 4);
+    if let Some(i_buffer) = i_buffer {
+      gl.bind_buffer(i_buffer.raw_target(), Some(i_buffer.raw_buffer()));
+    }
+    if SET_BIND_NONE_AFTER_WORK {
+      gl.bind_vertex_array(None);
+      gl.bind_buffer(v_buffer.raw_target(), None);
+      if let Some(i_buffer) = i_buffer {
+        gl.bind_buffer(i_buffer.raw_target(), None);
+      }
+    }
+    Self { vao }
+  }
+  pub fn get_raw_vao(&self) -> &web_sys::WebGlVertexArrayObject {
+    &self.vao
+  }
+}
+
 // pub struct RawVertexBufferAttrs {}
 // impl RawVertexBufferAttrs {
 //   pub fn new(gl: &GlContext, buffer: &RawGpuBuffer) {

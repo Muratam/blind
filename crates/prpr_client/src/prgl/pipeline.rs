@@ -8,9 +8,13 @@ enum DrawCommand {
   //   instance_count: i32,
   // },
   DrawIndexed { first: i32, count: i32 },
-  // DrawIndexedInstanced(u32, u32, u32), // count, (type), offset, instance_count
+  // DrawIndexedInstanced {
+  //   first: i32,
+  //   count: i32,
+  //   instance_count: i32,
+  // },
   // Buffers([buf])
-  // RangeElements(u32, u32, u32, u32) // start, end, count, (type), offset
+  // RangeElements { u32, u32, u32, u32 }  // start, end, count, (type), offset
 }
 
 #[derive(Clone, Copy)]
@@ -29,6 +33,7 @@ pub struct Pipeline {
   draw_command: Option<DrawCommand>,
   primitive_topology: PrimitiveToporogy,
   raw_shader_program: Option<RawShaderProgram>,
+  raw_vao: Option<RawVao>,
   // BlendState
   // ColorState
   // CullState
@@ -46,38 +51,46 @@ impl Pipeline {
       draw_command: None,
       primitive_topology: PrimitiveToporogy::Triangles,
       raw_shader_program: None,
+      raw_vao: None,
     }
   }
   pub fn setup_sample(&mut self) {
     let gl = &self.gl;
-    let vs_code = "#version 300 es
-    layout(location = 0) in vec3 vs_in_position;
-    layout(location = 1) in vec4 vs_in_color;
-    out vec4 fs_in_color;
-    // centroid out for msaa / smooth / flat /
-    void main() {
-      fs_in_color = vs_in_color;
-      gl_Position = vec4(vs_in_position, 1.0);
+    #[repr(C)]
+    struct VertexType {
+      position: Vec3,
+      color: Vec4,
     }
-    ";
-    let fs_code = "#version 300 es
-    precision highp float;
-    in vec4 fs_in_color;
-    out vec4 out_color;
-    void main() { out_color = fs_in_color; }
-    ";
-    if let Some(vs_shader) = RawShader::new(gl.as_ref(), vs_code, ShaderType::VertexShader) {
-      if let Some(fs_shader) = RawShader::new(gl.as_ref(), fs_code, ShaderType::FragmentShader) {
-        self.raw_shader_program = RawShaderProgram::new(gl.as_ref(), &vec![vs_shader, fs_shader]);
-      }
+    // shader
+    {
+      let vs_code = "#version 300 es
+        layout(location = 0) in vec3 vs_in_position;
+        layout(location = 1) in vec4 vs_in_color;
+        out vec4 fs_in_color;
+        // centroid out for msaa / smooth / flat /
+        void main() {
+          fs_in_color = vs_in_color;
+          gl_Position = vec4(vs_in_position, 1.0);
+        }
+      ";
+      let fs_code = "#version 300 es
+        precision highp float;
+        in vec4 fs_in_color;
+        out vec4 out_color;
+        void main() { out_color = fs_in_color; }
+      ";
+      let vertex_shader = RawShader::new(gl.as_ref(), vs_code, ShaderType::VertexShader);
+      let fragment_shader = RawShader::new(gl.as_ref(), fs_code, ShaderType::FragmentShader);
+      self.raw_shader_program = RawShaderProgram::new(
+        gl.as_ref(),
+        &RawShaderProgramContents {
+          vertex_shader,
+          fragment_shader,
+        },
+      );
     }
     // vertex buffer
     {
-      #[repr(C)]
-      struct VertexType {
-        position: Vec3,
-        color: Vec4,
-      }
       let v_data = vec![
         VertexType {
           position: Vec3::Y,
@@ -91,30 +104,21 @@ impl Pipeline {
           position: -Vec3::X,
           color: Vec4::ZERO,
         },
+        VertexType {
+          position: -Vec3::Y,
+          color: Vec4::X + Vec4::W,
+        },
       ];
       let v_buffer = RawGpuBuffer::new(gl.as_ref(), v_data.as_slice(), BufferUsage::Vertex);
-      let i_data: Vec<IndexBufferType> = vec![0, 1, 2];
+      let i_data: Vec<IndexBufferType> = vec![0, 1, 2, 2, 3, 1];
       let i_buffer = RawGpuBuffer::new(gl.as_ref(), i_data.as_slice(), BufferUsage::Index);
-      let vao = gl.create_vertex_array().expect("failed to create vao");
-      gl.bind_vertex_array(Some(&vao));
-      gl.bind_buffer(v_buffer.raw_target(), Some(v_buffer.raw_buffer()));
-      let v_type_size = std::mem::size_of::<VertexType>() as i32;
-      gl.enable_vertex_attrib_array(0);
-      gl.vertex_attrib_pointer_with_i32(0, 3, gl::FLOAT, false, v_type_size, 0);
-      gl.enable_vertex_attrib_array(1);
-      gl.vertex_attrib_pointer_with_i32(1, 4, gl::FLOAT, false, v_type_size, 4);
-      gl.bind_buffer(i_buffer.raw_target(), Some(i_buffer.raw_buffer()));
-      if SET_BIND_NONE_AFTER_WORK {
-        gl.bind_vertex_array(None);
-        gl.bind_buffer(v_buffer.raw_target(), None);
-        gl.bind_buffer(i_buffer.raw_target(), None);
-      }
-      gl.bind_vertex_array(Some(&vao));
+      self.raw_vao = Some(RawVao::new(gl.as_ref(), &v_buffer, Some(&i_buffer)));
+      // let v_type_size = std::mem::size_of::<VertexType>() as i32;
       // log::debug(vertex_size);
       // log::debug(std::mem::size_of::<Vec3>());
       // log::debug(std::mem::align_of::<VertexType>());
     }
-    self.set_draw_indexed(0, 3);
+    self.set_draw_indexed(0, 6);
   }
   pub fn draw(&self) {
     let gl = &self.gl;
@@ -122,6 +126,12 @@ impl Pipeline {
       gl.use_program(Some(program.raw_program()));
     } else {
       log::error("No Shader Program");
+      return;
+    }
+    if let Some(vao) = &self.raw_vao {
+      gl.bind_vertex_array(Some(vao.get_raw_vao()));
+    } else {
+      log::error("No Vertex Array Object");
       return;
     }
     let topology = self.primitive_topology as u32;

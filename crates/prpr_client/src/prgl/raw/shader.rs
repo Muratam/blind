@@ -39,12 +39,27 @@ impl RawShader {
 pub struct RawShaderProgram {
   program: web_sys::WebGlProgram,
 }
+pub struct RawShaderProgramContents {
+  pub vertex_shader: Option<RawShader>,
+  pub fragment_shader: Option<RawShader>,
+}
 impl RawShaderProgram {
-  pub fn new(gl: &GlContext, shaders: &Vec<RawShader>) -> Option<Self> {
+  pub fn new(gl: &GlContext, shaders: &RawShaderProgramContents) -> Option<Self> {
     let program = gl
       .create_program()
       .expect("failed to create shader program");
-    for shader in shaders {
+    if let Some(shader) = &shaders.vertex_shader {
+      if shader.shader_type != ShaderType::VertexShader {
+        log::error("Not Vertex Shader");
+        return None;
+      }
+      gl.attach_shader(&program, &shader.shader);
+    }
+    if let Some(shader) = &shaders.fragment_shader {
+      if shader.shader_type != ShaderType::FragmentShader {
+        log::error("Not Fragment Shader");
+        return None;
+      }
       gl.attach_shader(&program, &shader.shader);
     }
     gl.link_program(&program);
