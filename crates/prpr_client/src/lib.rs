@@ -39,6 +39,7 @@ impl System for SampleSystem {
     let frame = core.get_frame();
     {
       // TODO: GLの update までの流れは別途モジュール化する
+      // TODO: impl Drop trait for not raws
       let v = ((frame as f32) / 100.0).sin() * 0.25 + 0.75;
       let color = Vec4::new(v, v, v, 1.0);
       self.renderpass.set_clear_color(Some(color));

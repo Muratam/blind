@@ -21,7 +21,10 @@ impl RawShader {
       .expect("failed to create shader");
     gl.shader_source(&shader, code);
     gl.compile_shader(&shader);
-    if !is_evaluated_as_true(gl.get_shader_parameter(&shader, gl::COMPILE_STATUS)) {
+    if gl
+      .get_shader_parameter(&shader, gl::COMPILE_STATUS)
+      .is_falsy()
+    {
       if let Some(info_log) = gl.get_shader_info_log(&shader) {
         log::error("failed to compile shader");
         log::error(code);
@@ -35,9 +38,11 @@ impl RawShader {
     });
   }
 }
-
+use std::sync::atomic::{AtomicUsize, Ordering};
+static RAW_SHADER_PROGRAM_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
 pub struct RawShaderProgram {
   program: web_sys::WebGlProgram,
+  program_id: usize,
 }
 pub struct RawShaderProgramContents {
   pub vertex_shader: Option<RawShader>,
@@ -63,7 +68,10 @@ impl RawShaderProgram {
       gl.attach_shader(&program, &shader.shader);
     }
     gl.link_program(&program);
-    if !is_evaluated_as_true(gl.get_program_parameter(&program, gl::LINK_STATUS)) {
+    if gl
+      .get_program_parameter(&program, gl::LINK_STATUS)
+      .is_falsy()
+    {
       if let Some(info_log) = gl.get_program_info_log(&program) {
         log::error("failed to link shader");
         log::error(info_log);
@@ -71,23 +79,26 @@ impl RawShaderProgram {
       return None;
     }
     gl.validate_program(&program);
-    if !is_evaluated_as_true(gl.get_program_parameter(&program, gl::VALIDATE_STATUS)) {
+    if gl
+      .get_program_parameter(&program, gl::VALIDATE_STATUS)
+      .is_falsy()
+    {
       if let Some(info_log) = gl.get_program_info_log(&program) {
         log::error("failed to validate shader");
         log::error(info_log);
       }
       return None;
     }
-    return Some(Self { program });
+    let program_id = RAW_SHADER_PROGRAM_ID_COUNTER.fetch_add(1, Ordering::SeqCst);
+    return Some(Self {
+      program,
+      program_id,
+    });
   }
   pub fn raw_program(&self) -> &web_sys::WebGlProgram {
     &self.program
   }
-}
-
-fn is_evaluated_as_true(v: wasm_bindgen::JsValue) -> bool {
-  if let Some(ok) = v.as_bool() {
-    return ok;
+  pub fn raw_program_id(&self) -> usize {
+    self.program_id
   }
-  return false;
 }
