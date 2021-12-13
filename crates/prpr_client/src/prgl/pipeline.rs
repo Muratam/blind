@@ -64,15 +64,15 @@ impl Pipeline {
     let v_attrs = vec![
       RawVertexAttribute {
         name: String::from("position"),
-        primitive_type: RawVertexAttributePrimitiveType::f32,
-        count: 3,
         location: 0,
+        primitive_type: Vec3Attr::primitive_type(),
+        count: Vec3Attr::count(),
       },
       RawVertexAttribute {
         name: String::from("color"),
-        primitive_type: RawVertexAttributePrimitiveType::f32,
-        count: 4,
         location: 1,
+        primitive_type: Vec4Attr::primitive_type(),
+        count: Vec4Attr::count(),
       },
     ];
     let common_header = "#version 300 es\nprecision highp float;";

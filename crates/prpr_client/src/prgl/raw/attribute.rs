@@ -15,6 +15,7 @@ impl Vec3Attr {
     }
   }
 }
+
 #[repr(C)]
 pub struct Vec4Attr {
   x: f32,
@@ -30,6 +31,26 @@ impl Vec4Attr {
       z: v.z,
       w: v.w,
     }
+  }
+}
+pub trait VertexAttr {
+  fn primitive_type() -> RawVertexAttributePrimitiveType;
+  fn count() -> i32;
+}
+impl VertexAttr for Vec3Attr {
+  fn primitive_type() -> RawVertexAttributePrimitiveType {
+    RawVertexAttributePrimitiveType::f32
+  }
+  fn count() -> i32 {
+    3
+  }
+}
+impl VertexAttr for Vec4Attr {
+  fn primitive_type() -> RawVertexAttributePrimitiveType {
+    RawVertexAttributePrimitiveType::f32
+  }
+  fn count() -> i32 {
+    4
   }
 }
 
