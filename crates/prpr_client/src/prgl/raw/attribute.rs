@@ -78,8 +78,9 @@ pub struct RawVertexAttribute {
 impl RawVertexAttribute {
   pub fn to_layout_location_str(&self) -> String {
     format!(
-      "layout(location = {}) in {} {};\n",
-      self.location,
+      // location = {}
+      "in {} {};\n",
+      // self.location,
       match self.primitive_type {
         RawVertexAttributePrimitiveType::f32 => match self.count {
           1 => "float",
