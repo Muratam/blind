@@ -61,6 +61,7 @@ impl System for SampleSystem {
 
 impl SampleSystem {
   fn render_sample(&mut self, ctx: &web_sys::CanvasRenderingContext2d) {
+    // note use: `?;` for Result
     use std::f64::consts::PI;
     ctx.begin_path();
     ctx.arc(75.0, 75.0, 50.0, 0.0, PI * 2.0).ok();
