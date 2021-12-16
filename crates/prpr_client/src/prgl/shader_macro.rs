@@ -314,6 +314,8 @@ macro_rules! shader_template {
 }
 
 /*
+// usage
+
 mod shader;
 use shader::*;
 
