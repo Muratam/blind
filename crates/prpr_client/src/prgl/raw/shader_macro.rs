@@ -83,6 +83,7 @@ where
   fn ub_data(&self) -> &[u8];
   fn struct_size() -> usize;
   fn offsets() -> Vec<usize>;
+  fn name() -> 'static str;
   fn keys() -> Vec<&'static str>;
   fn values(&self) -> Vec<ShaderType>;
   // for dynamic loading
@@ -147,6 +148,7 @@ macro_rules! shader_attr {
           )*
           result
         }
+        fn name() -> &'static str { $s }
         fn keys() -> Vec<&'static str> {
           let mut result = Vec::new();
           $(result.push(stringify!($k));)*
