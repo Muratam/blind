@@ -1,5 +1,6 @@
 use super::*;
 #[derive(Clone, Copy, PartialEq)]
+#[allow(unused)]
 pub enum BufferUsage {
   Vertex = gl::ARRAY_BUFFER as isize,
   Index = gl::ELEMENT_ARRAY_BUFFER as isize,
@@ -10,13 +11,13 @@ pub enum BufferUsage {
 }
 fn usage_to_store_type(usage: &BufferUsage) -> u32 {
   // https://developer.mozilla.org/ja/docs/Web/API/WebGLRenderingContext/bufferData
-  match &usage {
-    Vertex => gl::STATIC_DRAW,
-    Index => gl::STATIC_DRAW,
-    Uniform => gl::STREAM_DRAW,
-    TransformFeedback => gl::STREAM_COPY,
-    TransferSrc => gl::STATIC_DRAW,
-    TransferDst => gl::STATIC_READ,
+  match usage {
+    BufferUsage::Vertex => gl::STATIC_DRAW,
+    BufferUsage::Index => gl::STATIC_DRAW,
+    BufferUsage::Uniform => gl::STREAM_DRAW,
+    BufferUsage::TransformFeedback => gl::STREAM_COPY,
+    BufferUsage::TransferSrc => gl::STATIC_DRAW,
+    BufferUsage::TransferDst => gl::STATIC_READ,
   }
 }
 
@@ -81,21 +82,3 @@ impl RawGpuBuffer {
     self.usage as u32
   }
 }
-
-// pub struct Buffer<T: Sized + Default> {
-//   buffer: RawUntypedGpuBuffer,
-//   data: Vec<T>,
-//   is_dirty: bool,
-// }
-// impl<T: Sized + Default> Index<usize> for Buffer<T> {
-//   type Output = T;
-//   fn index(&self, index: usize) -> &Self::Output {
-//     &self.data[index]
-//   }
-// }
-// impl<T: Sized + Default> IndexMut<usize> for Buffer<T> {
-//   fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-//     self.is_dirty = true;
-//     &mut self.data[index]
-//   }
-// }

@@ -45,7 +45,9 @@ macro_rules! shader_attr {
       #[allow(unused_variables)]
       #[allow(unused_mut)]
       impl $s {
+        #[allow(dead_code)]
         fn new() -> Self { Default::default() }
+        #[allow(dead_code)]
         fn ub_code() -> &'static str {
           concat!(
             "layout (std140) uniform ", stringify!($s), " {\n",
@@ -53,30 +55,37 @@ macro_rules! shader_attr {
             "};"
           )
         }
+        #[allow(dead_code)]
         fn vs_in_code() -> &'static str {
           concat!(
             $("in ", $crate::shader_type_str!($v)," ",stringify!($k),";\n", )*
           )
         }
+        #[allow(dead_code)]
         fn vs_out_code() -> &'static str {
           concat!(
             $("out ", $crate::shader_type_str!($v) ," ", stringify!($k), ";\n",)*
           )
         }
+        #[allow(dead_code)]
         fn fs_in_code() -> &'static str {
           concat!($("in ", $crate::shader_type_str!($v) ," ", stringify!($k), ";\n",)*)
         }
+        #[allow(dead_code)]
         fn fs_out_code() -> &'static str {
           concat!($("out ", $crate::shader_type_str!($v) ," ", stringify!($k), ";\n",)*)
         }
+        #[allow(dead_code)]
         fn ub_data(&self) -> &[u8] {
           let u8_size = Self::struct_size();
           let ptr = self as *const $s as *const u8;
           unsafe { ::core::slice::from_raw_parts(ptr, u8_size) }
         }
+        #[allow(dead_code)]
         fn struct_size() -> usize {
           ::std::mem::size_of::<$s>()
         }
+        #[allow(dead_code)]
         fn offsets() -> Vec<usize> {
           let mut result = Vec::new();
           let dummy = ::core::mem::MaybeUninit::<Self>::uninit();
@@ -87,17 +96,23 @@ macro_rules! shader_attr {
           )*
           result
         }
+        #[allow(dead_code)]
         fn name() -> &'static str { stringify!($s) }
+        #[allow(dead_code)]
+        fn self_name(&self) -> &'static str { Self::name() }
+        #[allow(dead_code)]
         fn keys() -> Vec<&'static str> {
           let mut result = Vec::new();
           $(result.push(stringify!($k));)*
           result
         }
+        #[allow(dead_code)]
         fn values(&self) -> Vec<ShaderPrimitiveType> {
           let mut result = Vec::new();
           $(result.push(ShaderPrimitiveType::$v(self.$k));)*
           result
         }
+        #[allow(dead_code)]
         fn find(&self, key: &str) -> Option<ShaderPrimitiveType> {
           match key {
             $(stringify!($k) => Some(ShaderPrimitiveType::$v(self.$k)),)*
@@ -105,6 +120,7 @@ macro_rules! shader_attr {
           }
         }
         // for dynamic loading
+        #[allow(dead_code)]
         fn from_hashmap(map: &::std::collections::HashMap<String, ShaderPrimitiveType>) -> (Self, Vec<&'static str>) {
           let mut result = Self::new();
           let mut ignored = Vec::new();
@@ -117,6 +133,7 @@ macro_rules! shader_attr {
           )*
           (result, ignored)
         }
+        #[allow(dead_code)]
         fn to_hashmap(&self) -> ::std::collections::HashMap<String, ShaderPrimitiveType> {
           let mut result = ::std::collections::HashMap::new();
           $(result.insert(String::from(stringify!($k)), ShaderPrimitiveType::$v(self.$k));)*

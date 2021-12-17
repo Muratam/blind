@@ -5,11 +5,12 @@ mod pipeline;
 pub use self::pipeline::*;
 mod instance;
 pub use self::instance::*;
+mod buffer;
+pub use self::buffer::*;
+mod texture;
+pub use self::texture::*;
 mod raw;
 use self::raw::*;
-pub struct Texture {
-  gl: Rc<GlContext>,
-}
 
 use crate::html;
 use crate::system::log;

@@ -34,6 +34,7 @@ pub enum ShaderPrimitiveType {
   mat4(mat4),
 }
 #[allow(non_camel_case_types)]
+#[allow(unused)]
 pub enum ShaderSinglePrimitiveType {
   i8 = gl::BYTE as isize,
   i16 = gl::SHORT as isize,
@@ -69,20 +70,6 @@ impl ShaderPrimitiveType {
       ShaderPrimitiveType::vec3(_) => 3,
       ShaderPrimitiveType::vec4(_) => 4,
       ShaderPrimitiveType::mat4(_) => 16,
-    }
-  }
-}
-impl ShaderSinglePrimitiveType {
-  pub fn get_byte_size(&self) -> i32 {
-    match self {
-      ShaderSinglePrimitiveType::i8 => 1,
-      ShaderSinglePrimitiveType::i16 => 2,
-      ShaderSinglePrimitiveType::i32 => 4,
-      ShaderSinglePrimitiveType::u8 => 1,
-      ShaderSinglePrimitiveType::u16 => 2,
-      ShaderSinglePrimitiveType::u32 => 4,
-      ShaderSinglePrimitiveType::f16 => 2,
-      ShaderSinglePrimitiveType::f32 => 4,
     }
   }
 }
@@ -135,13 +122,13 @@ pub struct VsInTemplate {
   pub size: usize,
 }
 
-pub fn shader_vb_hash_location(key: &str) -> u64 {
-  use std::hash::{Hash, Hasher};
-  let mut hasher = std::collections::hash_map::DefaultHasher::new();
-  key.hash(&mut hasher);
-  // gl::MAX_VERTEX_ATTRIBS; がめっちゃちいさい
-  hasher.finish() & 0xfff
-}
+// pub fn shader_vb_hash_location(key: &str) -> u64 {
+//   use std::hash::{Hash, Hasher};
+//   let mut hasher = std::collections::hash_map::DefaultHasher::new();
+//   key.hash(&mut hasher);
+//   // gl::MAX_VERTEX_ATTRIBS; がめっちゃちいさい
+//   hasher.finish() & 0xfff
+// }
 
 pub struct RawVao {
   vao: web_sys::WebGlVertexArrayObject,

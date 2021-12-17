@@ -7,5 +7,10 @@ pub mod attribute;
 pub use self::attribute::*;
 pub mod shader_macro;
 pub use self::shader_macro::*;
+pub mod pipeline_state;
+pub use self::pipeline_state::*;
 
-// GlContext を自身で持たない
+// raw 以下のコードのstructの制約
+// - GlContext を自身で持たない
+// - GpuリソースをDropしない
+// - web_sys::*を公開する

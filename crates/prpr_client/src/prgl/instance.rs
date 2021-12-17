@@ -32,9 +32,7 @@ impl Instance {
   //   Buffer {}
   // }
   pub fn new_surface(&self) -> Texture {
-    Texture {
-      gl: Rc::clone(&self.gl),
-    }
+    Texture::new(Rc::clone(&self.gl))
   }
   pub fn new_pipeline(&self) -> Pipeline {
     Pipeline::new(Rc::clone(&self.gl))
