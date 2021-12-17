@@ -78,17 +78,7 @@ impl Pipeline {
       }
     };
     let gl = self.gl.as_ref();
-    let vs_code = template.vs_code();
-    let fs_code = template.fs_code();
-    let vertex_shader = RawShader::new(gl, vs_code.as_str(), ShaderType::VertexShader);
-    let fragment_shader = RawShader::new(gl, fs_code.as_str(), ShaderType::FragmentShader);
-    self.raw_shader_program = RawShaderProgram::new(
-      gl,
-      &RawShaderProgramContents {
-        vertex_shader,
-        fragment_shader,
-      },
-    );
+    self.raw_shader_program = RawShaderProgram::new(gl, &template);
     // buffer
     let v_data = vec![
       Vertex {

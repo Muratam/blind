@@ -7,3 +7,5 @@ pub mod attribute;
 pub use self::attribute::*;
 pub mod shader_macro;
 pub use self::shader_macro::*;
+
+// GlContext を自身で持たない

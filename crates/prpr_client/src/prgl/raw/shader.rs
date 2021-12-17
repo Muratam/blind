@@ -49,7 +49,20 @@ pub struct RawShaderProgramContents {
   pub fragment_shader: Option<RawShader>,
 }
 impl RawShaderProgram {
-  pub fn new(gl: &GlContext, shaders: &RawShaderProgramContents) -> Option<Self> {
+  pub fn new(gl: &GlContext, template: &ShaderTemplate) -> Option<Self> {
+    let vs_code = template.vs_code();
+    let fs_code = template.fs_code();
+    let vertex_shader = RawShader::new(gl, vs_code.as_str(), ShaderType::VertexShader);
+    let fragment_shader = RawShader::new(gl, fs_code.as_str(), ShaderType::FragmentShader);
+    Self::new_from_raw_shaders(
+      gl,
+      &RawShaderProgramContents {
+        vertex_shader,
+        fragment_shader,
+      },
+    )
+  }
+  pub fn new_from_raw_shaders(gl: &GlContext, shaders: &RawShaderProgramContents) -> Option<Self> {
     let program = gl
       .create_program()
       .expect("failed to create shader program");
