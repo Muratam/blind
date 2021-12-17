@@ -1,5 +1,11 @@
 use super::*;
 
+// 一度バインド情報を覚えたら二回目以降は問い合わせないためのオブジェクト
+struct DescriptorPerShaderProgram {
+  raw_vao: RawVao, // for vertex, index
+}
+
+// xN のバッファを持つ？
 pub struct IndexBuffer {
   gl: Rc<GlContext>,
   raw_buffer: RawGpuBuffer,
