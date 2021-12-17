@@ -15,7 +15,7 @@ pub type uvec3 = (u32, u32, u32);
 #[allow(non_camel_case_types)]
 pub type uvec4 = (u32, u32, u32, u32);
 #[allow(non_camel_case_types)]
-pub type mat4 = glam::Mat4; // align: 16B
+pub type mat4 = glam::Mat4;
 
 #[macro_export]
 macro_rules! shader_type_str {
@@ -337,28 +337,12 @@ shader_attr! {
     normal: vec3,
     uv: vec2,
   }
-  struct SampleFragment {
-    position: vec3,
-    normal: vec3,
-    uv: vec2,
-  }
 }
 fn main() {
   let code = shader_template! {
-    // version: 300,
-    // precision_float: highp,
     // tx_attr:
     attrs: [View, Material],
     vs_attr: SampleVertex,
-    fs_attr: {
-      in_position: vec3,
-      in_color: vec4,
-      in_uv: vec2
-    },
-    out_attr: {
-      out_color0: vec4,
-      out_color1: vec4,
-    },
     vs_code: {
       in_position = position;
       in_color = normal;
@@ -368,9 +352,18 @@ fn main() {
       }
       gl_Position = vec4();
     },
+    fs_attr: {
+      in_position: vec3,
+      in_color: vec4,
+      in_uv: vec2
+    },
     fs_code: {
       out_color0 = vec4();
-    }
+    },
+    out_attr: {
+      out_color0: vec4,
+      out_color1: vec4,
+    },
   };
   println!("{}", code);
   // sample();
