@@ -123,11 +123,12 @@ pub struct VsInTemplate {
 }
 
 pub struct RawVao {
+  gl: Rc<GlContext>,
   vao: web_sys::WebGlVertexArrayObject,
 }
 impl RawVao {
   pub fn new(
-    gl: &GlContext,
+    gl: Rc<GlContext>,
     program: &web_sys::WebGlProgram,
     vs_in: &VsInTemplate,
     v_buffer: &RawGpuBuffer,
@@ -171,10 +172,19 @@ impl RawVao {
         gl.bind_buffer(gl::ELEMENT_ARRAY_BUFFER, None);
       }
     }
-    Self { vao }
+    Self {
+      gl: Rc::clone(&gl),
+      vao,
+    }
   }
 
   pub fn get_raw_vao(&self) -> &web_sys::WebGlVertexArrayObject {
     &self.vao
+  }
+}
+
+impl Drop for RawVao {
+  fn drop(&mut self) {
+    self.gl.delete_vertex_array(Some(&self.vao));
   }
 }

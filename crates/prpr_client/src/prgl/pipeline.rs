@@ -2,13 +2,16 @@ use super::*;
 
 pub struct Pipeline {
   gl: Rc<GlContext>,
-  // bounds
-  raw_shader_program: Option<RawShaderProgram>,
+  // not vao
   raw_vao: Option<RawVao>,
   // states
+  raw_shader_program: Option<RawShaderProgram>,
   draw_command: Option<DrawCommand>,
   primitive_topology: PrimitiveToporogy,
 }
+
+// - 1 Pipeline は 1 ShaderProgram を持つ
+// -
 impl Pipeline {
   pub fn new(gl: Rc<GlContext>) -> Self {
     Self {
@@ -42,8 +45,7 @@ impl Pipeline {
         out_color = in_color + add_color;
       }
     };
-    let gl = self.gl.as_ref();
-    self.raw_shader_program = RawShaderProgram::new(gl, &template);
+    self.raw_shader_program = RawShaderProgram::new(Rc::clone(&self.gl), &template);
     if let Some(program) = &self.raw_shader_program {
       // buffer
       let v_data = vec![
@@ -64,11 +66,11 @@ impl Pipeline {
           color: Vec4::ONE,
         },
       ];
-      let v_buffer = RawGpuBuffer::new(gl, v_data.as_slice(), BufferUsage::Vertex);
+      let v_buffer = RawGpuBuffer::new(Rc::clone(&self.gl), v_data.as_slice(), BufferUsage::Vertex);
       let i_data: Vec<IndexBufferType> = vec![0, 1, 2, 2, 3, 1];
-      let i_buffer = RawGpuBuffer::new(gl, i_data.as_slice(), BufferUsage::Index);
+      let i_buffer = RawGpuBuffer::new(Rc::clone(&self.gl), i_data.as_slice(), BufferUsage::Index);
       self.raw_vao = Some(RawVao::new(
-        gl,
+        Rc::clone(&self.gl),
         program.raw_program(),
         &template.vs_in_template(),
         &v_buffer,
@@ -77,16 +79,19 @@ impl Pipeline {
       let u_data = Global {
         add_color: Vec4::new(0.5, 0.5, 0.5, 0.5),
       };
-      let u_buffer = RawGpuBuffer::new(gl, u_data.ub_data(), BufferUsage::Uniform);
-      // let shader_id = &program.raw_program_id();
-      let u_index = gl.get_uniform_block_index(&program.raw_program(), u_data.self_name());
+      let u_buffer = RawGpuBuffer::new(Rc::clone(&self.gl), u_data.ub_data(), BufferUsage::Uniform);
+      let u_index = self
+        .gl
+        .get_uniform_block_index(&program.raw_program(), u_data.self_name());
       if u_index == gl::INVALID_INDEX {
         log::error(format!(
           "invalid uniform buffer name: {}",
           u_data.self_name()
         ));
       }
-      gl.bind_buffer_base(gl::UNIFORM_BUFFER, u_index, Some(&u_buffer.raw_buffer()));
+      self
+        .gl
+        .bind_buffer_base(gl::UNIFORM_BUFFER, u_index, Some(&u_buffer.raw_buffer()));
       self.set_draw_indexed(0, i_data.len() as i32);
     }
   }

@@ -7,11 +7,12 @@ pub enum ShaderType {
 }
 
 pub struct RawShader {
+  gl: Rc<GlContext>,
   shader: web_sys::WebGlShader,
   shader_type: ShaderType,
 }
 impl RawShader {
-  pub fn new(gl: &GlContext, code: &str, shader_type: ShaderType) -> Option<Self> {
+  pub fn new(gl: Rc<GlContext>, code: &str, shader_type: ShaderType) -> Option<Self> {
     let create_flag = match &shader_type {
       ShaderType::VertexShader => gl::VERTEX_SHADER,
       ShaderType::FragmentShader => gl::FRAGMENT_SHADER,
@@ -33,14 +34,22 @@ impl RawShader {
       return None;
     }
     return Some(Self {
+      gl: Rc::clone(&gl),
       shader,
       shader_type,
     });
   }
 }
+impl Drop for RawShader {
+  fn drop(&mut self) {
+    self.gl.delete_shader(Some(&self.shader));
+  }
+}
+
 use std::sync::atomic::{AtomicUsize, Ordering};
 static RAW_SHADER_PROGRAM_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
 pub struct RawShaderProgram {
+  gl: Rc<GlContext>,
   program: web_sys::WebGlProgram,
   program_id: u64,
 }
@@ -49,11 +58,12 @@ pub struct RawShaderProgramContents {
   pub fragment_shader: Option<RawShader>,
 }
 impl RawShaderProgram {
-  pub fn new(gl: &GlContext, template: &ShaderTemplate) -> Option<Self> {
+  pub fn new(gl: Rc<GlContext>, template: &ShaderTemplate) -> Option<Self> {
     let vs_code = template.vs_code();
     let fs_code = template.fs_code();
-    let vertex_shader = RawShader::new(gl, vs_code.as_str(), ShaderType::VertexShader);
-    let fragment_shader = RawShader::new(gl, fs_code.as_str(), ShaderType::FragmentShader);
+    let vertex_shader = RawShader::new(Rc::clone(&gl), vs_code.as_str(), ShaderType::VertexShader);
+    let fragment_shader =
+      RawShader::new(Rc::clone(&gl), fs_code.as_str(), ShaderType::FragmentShader);
     Self::new_from_raw_shaders(
       gl,
       &RawShaderProgramContents {
@@ -62,7 +72,10 @@ impl RawShaderProgram {
       },
     )
   }
-  pub fn new_from_raw_shaders(gl: &GlContext, shaders: &RawShaderProgramContents) -> Option<Self> {
+  pub fn new_from_raw_shaders(
+    gl: Rc<GlContext>,
+    shaders: &RawShaderProgramContents,
+  ) -> Option<Self> {
     let program = gl
       .create_program()
       .expect("failed to create shader program");
@@ -104,6 +117,7 @@ impl RawShaderProgram {
     }
     let program_id = RAW_SHADER_PROGRAM_ID_COUNTER.fetch_add(1, Ordering::SeqCst) as u64;
     return Some(Self {
+      gl: Rc::clone(&gl),
       program,
       program_id,
     });
@@ -113,5 +127,10 @@ impl RawShaderProgram {
   }
   pub fn raw_program_id(&self) -> u64 {
     self.program_id
+  }
+}
+impl Drop for RawShaderProgram {
+  fn drop(&mut self) {
+    self.gl.delete_program(Some(&self.program));
   }
 }
