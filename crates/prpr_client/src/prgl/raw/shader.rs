@@ -42,7 +42,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 static RAW_SHADER_PROGRAM_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
 pub struct RawShaderProgram {
   program: web_sys::WebGlProgram,
-  program_id: usize,
+  program_id: u64,
 }
 pub struct RawShaderProgramContents {
   pub vertex_shader: Option<RawShader>,
@@ -102,7 +102,7 @@ impl RawShaderProgram {
       }
       return None;
     }
-    let program_id = RAW_SHADER_PROGRAM_ID_COUNTER.fetch_add(1, Ordering::SeqCst);
+    let program_id = RAW_SHADER_PROGRAM_ID_COUNTER.fetch_add(1, Ordering::SeqCst) as u64;
     return Some(Self {
       program,
       program_id,
@@ -111,7 +111,7 @@ impl RawShaderProgram {
   pub fn raw_program(&self) -> &web_sys::WebGlProgram {
     &self.program
   }
-  pub fn raw_program_id(&self) -> usize {
+  pub fn raw_program_id(&self) -> u64 {
     self.program_id
   }
 }

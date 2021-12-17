@@ -122,14 +122,6 @@ pub struct VsInTemplate {
   pub size: usize,
 }
 
-// pub fn shader_vb_hash_location(key: &str) -> u64 {
-//   use std::hash::{Hash, Hasher};
-//   let mut hasher = std::collections::hash_map::DefaultHasher::new();
-//   key.hash(&mut hasher);
-//   // gl::MAX_VERTEX_ATTRIBS; がめっちゃちいさい
-//   hasher.finish() & 0xfff
-// }
-
 pub struct RawVao {
   vao: web_sys::WebGlVertexArrayObject,
 }

@@ -11,6 +11,6 @@ pub mod pipeline_state;
 pub use self::pipeline_state::*;
 
 // raw 以下のコードのstructの制約
+// - web_sys::*を持ち公開する＋外側のユーザーは使用しない
 // - GlContext を自身で持たない
 // - GpuリソースをDropしない
-// - web_sys::*を公開する
