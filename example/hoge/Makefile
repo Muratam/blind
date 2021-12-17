@@ -5,7 +5,7 @@ all: setup client server
 
 .PHONY: setup
 setup:
-	cargo install wasm-pack -q
+	[ ! type wasm-pack > /dev/null 2>&1 ] && cargo install wasm-pack -q || true
 
 .PHONY: client
 client:

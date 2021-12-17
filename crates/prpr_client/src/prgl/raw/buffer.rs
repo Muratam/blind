@@ -1,5 +1,4 @@
 use super::*;
-use std::ops::{Index, IndexMut};
 #[derive(Clone, Copy, PartialEq)]
 pub enum BufferUsage {
   Vertex = gl::ARRAY_BUFFER as isize,

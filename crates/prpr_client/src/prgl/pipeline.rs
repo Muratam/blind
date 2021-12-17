@@ -55,49 +55,33 @@ impl Pipeline {
     }
   }
   pub fn setup_sample(&mut self) {
-    let gl = self.gl.as_ref();
-    #[repr(C)]
-    struct VertexType {
-      position: Vec3Attr,
-      color: Vec4Attr,
+    crate::shader_attr! {
+      struct Vertex {
+        position: vec3,
+        color: vec4,
+      }
+      struct Global {
+        add_color: vec4,
+      }
     }
-    let v_attrs = vec![
-      RawVertexAttribute {
-        name: String::from("position"),
-        location: 0, // from shader ?
-        primitive_type: Vec3Attr::primitive_type(),
-        count: Vec3Attr::count(),
-      },
-      RawVertexAttribute {
-        name: String::from("color"),
-        location: 1, // from shader ?
-        primitive_type: Vec4Attr::primitive_type(),
-        count: Vec4Attr::count(),
-      },
-    ];
-    let common_header = "#version 300 es\nprecision highp float;";
-    let layouts = v_attrs
-      .iter()
-      .map(|x| x.to_layout_location_str())
-      .collect::<String>();
-    let vs_code = "
-      out vec4 in_color;
-      void main() {
+    let template = crate::shader_template! {
+      attrs: [Global],
+      vs_attr: Vertex,
+      fs_attr: { in_color: vec4 },
+      out_attr: { out_color: vec4 }
+      vs_code: {
         in_color = color;
         gl_Position = vec4(position, 1.0);
+      },
+      fs_code: {
+        out_color = in_color + add_color;
       }
-    ";
-    let fs_code = "
-      in vec4 in_color;
-      out vec4 out_color;
-      layout (std140) uniform Global { vec4 add_color; };
-      void main() { out_color = in_color + add_color; }
-    ";
-    let vs_code = format!("{}\n{}\n{}", common_header, layouts, vs_code);
-    let fs_code = format!("{}\n{}", common_header, fs_code);
-    // shader
-    let vertex_shader = RawShader::new(gl, &vs_code, ShaderType::VertexShader);
-    let fragment_shader = RawShader::new(gl, &fs_code, ShaderType::FragmentShader);
+    };
+    let gl = self.gl.as_ref();
+    let vs_code = template.vs_code();
+    let fs_code = template.fs_code();
+    let vertex_shader = RawShader::new(gl, vs_code.as_str(), ShaderType::VertexShader);
+    let fragment_shader = RawShader::new(gl, fs_code.as_str(), ShaderType::FragmentShader);
     self.raw_shader_program = RawShaderProgram::new(
       gl,
       &RawShaderProgramContents {
@@ -107,28 +91,34 @@ impl Pipeline {
     );
     // buffer
     let v_data = vec![
-      VertexType {
-        position: Vec3Attr::new(Vec3::Y),
-        color: Vec4Attr::new(Vec4::X + Vec4::W),
+      Vertex {
+        position: Vec3::Y,
+        color: Vec4::X + Vec4::W,
       },
-      VertexType {
-        position: Vec3Attr::new(Vec3::X),
-        color: Vec4Attr::new(Vec4::Y + Vec4::W),
+      Vertex {
+        position: Vec3::X,
+        color: Vec4::Y + Vec4::W,
       },
-      VertexType {
-        position: Vec3Attr::new(-Vec3::X),
-        color: Vec4Attr::new(Vec4::Z + Vec4::W),
+      Vertex {
+        position: -Vec3::X,
+        color: Vec4::Z + Vec4::W,
       },
-      VertexType {
-        position: Vec3Attr::new(-Vec3::Y),
-        color: Vec4Attr::new(Vec4::ONE),
+      Vertex {
+        position: -Vec3::Y,
+        color: Vec4::ONE,
       },
     ];
-    let v_buffer = RawGpuBuffer::new(gl, v_data.as_slice(), BufferUsage::Vertex);
-    let i_data: Vec<IndexBufferType> = vec![0, 1, 2, 2, 3, 1];
-    let i_buffer = RawGpuBuffer::new(gl, i_data.as_slice(), BufferUsage::Index);
-    self.raw_vao = Some(RawVao::new(gl, &v_attrs, &v_buffer, Some(&i_buffer)));
     if let Some(program) = &self.raw_shader_program {
+      let v_buffer = RawGpuBuffer::new(gl, v_data.as_slice(), BufferUsage::Vertex);
+      let i_data: Vec<IndexBufferType> = vec![0, 1, 2, 2, 3, 1];
+      let i_buffer = RawGpuBuffer::new(gl, i_data.as_slice(), BufferUsage::Index);
+      self.raw_vao = Some(RawVao::new(
+        gl,
+        program.raw_program(),
+        &template.vs_in_template(),
+        &v_buffer,
+        Some(&i_buffer),
+      ));
       let u_data = vec![Vec4::new(0.5, 0.5, 0.5, 0.5)];
       let u_buffer = RawGpuBuffer::new(gl, u_data.as_slice(), BufferUsage::Uniform);
       let u_name = "Global";
@@ -138,8 +128,8 @@ impl Pipeline {
         log::error(format!("invalid uniform buffer name: {}", u_name));
       }
       gl.bind_buffer_base(gl::UNIFORM_BUFFER, u_index, Some(&u_buffer.raw_buffer()));
+      self.set_draw_indexed(0, i_data.len() as i32);
     }
-    self.set_draw_indexed(0, i_data.len() as i32);
   }
   pub fn draw(&self) {
     let gl = &self.gl;
