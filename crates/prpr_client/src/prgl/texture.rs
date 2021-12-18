@@ -4,7 +4,7 @@ pub struct Texture {
 }
 
 impl Texture {
-  pub fn new(gl: Rc<GlContext>) -> Self {
-    Self { gl: Rc::clone(&gl) }
+  pub fn new(gl: &Rc<GlContext>) -> Self {
+    Self { gl: Rc::clone(gl) }
   }
 }

@@ -1,16 +1,14 @@
 use super::*;
+// - web_sys::*を持ち公開する＋通常は外側のユーザーは使用しない
 pub mod buffer;
 pub use self::buffer::*;
 pub mod shader;
 pub use self::shader::*;
-pub mod attribute;
-pub use self::attribute::*;
-pub mod shader_macro;
-pub use self::shader_macro::*;
-pub mod pipeline_state;
-pub use self::pipeline_state::*;
-
-// raw 以下のコードのstructの制約
-// - web_sys::*を持ち公開する＋外側のユーザーは使用しない
-// TODO: 以下の制限は解除する(GpuリソースをDropしたいので)
-// - GlContext を自身で持たない
+pub mod template_macro;
+pub use self::template_macro::*;
+pub mod template;
+pub use self::template::*;
+pub mod vao;
+pub use self::vao::*;
+pub mod state;
+pub use self::state::*;

@@ -76,12 +76,6 @@ macro_rules! shader_attr {
           concat!($("out ", $crate::shader_type_str!($v) ," ", stringify!($k), ";\n",)*)
         }
         #[allow(dead_code)]
-        fn ub_data(&self) -> &[u8] {
-          let u8_size = Self::struct_size();
-          let ptr = self as *const $s as *const u8;
-          unsafe { ::core::slice::from_raw_parts(ptr, u8_size) }
-        }
-        #[allow(dead_code)]
         fn struct_size() -> usize {
           ::std::mem::size_of::<$s>()
         }
@@ -97,43 +91,59 @@ macro_rules! shader_attr {
           result
         }
         #[allow(dead_code)]
-        fn name() -> &'static str { stringify!($s) }
+        fn name_static() -> &'static str { stringify!($s) }
         #[allow(dead_code)]
-        fn self_name(&self) -> &'static str { Self::name() }
-        #[allow(dead_code)]
-        fn keys() -> Vec<&'static str> {
+        #[allow(unused_variables)]
+        fn keys_static() -> Vec<&'static str> {
           let mut result = Vec::new();
           $(result.push(stringify!($k));)*
           result
         }
-        #[allow(dead_code)]
+      }
+      impl BufferAttribute for $s {
+        fn ub_data(&self) -> &[u8] {
+          let u8_size = Self::struct_size();
+          let ptr = self as *const $s as *const u8;
+          unsafe { ::core::slice::from_raw_parts(ptr, u8_size) }
+        }
+        fn vs_in_template(&self) -> VsInTemplate {
+          VsInTemplate{
+            keys: Self::keys_static(),
+            values: Self::new().values(),
+            offsets: Self::offsets(),
+            size: Self::struct_size(),
+          }
+        }
+        fn keys(&self) -> Vec<&'static str> { Self::keys_static() }
+        #[allow(unused_variables)]
+        #[allow(unused_mut)]
         fn values(&self) -> Vec<ShaderPrimitiveType> {
           let mut result = Vec::new();
           $(result.push(ShaderPrimitiveType::$v(self.$k));)*
           result
         }
-        #[allow(dead_code)]
+        fn name(&self) -> &'static str { Self::name_static() }
         fn find(&self, key: &str) -> Option<ShaderPrimitiveType> {
           match key {
             $(stringify!($k) => Some(ShaderPrimitiveType::$v(self.$k)),)*
             _ => None,
           }
         }
-        // for dynamic loading
-        #[allow(dead_code)]
-        fn from_hashmap(map: &::std::collections::HashMap<String, ShaderPrimitiveType>) -> (Self, Vec<&'static str>) {
-          let mut result = Self::new();
+        #[allow(unused_variables)]
+        #[allow(unused_mut)]
+        fn from_hashmap(&mut self, map: &::std::collections::HashMap<String, ShaderPrimitiveType>) -> Vec<&'static str> {
           let mut ignored = Vec::new();
           $(
             if let Some(ShaderPrimitiveType::$v(v)) = map.get(stringify!($k)) {
-              result.$k = *v;
+              self.$k = *v;
             } else {
               ignored.push(stringify!($k));
             }
           )*
-          (result, ignored)
+          ignored
         }
-        #[allow(dead_code)]
+        #[allow(unused_variables)]
+        #[allow(unused_mut)]
         fn to_hashmap(&self) -> ::std::collections::HashMap<String, ShaderPrimitiveType> {
           let mut result = ::std::collections::HashMap::new();
           $(result.insert(String::from(stringify!($k)), ShaderPrimitiveType::$v(self.$k));)*
@@ -166,15 +176,7 @@ macro_rules! shader_template_element {
     "lowp"
   };
   (vs_attr: $v:ident) => {
-    (
-      VsInTemplate {
-        keys: $v::keys(),
-        values: $v::new().values(),
-        offsets: $v::offsets(),
-        size: $v::struct_size(),
-      },
-      $v::vs_in_code()
-    )
+    $v::vs_in_code()
   };
   (fs_attr: $v:ident) => {{
     ($v::vs_out_code(), $v::fs_in_code())
@@ -209,34 +211,20 @@ macro_rules! shader_template {
     $crate::shader_attr! {
       struct NilBufferTemplate{}
     }
+    #[derive(Default)]
     struct Template{
       version: i32,
       precision_float: &'static str,
-      vs_attr: (VsInTemplate, &'static str),
+      vs_attr: &'static str,
       fs_attr: (&'static str, &'static str), // -> vs_out_code, fs_in_code
       out_attr : &'static str, // -> fs_out_code
       attrs: String, // -> ub_code[]
       vs_code: String,
       fs_code: String,
     }
-    let mut template = Template{
-      version: 300,
-      precision_float: "highp",
-      vs_attr: (
-        VsInTemplate {
-          keys: Vec::new(),
-          values: Vec::new(),
-          offsets: Vec::new(),
-          size: 0,
-        },
-        ""
-      ),
-      fs_attr: ("", ""),
-      out_attr : "",
-      attrs: String::from(""),
-      vs_code: String::from(""),
-      fs_code: String::from(""),
-    };
+    let mut template : Template = Default::default();
+    template.version = 300;
+    template.precision_float = "highp";
     $(
       template.$k = $crate::shader_template_element!($k: $v);
     )*
@@ -245,9 +233,8 @@ macro_rules! shader_template {
       template.version, template.precision_float
     );
     let mut result = ShaderTemplate::new(
-      template.vs_attr.0,
       format!("{}{}{}{}",
-        common, template.attrs, template.vs_attr.1, template.fs_attr.0),
+        common, template.attrs, template.vs_attr, template.fs_attr.0),
       format!("{}{}{}{}",
         common, template.attrs, template.fs_attr.1, template.out_attr),
     );

@@ -14,9 +14,9 @@ pub struct RenderPass {
   // stencil_target: RawStencRawTextureilRenderTarget,
 }
 impl RenderPass {
-  pub fn new(gl: Rc<GlContext>) -> Self {
+  pub fn new(gl: &Rc<GlContext>) -> Self {
     Self {
-      gl: Rc::clone(&gl),
+      gl: Rc::clone(gl),
       clear_colors: [None; MAX_OUTPUT_SLOT],
       clear_depth: None,
       clear_stencil: None,

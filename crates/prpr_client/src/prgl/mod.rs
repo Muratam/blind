@@ -3,13 +3,17 @@ mod renderpass;
 pub use self::renderpass::*;
 mod pipeline;
 pub use self::pipeline::*;
+mod descriptorset;
+pub use self::descriptorset::*;
 mod instance;
 pub use self::instance::*;
 mod buffer;
 pub use self::buffer::*;
 mod texture;
 pub use self::texture::*;
-mod raw;
+mod shader;
+pub use self::shader::*;
+pub mod raw;
 use self::raw::*;
 
 use crate::html;
