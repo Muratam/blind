@@ -102,6 +102,7 @@ macro_rules! shader_attr {
         #[allow(dead_code)]
         fn name_static() -> &'static str { stringify!($s) }
         #[allow(dead_code)]
+        #[allow(unused_variables)]
         fn keys_static() -> Vec<&'static str> {
           let mut result = Vec::new();
           $(result.push(stringify!($k));)*
@@ -115,6 +116,8 @@ macro_rules! shader_attr {
           unsafe { ::core::slice::from_raw_parts(ptr, u8_size) }
         }
         fn keys(&self) -> Vec<&'static str> { Self::keys_static() }
+        #[allow(unused_variables)]
+        #[allow(unused_mut)]
         fn values(&self) -> Vec<ShaderPrimitiveType> {
           let mut result = Vec::new();
           $(result.push(ShaderPrimitiveType::$v(self.$k));)*
@@ -128,6 +131,7 @@ macro_rules! shader_attr {
           }
         }
         #[allow(unused_variables)]
+        #[allow(unused_mut)]
         fn from_hashmap(&mut self, map: &::std::collections::HashMap<String, ShaderPrimitiveType>) -> Vec<&'static str> {
           let mut ignored = Vec::new();
           $(
@@ -139,6 +143,8 @@ macro_rules! shader_attr {
           )*
           ignored
         }
+        #[allow(unused_variables)]
+        #[allow(unused_mut)]
         fn to_hashmap(&self) -> ::std::collections::HashMap<String, ShaderPrimitiveType> {
           let mut result = ::std::collections::HashMap::new();
           $(result.insert(String::from(stringify!($k)), ShaderPrimitiveType::$v(self.$k));)*
