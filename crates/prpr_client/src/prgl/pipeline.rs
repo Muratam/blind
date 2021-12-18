@@ -16,9 +16,8 @@ pub struct Pipeline {
   // states
   draw_command: Option<DrawCommand>,
   primitive_topology: PrimitiveToporogy,
-  shader: Option<Shader>,                        // raw
-  vao: Option<Box<dyn VaoTrait>>,                // raw
-  u_buffer: Option<Box<dyn UniformBufferTrait>>, // raw
+  shader: Option<Shader>,
+  descriptor: Option<Rc<RefCell<Descriptor>>>,
 }
 
 impl Pipeline {
@@ -28,8 +27,7 @@ impl Pipeline {
       draw_command: None,
       primitive_topology: PrimitiveToporogy::Triangles,
       shader: None,
-      vao: None,
-      u_buffer: None,
+      descriptor: None,
     }
   }
   pub fn setup_sample(&mut self) {
@@ -80,25 +78,26 @@ impl Pipeline {
     let i_size = i_data.len() as i32;
     let i_buffer = IndexBuffer::new(&self.gl, i_data);
     let v_buffer = VertexBuffer::new(&self.gl, v_data);
-    self.vao = Some(Box::new(Vao::new(&self.gl, v_buffer, Some(i_buffer))));
+    let vao = Vao::new(&self.gl, v_buffer, i_buffer);
     let u_buffer = UniformBuffer::new(&self.gl, u_data);
-    self.u_buffer = Some(Box::new(u_buffer));
+    self.descriptor = Some(Descriptor::new(
+      Some(Box::new(vao)),
+      vec![Box::new(u_buffer)],
+    ));
     self.shader = Shader::new(&self.gl, template);
     self.set_draw_indexed(0, i_size);
   }
 
   pub fn draw(&mut self) {
     let gl = &self.gl;
+    let env = Rc::new(RefCell::new(DescriptorContext::Nil));
     if let Some(shader) = &self.shader {
       shader.use_program();
-      if let Some(u_buffer) = &mut self.u_buffer {
-        u_buffer.bind(shader.raw_program());
-      }
-      if let Some(vao) = &mut self.vao {
-        vao.bind(shader.raw_program());
+      if let Some(descriptor) = &mut self.descriptor {
+        let desc_ctx = DescriptorContext::cons(&descriptor, &env);
+        desc_ctx.borrow_mut().bind(shader.raw_program());
       } else {
-        log::error("No Vertex Array Object");
-        return;
+        env.borrow_mut().bind(shader.raw_program());
       }
     } else {
       log::error("No Shader Program");

@@ -19,6 +19,7 @@ use self::raw::*;
 use crate::html;
 use crate::system::log;
 use prpr::math::*;
+use std::cell::RefCell;
 use std::rc::Rc;
 use web_sys::WebGl2RenderingContext as gl;
 use web_sys::WebGl2RenderingContext as GlContext;

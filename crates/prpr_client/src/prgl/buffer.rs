@@ -107,11 +107,19 @@ pub trait VaoTrait {
   fn bind(&mut self, program: &RawShaderProgram);
 }
 impl<T: BufferAttribute> Vao<T> {
-  pub fn new(gl: &Rc<GlContext>, v_buffer: VertexBuffer<T>, i_buffer: Option<IndexBuffer>) -> Self {
+  pub fn new(gl: &Rc<GlContext>, v_buffer: VertexBuffer<T>, i_buffer: IndexBuffer) -> Self {
     Self {
       gl: Rc::clone(gl),
       v_buffer,
-      i_buffer,
+      i_buffer: Some(i_buffer),
+      shader_id_to_raw_vao: HashMap::new(),
+    }
+  }
+  pub fn new_without_index_buffer(gl: &Rc<GlContext>, v_buffer: VertexBuffer<T>) -> Self {
+    Self {
+      gl: Rc::clone(gl),
+      v_buffer,
+      i_buffer: None,
       shader_id_to_raw_vao: HashMap::new(),
     }
   }
