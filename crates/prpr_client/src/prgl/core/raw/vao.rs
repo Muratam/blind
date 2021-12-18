@@ -25,7 +25,7 @@ impl RawVao {
       for i in 0..vs_in.offsets.len() {
         let location = gl.get_attrib_location(program, vs_in.keys[i]);
         if location < 0 {
-          log::info(format!("no vertex attribute: {}", vs_in.keys[i]));
+          // log::info(format!("no vertex attribute: {}", vs_in.keys[i]));
           continue;
         }
         gl.enable_vertex_attrib_array(location as u32);

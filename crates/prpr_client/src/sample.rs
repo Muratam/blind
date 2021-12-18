@@ -29,7 +29,7 @@ impl System for SampleSystem {
       fs_attr: { in_color: vec4 },
       out_attr: { out_color: vec4 }
       vs_code: {
-        in_color = vec4(position + 0.5, 1.0);
+        in_color = vec4(position, 1.0);
         gl_Position = vec4(position, 1.0);
       },
       fs_code: {
