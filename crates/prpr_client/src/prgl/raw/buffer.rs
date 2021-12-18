@@ -1,6 +1,5 @@
 use super::*;
 #[derive(Clone, Copy, PartialEq)]
-#[allow(unused)]
 pub enum BufferUsage {
   Vertex = gl::ARRAY_BUFFER as isize,
   Index = gl::ELEMENT_ARRAY_BUFFER as isize,
@@ -69,7 +68,6 @@ impl RawGpuBuffer {
       ));
       return;
     }
-    // log::debug(format!("{:?}", data));
     let target = self.usage as u32;
     self.gl.bind_buffer(target, Some(&self.buffer));
     self

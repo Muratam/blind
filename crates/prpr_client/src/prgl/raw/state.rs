@@ -16,7 +16,6 @@ pub enum DrawCommand {
 }
 
 #[derive(Clone, Copy)]
-#[allow(unused)]
 pub enum PrimitiveToporogy {
   Points = gl::POINTS as isize,
   LineStrip = gl::LINE_STRIP as isize,
