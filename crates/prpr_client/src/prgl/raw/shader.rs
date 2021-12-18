@@ -121,6 +121,9 @@ impl RawShaderProgram {
       program_id,
     });
   }
+  pub fn use_program(&self) {
+    self.gl.use_program(Some(&self.program));
+  }
   pub fn raw_program(&self) -> &web_sys::WebGlProgram {
     &self.program
   }

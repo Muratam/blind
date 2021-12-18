@@ -14,10 +14,11 @@ use super::*;
 pub struct Pipeline {
   gl: Rc<GlContext>,
   // states
-  raw_shader_program: Option<RawShaderProgram>,
   draw_command: Option<DrawCommand>,
   primitive_topology: PrimitiveToporogy,
-  raw_vao: Option<RawVao>,
+  shader: Option<Shader>,                        // raw
+  vao: Option<Box<dyn VaoTrait>>,                // raw
+  u_buffer: Option<Box<dyn UniformBufferTrait>>, // raw
 }
 
 impl Pipeline {
@@ -26,8 +27,9 @@ impl Pipeline {
       gl: Rc::clone(gl),
       draw_command: None,
       primitive_topology: PrimitiveToporogy::Triangles,
-      raw_shader_program: None,
-      raw_vao: None,
+      shader: None,
+      vao: None,
+      u_buffer: None,
     }
   }
   pub fn setup_sample(&mut self) {
@@ -53,7 +55,7 @@ impl Pipeline {
         out_color = in_color + add_color;
       }
     };
-    let v_data = [
+    let v_data = vec![
       Vertex {
         position: Vec3::Y,
         color: Vec4::X + Vec4::W,
@@ -71,38 +73,35 @@ impl Pipeline {
         color: Vec4::ONE,
       },
     ];
-    let i_data = [0, 1, 2, 2, 3, 1];
+    let i_data = vec![0, 1, 2, 2, 3, 1];
     let u_data = Global {
       add_color: Vec4::new(0.5, 0.5, 0.5, 0.5),
     };
-    self.raw_shader_program = RawShaderProgram::new(&self.gl, &template);
-    if let Some(program) = &self.raw_shader_program {
-      let i_buffer = IndexBuffer::new(&self.gl, &i_data);
-      let v_buffer = VertexBuffer::new(&self.gl, &v_data);
-      let mut u_buffer = UniformBuffer::new(&self.gl, u_data);
-      self.raw_vao = Some(RawVao::new(
-        &self.gl,
-        program.raw_program(),
-        Some((&template.vs_in_template(), &v_buffer.raw_buffer())),
-        Some(&i_buffer.raw_buffer()),
-      ));
-      u_buffer.bind(program);
-      self.set_draw_indexed(0, i_data.len() as i32);
-    }
+    let i_size = i_data.len() as i32;
+    let i_buffer = IndexBuffer::new(&self.gl, i_data);
+    let v_buffer = VertexBuffer::new(&self.gl, v_data);
+    self.vao = Some(Box::new(Vao::new(&self.gl, v_buffer, Some(i_buffer))));
+    let u_buffer = UniformBuffer::new(&self.gl, u_data);
+    self.u_buffer = Some(Box::new(u_buffer));
+    self.shader = Shader::new(&self.gl, template);
+    self.set_draw_indexed(0, i_size);
   }
 
-  pub fn draw(&self) {
+  pub fn draw(&mut self) {
     let gl = &self.gl;
-    if let Some(program) = &self.raw_shader_program {
-      gl.use_program(Some(program.raw_program()));
+    if let Some(shader) = &self.shader {
+      shader.use_program();
+      if let Some(u_buffer) = &mut self.u_buffer {
+        u_buffer.bind(shader.raw_program());
+      }
+      if let Some(vao) = &mut self.vao {
+        vao.bind(shader.raw_program());
+      } else {
+        log::error("No Vertex Array Object");
+        return;
+      }
     } else {
       log::error("No Shader Program");
-      return;
-    }
-    if let Some(vao) = &self.raw_vao {
-      gl.bind_vertex_array(Some(vao.get_raw_vao()));
-    } else {
-      log::error("No Vertex Array Object");
       return;
     }
     let topology = self.primitive_topology as u32;
@@ -121,6 +120,7 @@ impl Pipeline {
       return;
     }
   }
+
   pub fn set_draw(&mut self, first: i32, count: i32) {
     self.draw_command = Some(DrawCommand::Draw { first, count });
   }

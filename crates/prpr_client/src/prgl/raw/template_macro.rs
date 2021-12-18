@@ -91,15 +91,6 @@ macro_rules! shader_attr {
           result
         }
         #[allow(dead_code)]
-        fn vs_in_template(&self) -> VsInTemplate {
-          VsInTemplate{
-            keys: Self::keys_static(),
-            values: Self::new().values(),
-            offsets: Self::offsets(),
-            size: Self::struct_size(),
-          }
-        }
-        #[allow(dead_code)]
         fn name_static() -> &'static str { stringify!($s) }
         #[allow(dead_code)]
         #[allow(unused_variables)]
@@ -114,6 +105,14 @@ macro_rules! shader_attr {
           let u8_size = Self::struct_size();
           let ptr = self as *const $s as *const u8;
           unsafe { ::core::slice::from_raw_parts(ptr, u8_size) }
+        }
+        fn vs_in_template(&self) -> VsInTemplate {
+          VsInTemplate{
+            keys: Self::keys_static(),
+            values: Self::new().values(),
+            offsets: Self::offsets(),
+            size: Self::struct_size(),
+          }
         }
         fn keys(&self) -> Vec<&'static str> { Self::keys_static() }
         #[allow(unused_variables)]
@@ -177,7 +176,7 @@ macro_rules! shader_template_element {
     "lowp"
   };
   (vs_attr: $v:ident) => {
-    ($v::new().vs_in_template(), $v::vs_in_code())
+    $v::vs_in_code()
   };
   (fs_attr: $v:ident) => {{
     ($v::vs_out_code(), $v::fs_in_code())
@@ -216,7 +215,7 @@ macro_rules! shader_template {
     struct Template{
       version: i32,
       precision_float: &'static str,
-      vs_attr: (VsInTemplate, &'static str),
+      vs_attr: &'static str,
       fs_attr: (&'static str, &'static str), // -> vs_out_code, fs_in_code
       out_attr : &'static str, // -> fs_out_code
       attrs: String, // -> ub_code[]
@@ -234,9 +233,8 @@ macro_rules! shader_template {
       template.version, template.precision_float
     );
     let mut result = ShaderTemplate::new(
-      template.vs_attr.0,
       format!("{}{}{}{}",
-        common, template.attrs, template.vs_attr.1, template.fs_attr.0),
+        common, template.attrs, template.vs_attr, template.fs_attr.0),
       format!("{}{}{}{}",
         common, template.attrs, template.fs_attr.1, template.out_attr),
     );

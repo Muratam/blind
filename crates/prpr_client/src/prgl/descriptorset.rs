@@ -10,7 +10,7 @@ use super::*;
 */
 pub struct Descriptor {
   gl: Rc<GlContext>,
-  vao: Option<Vao>,
+  // vao: Option<Vao>,
   // u_buffers: Vec<UniformBuffer>,
   // u_textures: Vec<Texture>
 }

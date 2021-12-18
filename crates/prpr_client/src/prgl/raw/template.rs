@@ -19,7 +19,7 @@ pub type uvec4 = (uint, uint, uint, uint);
 #[allow(non_camel_case_types)]
 pub type mat4 = math::Mat4;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[allow(non_camel_case_types)]
 #[allow(dead_code)]
 pub enum ShaderPrimitiveType {
@@ -77,26 +77,17 @@ impl ShaderPrimitiveType {
 pub struct ShaderTemplate {
   vs_code_template: String,
   fs_code_template: String,
-  vs_in_template: VsInTemplate,
   pub vs_code_impl: String,
   pub fs_code_impl: String,
 }
 impl ShaderTemplate {
-  pub fn new(
-    vs_in_template: VsInTemplate,
-    vs_code_template: String,
-    fs_code_template: String,
-  ) -> Self {
+  pub fn new(vs_code_template: String, fs_code_template: String) -> Self {
     Self {
-      vs_in_template,
       vs_code_template,
       fs_code_template,
       vs_code_impl: String::from(""),
       fs_code_impl: String::from(""),
     }
-  }
-  pub fn vs_in_template(&self) -> &VsInTemplate {
-    &self.vs_in_template
   }
   pub fn vs_code(&self) -> String {
     format!("{}{}", self.vs_code_template, self.vs_code_impl)
@@ -128,6 +119,7 @@ use std::collections::HashMap;
 pub trait BufferAttribute {
   fn ub_data(&self) -> &[u8];
   fn name(&self) -> &'static str;
+  fn vs_in_template(&self) -> VsInTemplate;
   fn keys(&self) -> Vec<&'static str>;
   fn values(&self) -> Vec<ShaderPrimitiveType>;
   // for dynamic loading

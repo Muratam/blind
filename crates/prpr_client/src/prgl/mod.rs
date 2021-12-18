@@ -11,6 +11,8 @@ mod buffer;
 pub use self::buffer::*;
 mod texture;
 pub use self::texture::*;
+mod shader;
+pub use self::shader::*;
 pub mod raw;
 use self::raw::*;
 
