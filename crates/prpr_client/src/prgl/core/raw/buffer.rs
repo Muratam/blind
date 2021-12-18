@@ -57,7 +57,7 @@ impl RawGpuBuffer {
     }
   }
   pub fn write<T: Sized>(&self, offset: usize, data: &[T]) {
-    use core::slice;
+    use ::core::slice;
     let u8_size = std::mem::size_of::<T>() * data.len();
     let ptr = data.as_ptr() as *const u8;
     let u8_data: &[u8] = unsafe { slice::from_raw_parts(ptr, u8_size) };
