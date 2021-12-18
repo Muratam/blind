@@ -12,7 +12,7 @@ pub struct RawShader {
   shader_type: ShaderType,
 }
 impl RawShader {
-  pub fn new(gl: Rc<GlContext>, code: &str, shader_type: ShaderType) -> Option<Self> {
+  pub fn new(gl: &Rc<GlContext>, code: &str, shader_type: ShaderType) -> Option<Self> {
     let create_flag = match &shader_type {
       ShaderType::VertexShader => gl::VERTEX_SHADER,
       ShaderType::FragmentShader => gl::FRAGMENT_SHADER,
@@ -34,7 +34,7 @@ impl RawShader {
       return None;
     }
     return Some(Self {
-      gl: Rc::clone(&gl),
+      gl: Rc::clone(gl),
       shader,
       shader_type,
     });
@@ -58,12 +58,11 @@ pub struct RawShaderProgramContents {
   pub fragment_shader: Option<RawShader>,
 }
 impl RawShaderProgram {
-  pub fn new(gl: Rc<GlContext>, template: &ShaderTemplate) -> Option<Self> {
+  pub fn new(gl: &Rc<GlContext>, template: &ShaderTemplate) -> Option<Self> {
     let vs_code = template.vs_code();
     let fs_code = template.fs_code();
-    let vertex_shader = RawShader::new(Rc::clone(&gl), vs_code.as_str(), ShaderType::VertexShader);
-    let fragment_shader =
-      RawShader::new(Rc::clone(&gl), fs_code.as_str(), ShaderType::FragmentShader);
+    let vertex_shader = RawShader::new(gl, vs_code.as_str(), ShaderType::VertexShader);
+    let fragment_shader = RawShader::new(gl, fs_code.as_str(), ShaderType::FragmentShader);
     Self::new_from_raw_shaders(
       gl,
       &RawShaderProgramContents {
@@ -73,7 +72,7 @@ impl RawShaderProgram {
     )
   }
   pub fn new_from_raw_shaders(
-    gl: Rc<GlContext>,
+    gl: &Rc<GlContext>,
     shaders: &RawShaderProgramContents,
   ) -> Option<Self> {
     let program = gl
@@ -117,7 +116,7 @@ impl RawShaderProgram {
     }
     let program_id = RAW_SHADER_PROGRAM_ID_COUNTER.fetch_add(1, Ordering::SeqCst) as u64;
     return Some(Self {
-      gl: Rc::clone(&gl),
+      gl: Rc::clone(gl),
       program,
       program_id,
     });

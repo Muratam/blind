@@ -21,9 +21,9 @@ pub struct Pipeline {
 }
 
 impl Pipeline {
-  pub fn new(gl: Rc<GlContext>) -> Self {
+  pub fn new(gl: &Rc<GlContext>) -> Self {
     Self {
-      gl: Rc::clone(&gl),
+      gl: Rc::clone(gl),
       draw_command: None,
       primitive_topology: PrimitiveToporogy::Triangles,
       raw_shader_program: None,
@@ -53,7 +53,7 @@ impl Pipeline {
         out_color = in_color + add_color;
       }
     };
-    self.raw_shader_program = RawShaderProgram::new(Rc::clone(&self.gl), &template);
+    self.raw_shader_program = RawShaderProgram::new(&self.gl, &template);
     if let Some(program) = &self.raw_shader_program {
       // buffer
       let v_data = vec![
@@ -74,11 +74,11 @@ impl Pipeline {
           color: Vec4::ONE,
         },
       ];
-      let v_buffer = RawGpuBuffer::new(Rc::clone(&self.gl), v_data.as_slice(), BufferUsage::Vertex);
+      let v_buffer = RawGpuBuffer::new(&self.gl, v_data.as_slice(), BufferUsage::Vertex);
       let i_data: Vec<IndexBufferType> = vec![0, 1, 2, 2, 3, 1];
-      let i_buffer = RawGpuBuffer::new(Rc::clone(&self.gl), i_data.as_slice(), BufferUsage::Index);
+      let i_buffer = RawGpuBuffer::new(&self.gl, i_data.as_slice(), BufferUsage::Index);
       self.raw_vao = Some(RawVao::new(
-        Rc::clone(&self.gl),
+        &self.gl,
         program.raw_program(),
         &template.vs_in_template(),
         &v_buffer,
@@ -87,7 +87,7 @@ impl Pipeline {
       let u_data = Global {
         add_color: Vec4::new(0.5, 0.5, 0.5, 0.5),
       };
-      let u_buffer = RawGpuBuffer::new(Rc::clone(&self.gl), u_data.ub_data(), BufferUsage::Uniform);
+      let u_buffer = RawGpuBuffer::new(&self.gl, u_data.ub_data(), BufferUsage::Uniform);
       let u_index = self
         .gl
         .get_uniform_block_index(&program.raw_program(), u_data.self_name());
