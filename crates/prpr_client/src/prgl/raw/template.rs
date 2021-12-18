@@ -47,29 +47,30 @@ pub enum ShaderSinglePrimitiveType {
 }
 impl ShaderPrimitiveType {
   pub fn get_single_primitive_type(&self) -> ShaderSinglePrimitiveType {
+    type Result = ShaderSinglePrimitiveType;
     match self {
-      ShaderPrimitiveType::uint(_) => ShaderSinglePrimitiveType::u16,
-      ShaderPrimitiveType::uvec2(_) => ShaderSinglePrimitiveType::u16,
-      ShaderPrimitiveType::uvec3(_) => ShaderSinglePrimitiveType::u16,
-      ShaderPrimitiveType::uvec4(_) => ShaderSinglePrimitiveType::u16,
-      ShaderPrimitiveType::float(_) => ShaderSinglePrimitiveType::f32,
-      ShaderPrimitiveType::vec2(_) => ShaderSinglePrimitiveType::f32,
-      ShaderPrimitiveType::vec3(_) => ShaderSinglePrimitiveType::f32,
-      ShaderPrimitiveType::vec4(_) => ShaderSinglePrimitiveType::f32,
-      ShaderPrimitiveType::mat4(_) => ShaderSinglePrimitiveType::f32,
+      Self::uint(_) => Result::u16,
+      Self::uvec2(_) => Result::u16,
+      Self::uvec3(_) => Result::u16,
+      Self::uvec4(_) => Result::u16,
+      Self::float(_) => Result::f32,
+      Self::vec2(_) => Result::f32,
+      Self::vec3(_) => Result::f32,
+      Self::vec4(_) => Result::f32,
+      Self::mat4(_) => Result::f32,
     }
   }
   pub fn get_single_primitive_count(&self) -> i32 {
     match self {
-      ShaderPrimitiveType::uint(_) => 1,
-      ShaderPrimitiveType::uvec2(_) => 2,
-      ShaderPrimitiveType::uvec3(_) => 3,
-      ShaderPrimitiveType::uvec4(_) => 4,
-      ShaderPrimitiveType::float(_) => 1,
-      ShaderPrimitiveType::vec2(_) => 2,
-      ShaderPrimitiveType::vec3(_) => 3,
-      ShaderPrimitiveType::vec4(_) => 4,
-      ShaderPrimitiveType::mat4(_) => 16,
+      Self::uint(_) => 1,
+      Self::uvec2(_) => 2,
+      Self::uvec3(_) => 3,
+      Self::uvec4(_) => 4,
+      Self::float(_) => 1,
+      Self::vec2(_) => 2,
+      Self::vec3(_) => 3,
+      Self::vec4(_) => 4,
+      Self::mat4(_) => 16,
     }
   }
 }
