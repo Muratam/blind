@@ -115,7 +115,6 @@ pub struct VsInTemplate {
   pub size: usize,
 }
 
-use std::collections::HashMap;
 pub trait BufferAttribute {
   fn ub_data(&self) -> &[u8];
   fn name(&self) -> &'static str;

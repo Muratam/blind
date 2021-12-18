@@ -16,8 +16,8 @@ pub struct Pipeline {
   // states
   draw_command: Option<DrawCommand>,
   primitive_topology: PrimitiveToporogy,
-  shader: Option<Shader>,
-  descriptor: Option<Descriptor>,
+  shader: Option<Rc<Shader>>,
+  descriptor: Descriptor,
 }
 
 impl Pipeline {
@@ -27,7 +27,7 @@ impl Pipeline {
       draw_command: None,
       primitive_topology: PrimitiveToporogy::Triangles,
       shader: None,
-      descriptor: None,
+      descriptor: Descriptor::new(),
     }
   }
   pub fn setup_sample(&mut self) {
@@ -80,11 +80,13 @@ impl Pipeline {
     let v_buffer = VertexBuffer::new(&self.gl, v_data);
     let vao = Vao::new(&self.gl, v_buffer, i_buffer);
     let u_buffer = UniformBuffer::new(&self.gl, u_data);
-    self.descriptor = Some(Descriptor::new(
-      Some(Box::new(vao)),
-      vec![Box::new(u_buffer)],
-    ));
-    self.shader = Shader::new(&self.gl, template);
+    let vao = Rc::new(RefCell::new(vao));
+    self.set_vao(&(vao as VaoPtr));
+    let u_buffer = Rc::new(RefCell::new(u_buffer));
+    self.add_uniform_buffer(&(u_buffer as UniformBufferPtr));
+    if let Some(shader) = Shader::new(&self.gl, template) {
+      self.set_shader(&Rc::new(shader));
+    }
     self.set_draw_indexed(0, i_size);
   }
 
@@ -93,11 +95,9 @@ impl Pipeline {
     let mut outer_desc_ctx = DescriptorContext::Nil;
     if let Some(shader) = &self.shader {
       shader.use_program();
-      if let Some(descriptor) = &mut self.descriptor {
-        outer_desc_ctx.cons(descriptor).bind(shader.raw_program());
-      } else {
-        outer_desc_ctx.bind(shader.raw_program());
-      }
+      outer_desc_ctx
+        .cons(&mut self.descriptor)
+        .bind(shader.raw_program());
     } else {
       log::error("No Shader Program");
       return;
@@ -118,7 +118,17 @@ impl Pipeline {
       return;
     }
   }
-
+  // set resource
+  pub fn set_shader(&mut self, shader: &Rc<Shader>) {
+    self.shader = Some(Rc::clone(shader));
+  }
+  pub fn set_vao(&mut self, vao: &VaoPtr) {
+    self.descriptor.set_vao(vao);
+  }
+  pub fn add_uniform_buffer(&mut self, buffer: &UniformBufferPtr) {
+    self.descriptor.add_uniform_buffer(buffer);
+  }
+  // draw
   pub fn set_draw(&mut self, first: i32, count: i32) {
     self.draw_command = Some(DrawCommand::Draw { first, count });
   }
