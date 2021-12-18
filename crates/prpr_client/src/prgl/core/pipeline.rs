@@ -4,6 +4,7 @@ pub struct Pipeline {
   gl: Rc<GlContext>,
   // states
   draw_command: Option<DrawCommand>,
+  cull_mode: CullMode,
   primitive_topology: PrimitiveToporogy,
   shader: Option<Rc<Shader>>,
   descriptor: Descriptor,
@@ -14,6 +15,7 @@ impl Pipeline {
     Self {
       gl: Rc::clone(gl),
       draw_command: None,
+      cull_mode: CullMode::Back,
       primitive_topology: PrimitiveToporogy::Triangles,
       shader: None,
       descriptor: Descriptor::new(),
@@ -32,6 +34,13 @@ impl Pipeline {
       log::error("No Shader Program");
       return;
     }
+    if self.cull_mode == CullMode::None {
+      self.gl.disable(gl::CULL_FACE);
+    } else {
+      self.gl.enable(gl::CULL_FACE);
+      self.gl.cull_face(self.cull_mode as u32);
+    }
+
     let topology = self.primitive_topology as u32;
     if let Some(command) = &self.draw_command {
       match &command {
@@ -63,6 +72,9 @@ impl Pipeline {
     self
       .descriptor
       .add_uniform_buffer(&(Rc::clone(buffer) as UniformBufferDynPtr));
+  }
+  pub fn set_cull_mode(&mut self, mode: CullMode) {
+    self.cull_mode = mode;
   }
   // draw
   pub fn set_draw_command(&mut self, command: DrawCommand) {

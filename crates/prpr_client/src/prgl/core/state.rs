@@ -26,6 +26,13 @@ pub enum PrimitiveToporogy {
   Triangles = gl::TRIANGLES as isize,
 }
 
+#[derive(Clone, Copy, PartialEq)]
+pub enum CullMode {
+  None = 0 as isize,
+  Front = gl::FRONT as isize,
+  Back = gl::BACK as isize,
+  All = gl::FRONT_AND_BACK as isize,
+}
 // BlendState
 // ColorState
 // CullState

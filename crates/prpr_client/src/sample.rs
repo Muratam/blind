@@ -65,7 +65,7 @@ impl System for SampleSystem {
       ubo.add_color = Vec4::new(1.0 - v, 1.0 - v, 1.0 - v, 1.0);
       let rad = (frame as f32) / 100.0;
       ubo.view_mat = Mat4::look_at_rh(
-        Vec3::new(rad.sin(), rad.cos(), 0.0) * 5.0,
+        Vec3::new(rad.sin(), 0.0, rad.cos()) * 5.0,
         Vec3::ZERO,
         Vec3::Y,
       );
