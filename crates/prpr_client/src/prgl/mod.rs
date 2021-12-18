@@ -3,6 +3,8 @@ mod renderpass;
 pub use self::renderpass::*;
 mod pipeline;
 pub use self::pipeline::*;
+mod descriptorset;
+pub use self::descriptorset::*;
 mod instance;
 pub use self::instance::*;
 mod buffer;

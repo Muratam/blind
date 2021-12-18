@@ -1,17 +1,25 @@
 use super::*;
 
+/*
+- Instance
+  - RenderPass
+    - &Texture
+  - Pipeline
+    - ShaderProgram
+  - DescriptorSet
+    - &Texture
+    - &Buffer (bind by name)
+*/
+
 pub struct Pipeline {
   gl: Rc<GlContext>,
-  // not vao
-  raw_vao: Option<RawVao>,
   // states
   raw_shader_program: Option<RawShaderProgram>,
   draw_command: Option<DrawCommand>,
   primitive_topology: PrimitiveToporogy,
+  raw_vao: Option<RawVao>,
 }
 
-// - 1 Pipeline は 1 ShaderProgram を持つ
-// -
 impl Pipeline {
   pub fn new(gl: Rc<GlContext>) -> Self {
     Self {
