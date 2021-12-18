@@ -79,24 +79,14 @@ impl Pipeline {
     if let Some(program) = &self.raw_shader_program {
       let i_buffer = IndexBuffer::new(&self.gl, &i_data);
       let v_buffer = VertexBuffer::new(&self.gl, &v_data);
-      let u_buffer = UniformBuffer::new(&self.gl, &u_data);
+      let mut u_buffer = UniformBuffer::new(&self.gl, u_data);
       self.raw_vao = Some(RawVao::new(
         &self.gl,
         program.raw_program(),
         Some((&template.vs_in_template(), &v_buffer.raw_buffer())),
         Some(&i_buffer.raw_buffer()),
       ));
-      let u_index = self
-        .gl
-        .get_uniform_block_index(&program.raw_program(), u_data.name());
-      if u_index == gl::INVALID_INDEX {
-        log::error(format!("invalid uniform buffer name: {}", u_data.name()));
-      }
-      self.gl.bind_buffer_base(
-        gl::UNIFORM_BUFFER,
-        u_index,
-        Some(&u_buffer.raw_buffer().raw_buffer()),
-      );
+      u_buffer.bind(program);
       self.set_draw_indexed(0, i_data.len() as i32);
     }
   }

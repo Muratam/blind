@@ -32,6 +32,11 @@ impl RawGpuBuffer {
     result.write(0, data);
     result
   }
+  pub fn new_untyped(gl: &Rc<GlContext>, data: &[u8], usage: BufferUsage) -> Self {
+    let result = Self::new_uninitialized::<u8>(gl, data.len(), usage);
+    result.write_untyped(0, data);
+    result
+  }
   pub fn new_uninitialized<T: Sized>(gl: &Rc<GlContext>, count: usize, usage: BufferUsage) -> Self {
     let u8_size = std::mem::size_of::<T>() * count;
     Self::new_uninitialized_untyped(gl, u8_size as i32, usage)
