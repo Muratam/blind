@@ -1,9 +1,22 @@
 // hoge_client に逃がす前段階でのサンプル
 use crate::*;
+use std::cell::RefCell;
+use std::rc::Rc;
+
+crate::shader_attr! {
+  struct Vertex {
+    color: vec4,
+    position: vec3,
+  }
+  struct Global {
+    add_color: vec4,
+  }
+}
 pub struct SampleSystem {
   surface: prgl::Texture,
   renderpass: prgl::RenderPass,
   pipeline: prgl::Pipeline,
+  global_ubo: prgl::UniformBufferPtr<Global>,
 }
 
 impl System for SampleSystem {
@@ -12,50 +25,10 @@ impl System for SampleSystem {
     let surface = prgl.new_surface();
     let mut renderpass = prgl.new_renderpass();
     renderpass.set_color_target(&surface);
-    let pipeline = prgl.new_pipeline();
-    let mut result = Self {
-      surface,
-      renderpass,
-      pipeline,
+    let mut pipeline = prgl.new_pipeline();
+    let u_data = Global {
+      add_color: Vec4::new(0.5, 0.5, 0.5, 0.5),
     };
-    result.setup_sample(core);
-    result
-  }
-  fn update(&mut self, core: &Core) {
-    let frame = core.get_frame();
-    {
-      // TODO: GLの update までの流れは別途モジュール化する
-      // TODO: impl Drop trait for not raws
-      let v = ((frame as f32) / 100.0).sin() * 0.25 + 0.75;
-      let color = Vec4::new(v, v, v, 1.0);
-      self.renderpass.set_clear_color(Some(color));
-      self.renderpass.bind();
-      self.pipeline.draw();
-      core.get_main_prgl().swap_surface(&self.surface);
-    }
-    // TODO: 2D
-    self.render_sample(&core.get_main_2d_context());
-    // TODO: HTML
-    if frame < 200 {
-      let html_layer = core.get_html_layer();
-      let text = format!("requestAnimationFrame has been called {} times.", frame);
-      let pre_text = html_layer.text_content().unwrap();
-      html_layer.set_text_content(Some(&format!("{}{}", &pre_text, &text)));
-    }
-  }
-}
-
-impl SampleSystem {
-  fn setup_sample(&mut self, core: &Core) {
-    crate::shader_attr! {
-      struct Vertex {
-        color: vec4,
-        position: vec3,
-      }
-      struct Global {
-        add_color: vec4,
-      }
-    }
     let template = crate::shader_template! {
       attrs: [Global],
       vs_attr: Vertex,
@@ -88,24 +61,54 @@ impl SampleSystem {
       },
     ];
     let i_data = vec![0, 1, 2, 2, 3, 1];
-    let u_data = Global {
-      add_color: Vec4::new(0.5, 0.5, 0.5, 0.5),
-    };
     let i_size = i_data.len() as i32;
-    let prgl = core.get_main_prgl();
-    let pipeline = &mut self.pipeline;
     let i_buffer = prgl.new_index_buffer(i_data);
     let v_buffer = prgl.new_vertex_buffer(v_data);
     let vao = prgl.new_vao(v_buffer, i_buffer);
-    let u_buffer = prgl.new_uniform_buffer(u_data);
-    pipeline.set_vao(&(vao as VaoDynPtr));
-    pipeline.add_uniform_buffer(&(u_buffer as UniformBufferDynPtr));
+    pipeline.set_vao(&vao);
+    let global_ubo = prgl.new_uniform_buffer(u_data);
+    pipeline.add_uniform_buffer(&global_ubo);
     if let Some(shader) = prgl.new_shader(template) {
       pipeline.set_shader(&shader);
     }
     pipeline.set_draw_indexed(0, i_size);
+    Self {
+      surface,
+      renderpass,
+      pipeline,
+      global_ubo,
+    }
   }
+  fn update(&mut self, core: &Core) {
+    let frame = core.get_frame();
+    {
+      // update world
+      let v = ((frame as f32) / 100.0).sin() * 0.25 + 0.75;
+      let color = Vec4::new(v, v, v, 1.0);
+      self.renderpass.set_clear_color(Some(color));
+      let mut global_ubo = self.global_ubo.borrow_mut();
+      let mut global_ubo = global_ubo.data_mut();
+      global_ubo.add_color = Vec4::new(1.0, v, 0.0, 1.0);
+    }
+    {
+      // update draw
+      self.renderpass.bind();
+      self.pipeline.draw();
+      core.get_main_prgl().swap_surface(&self.surface);
+    }
+    // TODO: 2D
+    self.render_sample(&core.get_main_2d_context());
+    // TODO: HTML
+    if frame < 200 {
+      let html_layer = core.get_html_layer();
+      let text = format!("requestAnimationFrame has been called {} times.", frame);
+      let pre_text = html_layer.text_content().unwrap();
+      html_layer.set_text_content(Some(&format!("{}{}", &pre_text, &text)));
+    }
+  }
+}
 
+impl SampleSystem {
   fn render_sample(&mut self, ctx: &web_sys::CanvasRenderingContext2d) {
     // note use: `?;` for Result
     use std::f64::consts::PI;

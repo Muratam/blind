@@ -63,11 +63,13 @@ impl Pipeline {
   pub fn set_shader(&mut self, shader: &Rc<Shader>) {
     self.shader = Some(Rc::clone(shader));
   }
-  pub fn set_vao(&mut self, vao: &VaoDynPtr) {
-    self.descriptor.set_vao(vao);
+  pub fn set_vao<T: BufferAttribute + 'static>(&mut self, vao: &VaoPtr<T>) {
+    self.descriptor.set_vao(&(Rc::clone(vao) as VaoDynPtr));
   }
-  pub fn add_uniform_buffer(&mut self, buffer: &UniformBufferDynPtr) {
-    self.descriptor.add_uniform_buffer(buffer);
+  pub fn add_uniform_buffer<T: BufferAttribute + 'static>(&mut self, buffer: &UniformBufferPtr<T>) {
+    self
+      .descriptor
+      .add_uniform_buffer(&(Rc::clone(buffer) as UniformBufferDynPtr));
   }
   // draw
   pub fn set_draw(&mut self, first: i32, count: i32) {

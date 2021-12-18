@@ -67,7 +67,7 @@ impl<T: BufferAttribute> UniformBuffer<T> {
       data,
     }
   }
-  pub fn mut_data(&mut self) -> &mut T {
+  pub fn data_mut(&mut self) -> &mut T {
     self.is_dirty = true;
     &mut self.data
   }
