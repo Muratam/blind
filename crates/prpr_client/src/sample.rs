@@ -29,7 +29,7 @@ impl System for SampleSystem {
       out_attr: { out_color: vec4 }
       vs_code: {
         in_color = vec4(position, 1.0);
-        gl_Position = vec4(position, 1.0) * view_mat * proj_mat;
+        gl_Position = proj_mat * view_mat * vec4(position, 1.0);
       },
       fs_code: {
         out_color = in_color + add_color;
@@ -63,6 +63,12 @@ impl System for SampleSystem {
       let mut ubo = self.global_ubo.borrow_mut();
       let mut ubo = ubo.data_mut();
       ubo.add_color = Vec4::new(1.0 - v, 1.0 - v, 1.0 - v, 1.0);
+      let rad = (frame as f32) / 100.0;
+      ubo.view_mat = Mat4::look_at_rh(
+        Vec3::new(rad.sin(), rad.cos(), 0.0) * 5.0,
+        Vec3::ZERO,
+        Vec3::Y,
+      );
     }
     {
       // update draw
