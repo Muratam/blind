@@ -2,10 +2,6 @@
 use crate::*;
 
 crate::shader_attr! {
-  struct Vertex {
-    color: vec4,
-    position: vec3,
-  }
   struct Global {
     add_color: vec4,
   }
@@ -29,39 +25,18 @@ impl System for SampleSystem {
     };
     let template = crate::shader_template! {
       attrs: [Global],
-      vs_attr: Vertex,
+      vs_attr: ShapeFactoryVertex,
       fs_attr: { in_color: vec4 },
       out_attr: { out_color: vec4 }
       vs_code: {
-        in_color = color;
+        in_color = vec4(position + 0.5, 1.0);
         gl_Position = vec4(position, 1.0);
       },
       fs_code: {
         out_color = in_color + add_color;
       }
     };
-    let v_data = vec![
-      Vertex {
-        position: Vec3::Y,
-        color: Vec4::X + Vec4::W,
-      },
-      Vertex {
-        position: Vec3::X,
-        color: Vec4::Y + Vec4::W,
-      },
-      Vertex {
-        position: -Vec3::X,
-        color: Vec4::Z + Vec4::W,
-      },
-      Vertex {
-        position: -Vec3::Y,
-        color: Vec4::ONE,
-      },
-    ];
-    let i_data = vec![0, 1, 2, 2, 3, 1];
-    let i_buffer = prgl.new_index_buffer(i_data);
-    let v_buffer = prgl.new_vertex_buffer(v_data);
-    let vao = prgl.new_vao(v_buffer, i_buffer);
+    let vao = prgl.new_shape_factory().create_cube();
     pipeline.set_draw_vao(&vao);
     let global_ubo = prgl.new_uniform_buffer(u_data);
     pipeline.add_uniform_buffer(&global_ubo);

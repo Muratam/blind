@@ -46,9 +46,9 @@ macro_rules! shader_attr {
       #[allow(unused_mut)]
       impl $s {
         #[allow(dead_code)]
-        fn new() -> Self { Default::default() }
+        pub fn new() -> Self { Default::default() }
         #[allow(dead_code)]
-        fn ub_code() -> &'static str {
+        pub fn ub_code() -> &'static str {
           concat!(
             "layout (std140) uniform ", stringify!($s), " {\n",
               $("  ", $crate::shader_type_str!($v) ," ", stringify!($k), ";\n",)*
@@ -56,31 +56,31 @@ macro_rules! shader_attr {
           )
         }
         #[allow(dead_code)]
-        fn vs_in_code() -> &'static str {
+        pub fn vs_in_code() -> &'static str {
           concat!(
             $("in ", $crate::shader_type_str!($v)," ",stringify!($k),";\n", )*
           )
         }
         #[allow(dead_code)]
-        fn vs_out_code() -> &'static str {
+        pub fn vs_out_code() -> &'static str {
           concat!(
             $("out ", $crate::shader_type_str!($v) ," ", stringify!($k), ";\n",)*
           )
         }
         #[allow(dead_code)]
-        fn fs_in_code() -> &'static str {
+        pub fn fs_in_code() -> &'static str {
           concat!($("in ", $crate::shader_type_str!($v) ," ", stringify!($k), ";\n",)*)
         }
         #[allow(dead_code)]
-        fn fs_out_code() -> &'static str {
+        pub fn fs_out_code() -> &'static str {
           concat!($("out ", $crate::shader_type_str!($v) ," ", stringify!($k), ";\n",)*)
         }
         #[allow(dead_code)]
-        fn struct_size() -> usize {
+        pub fn struct_size() -> usize {
           ::std::mem::size_of::<$s>()
         }
         #[allow(dead_code)]
-        fn offsets() -> Vec<usize> {
+        pub fn offsets() -> Vec<usize> {
           let mut result = Vec::new();
           let dummy = ::core::mem::MaybeUninit::<Self>::uninit();
           let dummy_ptr = dummy.as_ptr();
@@ -91,10 +91,10 @@ macro_rules! shader_attr {
           result
         }
         #[allow(dead_code)]
-        fn name_static() -> &'static str { stringify!($s) }
+        pub fn name_static() -> &'static str { stringify!($s) }
         #[allow(dead_code)]
         #[allow(unused_variables)]
-        fn keys_static() -> Vec<&'static str> {
+        pub fn keys_static() -> Vec<&'static str> {
           let mut result = Vec::new();
           $(result.push(stringify!($k));)*
           result

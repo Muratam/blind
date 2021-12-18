@@ -59,4 +59,7 @@ impl Instance {
   pub fn new_renderpass(&self) -> RenderPass {
     RenderPass::new(&self.gl)
   }
+  pub fn new_shape_factory(&self) -> ShapeFactory {
+    ShapeFactory::new(&self.gl)
+  }
 }
