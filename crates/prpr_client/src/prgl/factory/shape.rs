@@ -39,7 +39,7 @@ impl ShapeFactory {
     // z: [2, 8, 14, 20] + 3
     let i_data: Vec<IndexBufferType> = vec![
       0, 3, 6, 6, 9, 3, 12, 15, 18, 18, 21, 15, //
-      1, 4, 16, 16, 13, 4, 7, 10, 22, 22, 19, 10, //
+      1, 4, 16, 16, 13, 1, 7, 10, 22, 22, 19, 7, //
       2, 8, 14, 14, 20, 8, 5, 11, 17, 17, 23, 11, //
     ];
     let i_buffer = IndexBuffer::new(&self.gl, i_data);

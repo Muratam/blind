@@ -3,6 +3,8 @@ use crate::*;
 
 crate::shader_attr! {
   struct Global {
+    view_mat: mat4,
+    proj_mat: mat4,
     add_color: vec4,
   }
 }
@@ -20,9 +22,6 @@ impl System for SampleSystem {
     let mut renderpass = prgl.new_renderpass();
     renderpass.set_color_target(&surface);
     let mut pipeline = prgl.new_pipeline();
-    let u_data = Global {
-      add_color: Vec4::new(0.5, 0.5, 0.5, 0.5),
-    };
     let template = crate::shader_template! {
       attrs: [Global],
       vs_attr: ShapeFactoryVertex,
@@ -30,7 +29,7 @@ impl System for SampleSystem {
       out_attr: { out_color: vec4 }
       vs_code: {
         in_color = vec4(position, 1.0);
-        gl_Position = vec4(position, 1.0);
+        gl_Position = vec4(position, 1.0) * view_mat * proj_mat;
       },
       fs_code: {
         out_color = in_color + add_color;
@@ -38,7 +37,11 @@ impl System for SampleSystem {
     };
     let vao = prgl.new_shape_factory().create_cube();
     pipeline.set_draw_vao(&vao);
-    let global_ubo = prgl.new_uniform_buffer(u_data);
+    let global_ubo = prgl.new_uniform_buffer(Global {
+      add_color: Vec4::new(0.5, 0.5, 0.5, 0.5),
+      view_mat: Mat4::look_at_rh(Vec3::ONE * 5.0, Vec3::ZERO, Vec3::Y),
+      proj_mat: Mat4::perspective_rh(3.1415 * 0.25, 1.0, 0.01, 50.0),
+    });
     pipeline.add_uniform_buffer(&global_ubo);
     if let Some(shader) = prgl.new_shader(template) {
       pipeline.set_shader(&shader);
