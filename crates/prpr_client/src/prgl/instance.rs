@@ -31,6 +31,29 @@ impl Instance {
   // pub fn new_buffer(&self) -> Buffer {
   //   Buffer {}
   // }
+  pub fn new_index_buffer(&self, data: Vec<IndexBufferType>) -> IndexBuffer {
+    IndexBuffer::new(&self.gl, data)
+  }
+  pub fn new_vertex_buffer<T: BufferAttribute>(&self, data: Vec<T>) -> VertexBuffer<T> {
+    VertexBuffer::new(&self.gl, data)
+  }
+  pub fn new_uniform_buffer<T: BufferAttribute>(&self, data: T) -> UniformBufferPtr<T> {
+    Rc::new(RefCell::new(UniformBuffer::new(&self.gl, data)))
+  }
+  pub fn new_vao<T: BufferAttribute>(
+    &self,
+    v_buffer: VertexBuffer<T>,
+    i_buffer: IndexBuffer,
+  ) -> VaoPtr<T> {
+    Rc::new(RefCell::new(Vao::new(&self.gl, v_buffer, i_buffer)))
+  }
+  pub fn new_shader(&self, template: ShaderTemplate) -> Option<Rc<Shader>> {
+    if let Some(shader) = Shader::new(&self.gl, template) {
+      Some(Rc::new(shader))
+    } else {
+      None
+    }
+  }
   pub fn new_surface(&self) -> Texture {
     Texture::new(&self.gl)
   }

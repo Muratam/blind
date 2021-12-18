@@ -10,12 +10,13 @@ use super::*;
 
 // ワールド側での更新と描画側での更新が同時に発生する可能性があるため、
 // Rc<RefCell<T>> が必要。panicに応じて排他を入れればOK
-pub type UniformBufferPtr = Rc<RefCell<dyn UniformBufferTrait>>;
-pub type VaoPtr = Rc<RefCell<dyn VaoTrait>>;
-
+pub type UniformBufferDynPtr = Rc<RefCell<dyn UniformBufferTrait>>;
+pub type UniformBufferPtr<T> = Rc<RefCell<UniformBuffer<T>>>;
+pub type VaoDynPtr = Rc<RefCell<dyn VaoTrait>>;
+pub type VaoPtr<T> = Rc<RefCell<Vao<T>>>;
 pub struct Descriptor {
-  vao: Option<VaoPtr>,
-  u_buffers: Vec<UniformBufferPtr>,
+  vao: Option<VaoDynPtr>,
+  u_buffers: Vec<UniformBufferDynPtr>,
   // u_textures: Vec<Texture>
 }
 impl Descriptor {
@@ -25,10 +26,10 @@ impl Descriptor {
       u_buffers: Vec::new(),
     }
   }
-  pub fn set_vao(&mut self, vao: &VaoPtr) {
+  pub fn set_vao(&mut self, vao: &VaoDynPtr) {
     self.vao = Some(Rc::clone(vao));
   }
-  pub fn add_uniform_buffer(&mut self, buffer: &UniformBufferPtr) {
+  pub fn add_uniform_buffer(&mut self, buffer: &UniformBufferDynPtr) {
     self.u_buffers.push(Rc::clone(buffer));
   }
 }
