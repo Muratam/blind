@@ -17,6 +17,9 @@ impl IndexBuffer {
   pub fn raw_buffer(&self) -> &RawGpuBuffer {
     &self.raw_buffer
   }
+  pub fn len(&self) -> usize {
+    self.data.len()
+  }
 }
 
 pub struct VertexBuffer<T: BufferAttribute> {
@@ -44,6 +47,9 @@ impl<T: BufferAttribute> VertexBuffer<T> {
   pub fn template(&self) -> &VsInTemplate {
     &self.template
   }
+  pub fn len(&self) -> usize {
+    self.data.len()
+  }
 }
 
 pub struct UniformBuffer<T: BufferAttribute> {
@@ -57,6 +63,9 @@ pub trait UniformBufferTrait {
   // returns successed
   fn bind(&mut self, program: &RawShaderProgram) -> bool;
 }
+// 裏でも更新するためRc<RefCell<T>>
+pub type UniformBufferDynPtr = Rc<RefCell<dyn UniformBufferTrait>>;
+pub type UniformBufferPtr<T> = Rc<RefCell<UniformBuffer<T>>>;
 impl<T: BufferAttribute> UniformBuffer<T> {
   pub fn new(gl: &Rc<GlContext>, data: T) -> Self {
     Self {
@@ -106,6 +115,9 @@ pub trait VaoTrait {
   // returns successed
   fn bind(&mut self, program: &RawShaderProgram);
 }
+// 裏でも更新するためRc<RefCell<T>>
+pub type VaoDynPtr = Rc<RefCell<dyn VaoTrait>>;
+pub type VaoPtr<T> = Rc<RefCell<Vao<T>>>;
 impl<T: BufferAttribute> Vao<T> {
   pub fn new(gl: &Rc<GlContext>, v_buffer: VertexBuffer<T>, i_buffer: IndexBuffer) -> Self {
     Self {
@@ -123,6 +135,20 @@ impl<T: BufferAttribute> Vao<T> {
       shader_id_to_raw_vao: HashMap::new(),
     }
   }
+  pub fn draw_command(&self) -> DrawCommand {
+    if let Some(i_buffer) = &self.i_buffer {
+      DrawCommand::DrawIndexed {
+        first: 0,
+        count: i_buffer.len() as i32,
+      }
+    } else {
+      DrawCommand::Draw {
+        first: 0,
+        count: self.v_buffer.len() as i32,
+      }
+    }
+  }
+  // pub fn draw_instanced_command() -> DrawCommand {}
 }
 impl<T: BufferAttribute> VaoTrait for Vao<T> {
   fn bind(&mut self, program: &RawShaderProgram) {

@@ -1,19 +1,8 @@
 use super::*;
-// 動作イメージ
-// - + DC0(=Cons(D0, Nil)) ...
-//   - RenderPass + DC1(=Cons(D1, DC0))
-//     - (PipelineA + DescriptorSet0A)
-//     - (PipelineA + DescriptorSet0B)
-//     - (PipelineB + DescriptorSet0B)
-//     - ...
-//     - ... ShaderBind時にデフォルトテクスチャを貼っておけばよろし？
-
-// ワールド側での更新と描画側での更新が同時に発生する可能性があるため、
-// Rc<RefCell<T>> が必要。panicに応じて排他を入れればOK
-pub type UniformBufferDynPtr = Rc<RefCell<dyn UniformBufferTrait>>;
-pub type UniformBufferPtr<T> = Rc<RefCell<UniformBuffer<T>>>;
-pub type VaoDynPtr = Rc<RefCell<dyn VaoTrait>>;
-pub type VaoPtr<T> = Rc<RefCell<Vao<T>>>;
+// - DescriptorContext にどんどんconsしていって、適用する。
+//   - Stackになるので、動作がわかりやすいはず
+//   - RenderPass・Pipelineもこれを持つ
+// TODO: ShaderBind時にデフォルトテクスチャを貼る
 
 pub struct Descriptor {
   vao: Option<VaoDynPtr>,

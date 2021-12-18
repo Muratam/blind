@@ -23,13 +23,9 @@ impl Instance {
     // client_wait_sync ?
   }
   // create gpu objects
-  // pub fn new_shader(&self) {}
   // pub fn new_sampler(&self) {}
   // pub fn new_texture(&self) -> Texture {
   //   Texture {}
-  // }
-  // pub fn new_buffer(&self) -> Buffer {
-  //   Buffer {}
   // }
   pub fn new_index_buffer(&self, data: Vec<IndexBufferType>) -> IndexBuffer {
     IndexBuffer::new(&self.gl, data)

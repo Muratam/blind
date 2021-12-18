@@ -59,17 +59,15 @@ impl System for SampleSystem {
       },
     ];
     let i_data = vec![0, 1, 2, 2, 3, 1];
-    let i_size = i_data.len() as i32;
     let i_buffer = prgl.new_index_buffer(i_data);
     let v_buffer = prgl.new_vertex_buffer(v_data);
     let vao = prgl.new_vao(v_buffer, i_buffer);
-    pipeline.set_vao(&vao);
+    pipeline.set_draw_vao(&vao);
     let global_ubo = prgl.new_uniform_buffer(u_data);
     pipeline.add_uniform_buffer(&global_ubo);
     if let Some(shader) = prgl.new_shader(template) {
       pipeline.set_shader(&shader);
     }
-    pipeline.set_draw_indexed(0, i_size);
     Self {
       surface,
       renderpass,

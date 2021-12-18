@@ -1,16 +1,5 @@
 use super::*;
 
-/*
-- Instance
-  - RenderPass
-    - &Texture
-  - Pipeline
-    - ShaderProgram
-  - DescriptorSet
-    - &Texture
-    - &Buffer (bind by name)
-*/
-
 pub struct Pipeline {
   gl: Rc<GlContext>,
   // states
@@ -66,17 +55,18 @@ impl Pipeline {
   pub fn set_vao<T: BufferAttribute + 'static>(&mut self, vao: &VaoPtr<T>) {
     self.descriptor.set_vao(&(Rc::clone(vao) as VaoDynPtr));
   }
+  pub fn set_draw_vao<T: BufferAttribute + 'static>(&mut self, vao: &VaoPtr<T>) {
+    self.set_vao(vao);
+    self.set_draw_command(vao.borrow().draw_command());
+  }
   pub fn add_uniform_buffer<T: BufferAttribute + 'static>(&mut self, buffer: &UniformBufferPtr<T>) {
     self
       .descriptor
       .add_uniform_buffer(&(Rc::clone(buffer) as UniformBufferDynPtr));
   }
   // draw
-  pub fn set_draw(&mut self, first: i32, count: i32) {
-    self.draw_command = Some(DrawCommand::Draw { first, count });
-  }
-  pub fn set_draw_indexed(&mut self, first: i32, count: i32) {
-    self.draw_command = Some(DrawCommand::DrawIndexed { first, count });
+  pub fn set_draw_command(&mut self, command: DrawCommand) {
+    self.draw_command = Some(command);
   }
   pub fn set_draw_mode(&mut self, primitive_topology: PrimitiveToporogy) {
     self.primitive_topology = primitive_topology;
