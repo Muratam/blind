@@ -14,6 +14,7 @@ pub type UniformBufferDynPtr = Rc<RefCell<dyn UniformBufferTrait>>;
 pub type UniformBufferPtr<T> = Rc<RefCell<UniformBuffer<T>>>;
 pub type VaoDynPtr = Rc<RefCell<dyn VaoTrait>>;
 pub type VaoPtr<T> = Rc<RefCell<Vao<T>>>;
+
 pub struct Descriptor {
   vao: Option<VaoDynPtr>,
   u_buffers: Vec<UniformBufferDynPtr>,

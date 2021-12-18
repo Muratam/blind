@@ -86,9 +86,9 @@ impl System for SampleSystem {
       let v = ((frame as f32) / 100.0).sin() * 0.25 + 0.75;
       let color = Vec4::new(v, v, v, 1.0);
       self.renderpass.set_clear_color(Some(color));
-      let mut global_ubo = self.global_ubo.borrow_mut();
-      let mut global_ubo = global_ubo.data_mut();
-      global_ubo.add_color = Vec4::new(1.0, v, 0.0, 1.0);
+      let mut ubo = self.global_ubo.borrow_mut();
+      let mut ubo = ubo.data_mut();
+      ubo.add_color = Vec4::new(1.0, v, 0.0, 1.0);
     }
     {
       // update draw
