@@ -10,8 +10,8 @@ use super::*;
 */
 pub struct Descriptor {
   gl: Rc<GlContext>,
-  raw_vao: Option<RawVao>,
-  // u_buffers: Vec<Buffer>,
+  vao: Option<Vao>,
+  // u_buffers: Vec<UniformBuffer>,
   // u_textures: Vec<Texture>
 }
 pub enum DescriptorContext {

@@ -53,53 +53,50 @@ impl Pipeline {
         out_color = in_color + add_color;
       }
     };
+    let v_data = [
+      Vertex {
+        position: Vec3::Y,
+        color: Vec4::X + Vec4::W,
+      },
+      Vertex {
+        position: Vec3::X,
+        color: Vec4::Y + Vec4::W,
+      },
+      Vertex {
+        position: -Vec3::X,
+        color: Vec4::Z + Vec4::W,
+      },
+      Vertex {
+        position: -Vec3::Y,
+        color: Vec4::ONE,
+      },
+    ];
+    let i_data = [0, 1, 2, 2, 3, 1];
+    let u_data = Global {
+      add_color: Vec4::new(0.5, 0.5, 0.5, 0.5),
+    };
     self.raw_shader_program = RawShaderProgram::new(&self.gl, &template);
     if let Some(program) = &self.raw_shader_program {
-      // buffer
-      let v_data = vec![
-        Vertex {
-          position: Vec3::Y,
-          color: Vec4::X + Vec4::W,
-        },
-        Vertex {
-          position: Vec3::X,
-          color: Vec4::Y + Vec4::W,
-        },
-        Vertex {
-          position: -Vec3::X,
-          color: Vec4::Z + Vec4::W,
-        },
-        Vertex {
-          position: -Vec3::Y,
-          color: Vec4::ONE,
-        },
-      ];
-      let v_buffer = RawGpuBuffer::new(&self.gl, v_data.as_slice(), BufferUsage::Vertex);
-      let i_data: Vec<IndexBufferType> = vec![0, 1, 2, 2, 3, 1];
-      let i_buffer = RawGpuBuffer::new(&self.gl, i_data.as_slice(), BufferUsage::Index);
+      let i_buffer = IndexBuffer::new(&self.gl, &i_data);
+      let v_buffer = VertexBuffer::new(&self.gl, &v_data);
+      let u_buffer = UniformBuffer::new(&self.gl, &u_data);
       self.raw_vao = Some(RawVao::new(
         &self.gl,
         program.raw_program(),
-        &template.vs_in_template(),
-        &v_buffer,
-        Some(&i_buffer),
+        Some((&template.vs_in_template(), &v_buffer.raw_buffer())),
+        Some(&i_buffer.raw_buffer()),
       ));
-      let u_data = Global {
-        add_color: Vec4::new(0.5, 0.5, 0.5, 0.5),
-      };
-      let u_buffer = RawGpuBuffer::new(&self.gl, u_data.ub_data(), BufferUsage::Uniform);
       let u_index = self
         .gl
-        .get_uniform_block_index(&program.raw_program(), u_data.self_name());
+        .get_uniform_block_index(&program.raw_program(), u_data.name());
       if u_index == gl::INVALID_INDEX {
-        log::error(format!(
-          "invalid uniform buffer name: {}",
-          u_data.self_name()
-        ));
+        log::error(format!("invalid uniform buffer name: {}", u_data.name()));
       }
-      self
-        .gl
-        .bind_buffer_base(gl::UNIFORM_BUFFER, u_index, Some(&u_buffer.raw_buffer()));
+      self.gl.bind_buffer_base(
+        gl::UNIFORM_BUFFER,
+        u_index,
+        Some(&u_buffer.raw_buffer().raw_buffer()),
+      );
       self.set_draw_indexed(0, i_data.len() as i32);
     }
   }

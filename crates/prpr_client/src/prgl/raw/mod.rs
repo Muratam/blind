@@ -1,5 +1,5 @@
 use super::*;
-// - web_sys::*を持ち公開する＋外側のユーザーは使用しない
+// - web_sys::*を持ち公開する＋通常は外側のユーザーは使用しない
 pub mod buffer;
 pub use self::buffer::*;
 pub mod shader;

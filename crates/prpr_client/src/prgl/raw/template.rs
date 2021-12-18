@@ -116,9 +116,22 @@ impl ::std::fmt::Display for ShaderTemplate {
   }
 }
 
+#[derive(Default)]
 pub struct VsInTemplate {
   pub keys: Vec<&'static str>,
   pub values: Vec<ShaderPrimitiveType>,
   pub offsets: Vec<usize>,
   pub size: usize,
+}
+
+use std::collections::HashMap;
+pub trait BufferAttribute {
+  fn ub_data(&self) -> &[u8];
+  fn name(&self) -> &'static str;
+  fn keys(&self) -> Vec<&'static str>;
+  fn values(&self) -> Vec<ShaderPrimitiveType>;
+  // for dynamic loading
+  fn find(&self, key: &str) -> Option<ShaderPrimitiveType>;
+  fn from_hashmap(&mut self, map: &HashMap<String, ShaderPrimitiveType>) -> Vec<&'static str>; // returns ignored keys
+  fn to_hashmap(&self) -> HashMap<String, ShaderPrimitiveType>;
 }

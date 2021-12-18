@@ -11,7 +11,7 @@ mod buffer;
 pub use self::buffer::*;
 mod texture;
 pub use self::texture::*;
-mod raw;
+pub mod raw;
 use self::raw::*;
 
 use crate::html;
