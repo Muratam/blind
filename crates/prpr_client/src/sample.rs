@@ -1,7 +1,5 @@
 // hoge_client に逃がす前段階でのサンプル
 use crate::*;
-use std::cell::RefCell;
-use std::rc::Rc;
 
 crate::shader_attr! {
   struct Vertex {
@@ -88,7 +86,7 @@ impl System for SampleSystem {
       self.renderpass.set_clear_color(Some(color));
       let mut ubo = self.global_ubo.borrow_mut();
       let mut ubo = ubo.data_mut();
-      ubo.add_color = Vec4::new(1.0, v, 0.0, 1.0);
+      ubo.add_color = Vec4::new(1.0 - v, 1.0 - v, 1.0 - v, 1.0);
     }
     {
       // update draw
