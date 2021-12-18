@@ -17,34 +17,32 @@ impl Descriptor {
   pub fn new(
     vao: Option<Box<dyn VaoTrait>>,
     u_buffers: Vec<Box<dyn UniformBufferTrait>>,
-  ) -> Rc<RefCell<Self>> {
-    Rc::new(RefCell::new(Self { vao, u_buffers }))
+  ) -> Descriptor {
+    Self { vao, u_buffers }
   }
 }
-pub enum DescriptorContext {
+pub enum DescriptorContext<'a, 'b> {
   Cons {
-    prior: Rc<RefCell<Descriptor>>,
-    others: Rc<RefCell<DescriptorContext>>,
+    prior: &'a mut Descriptor,
+    others: &'b mut DescriptorContext<'a, 'b>,
   },
   Nil,
 }
-impl DescriptorContext {
-  pub fn cons(
-    prior: &Rc<RefCell<Descriptor>>,
-    others: &Rc<RefCell<DescriptorContext>>,
-  ) -> Rc<RefCell<Self>> {
-    Rc::new(RefCell::new(Self::Cons {
-      prior: Rc::clone(prior),
-      others: Rc::clone(others),
-    }))
+
+impl<'a, 'b> DescriptorContext<'a, 'b> {
+  pub fn cons(&'a mut self, prior: &'b mut Descriptor) -> DescriptorContext<'a, 'b> {
+    Self::Cons {
+      prior,
+      others: self,
+    }
   }
   pub fn bind(&mut self, program: &RawShaderProgram) {
     if let Self::Cons { prior, others } = self {
-      others.borrow_mut().bind(program);
-      for u_buffer in &mut prior.borrow_mut().u_buffers {
+      others.bind(program);
+      for u_buffer in &mut prior.u_buffers {
         u_buffer.bind(program);
       }
-      if let Some(vao) = &mut prior.borrow_mut().vao {
+      if let Some(vao) = &mut prior.vao {
         vao.bind(program);
       } else {
         log::error("No Vertex Array Object");

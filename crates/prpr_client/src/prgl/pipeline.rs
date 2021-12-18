@@ -17,7 +17,7 @@ pub struct Pipeline {
   draw_command: Option<DrawCommand>,
   primitive_topology: PrimitiveToporogy,
   shader: Option<Shader>,
-  descriptor: Option<Rc<RefCell<Descriptor>>>,
+  descriptor: Option<Descriptor>,
 }
 
 impl Pipeline {
@@ -90,14 +90,13 @@ impl Pipeline {
 
   pub fn draw(&mut self) {
     let gl = &self.gl;
-    let env = Rc::new(RefCell::new(DescriptorContext::Nil));
+    let mut outer_desc_ctx = DescriptorContext::Nil;
     if let Some(shader) = &self.shader {
       shader.use_program();
       if let Some(descriptor) = &mut self.descriptor {
-        let desc_ctx = DescriptorContext::cons(&descriptor, &env);
-        desc_ctx.borrow_mut().bind(shader.raw_program());
+        outer_desc_ctx.cons(descriptor).bind(shader.raw_program());
       } else {
-        env.borrow_mut().bind(shader.raw_program());
+        outer_desc_ctx.bind(shader.raw_program());
       }
     } else {
       log::error("No Shader Program");
