@@ -153,17 +153,6 @@ impl PixelFormat {
   }
 }
 
-// texImage2D
-// - border = 0
-// - width / height
-// - target: {TEXTURE_2D or CubeMap}
-// - level: lod level (for mipmap): 0 + generateMipmap
-// - internalformat: PixelFormat
-// - format : internalformat または ...
-// - type: &[u8] -> gl::UNSIGNED_BYTE固定？
-// compressedTexImage2D
-// generateMipmap();
-// texParameteri(sampler..);
 #[derive(Clone)]
 pub struct TextureDescriptor {
   format: PixelFormat,
