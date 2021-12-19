@@ -126,3 +126,10 @@ pub trait BufferAttribute {
   fn from_hashmap(&mut self, map: &HashMap<String, ShaderPrimitiveType>) -> Vec<&'static str>; // returns ignored keys
   fn to_hashmap(&self) -> HashMap<String, ShaderPrimitiveType>;
 }
+
+pub trait TextureAttribute {
+  fn name(&self) -> &'static str;
+  // gl.active_texture(to_slot(0));
+  // gl.bind_texture(gl::TEXTURE_2D, texture);
+  // gl.uniform1i(gl.getUniformLocation(program, "uSampler"), 0);
+}

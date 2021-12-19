@@ -34,24 +34,9 @@ impl Pipeline {
       log::error("No Shader Program");
       return;
     }
-    if self.cull_mode == CullMode::None {
-      self.gl.disable(gl::CULL_FACE);
-    } else {
-      self.gl.enable(gl::CULL_FACE);
-      self.gl.cull_face(self.cull_mode as u32);
-    }
-
-    let topology = self.primitive_topology as u32;
-    if let Some(command) = &self.draw_command {
-      match &command {
-        DrawCommand::Draw { first, count } => {
-          gl.draw_arrays(topology, *first, *count);
-        }
-        DrawCommand::DrawIndexed { first, count } => {
-          assert_type_eq!(u32, IndexBufferType);
-          gl.draw_elements_with_i32(topology, *count, gl::UNSIGNED_INT, *first);
-        }
-      }
+    self.cull_mode.apply(&self.gl);
+    if let Some(draw_command) = &self.draw_command {
+      draw_command.apply(&self.gl, self.primitive_topology);
     } else {
       log::error("No Draw Command");
       return;

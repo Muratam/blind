@@ -1,4 +1,5 @@
 use super::*;
+
 // = format
 #[derive(Clone, Copy, PartialEq)]
 pub enum PixelFormatSimple {
@@ -180,6 +181,7 @@ pub enum TextureWriteType<'a> {
   HtmlCanvasElement(&'a web_sys::HtmlCanvasElement),
   HtmlVideoElement(&'a web_sys::HtmlVideoElement),
 }
+
 impl RawTexture {
   // pub fn new_cubemap() { target = TEXTURE_CUBE_MAP_??; }
   pub fn new<'a>(
@@ -272,6 +274,46 @@ impl RawTexture {
   }
   pub fn raw_texture(&self) -> &web_sys::WebGlTexture {
     &self.raw_texture
+  }
+  pub fn to_slot_enum(i: i32) -> u32 {
+    match i {
+      0 => gl::TEXTURE0,
+      1 => gl::TEXTURE1,
+      2 => gl::TEXTURE2,
+      3 => gl::TEXTURE3,
+      4 => gl::TEXTURE4,
+      5 => gl::TEXTURE5,
+      6 => gl::TEXTURE6,
+      7 => gl::TEXTURE7,
+      8 => gl::TEXTURE8,
+      9 => gl::TEXTURE9,
+      10 => gl::TEXTURE10,
+      11 => gl::TEXTURE11,
+      12 => gl::TEXTURE12,
+      13 => gl::TEXTURE13,
+      14 => gl::TEXTURE14,
+      15 => gl::TEXTURE15,
+      16 => gl::TEXTURE16,
+      17 => gl::TEXTURE17,
+      18 => gl::TEXTURE18,
+      19 => gl::TEXTURE19,
+      20 => gl::TEXTURE20,
+      21 => gl::TEXTURE21,
+      22 => gl::TEXTURE22,
+      23 => gl::TEXTURE23,
+      24 => gl::TEXTURE24,
+      25 => gl::TEXTURE25,
+      26 => gl::TEXTURE26,
+      27 => gl::TEXTURE27,
+      28 => gl::TEXTURE28,
+      29 => gl::TEXTURE29,
+      30 => gl::TEXTURE30,
+      31 => gl::TEXTURE31,
+      _ => {
+        log::error(format!("TEXTURE{} over the range", i));
+        0
+      }
+    }
   }
 }
 impl Drop for RawTexture {

@@ -1,9 +1,9 @@
 use super::*;
+
 pub struct Texture {
   gl: Rc<GlContext>,
   // raw_texture: RawTexture,
 }
-// texParameteri(sampler..);
 
 impl Texture {
   // sampler / textureimage2d
