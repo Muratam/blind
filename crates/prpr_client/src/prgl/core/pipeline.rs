@@ -1,7 +1,7 @@
 use super::*;
 
 pub struct Pipeline {
-  gl: Arc<GlContext>,
+  gl: ArcGlContext,
   // states
   draw_command: Option<DrawCommand>,
   cull_mode: CullMode,
@@ -11,9 +11,9 @@ pub struct Pipeline {
 }
 
 impl Pipeline {
-  pub fn new(gl: &Arc<GlContext>) -> Self {
+  pub fn new(gl: &ArcGlContext) -> Self {
     Self {
-      gl: Arc::clone(gl),
+      gl: gl.clone(),
       draw_command: None,
       cull_mode: CullMode::Back,
       primitive_topology: PrimitiveToporogy::Triangles,
@@ -22,13 +22,13 @@ impl Pipeline {
     }
   }
 
-  pub fn draw(&mut self) {
+  pub fn draw(&self) {
     let gl = &self.gl;
     let mut outer_desc_ctx = DescriptorContext::Nil;
     if let Some(shader) = &self.shader {
       shader.use_program();
       outer_desc_ctx
-        .cons(&mut self.descriptor)
+        .cons(&self.descriptor)
         .bind(shader.raw_program());
     } else {
       log::error("No Shader Program");
@@ -55,10 +55,13 @@ impl Pipeline {
     self.set_vao(vao);
     self.set_draw_command(vao.draw_command());
   }
-  pub fn add_uniform_buffer<T: BufferAttribute + 'static>(&mut self, buffer: &UniformBufferPtr<T>) {
+  pub fn add_uniform_buffer<T: BufferAttribute + 'static>(
+    &mut self,
+    buffer: &Arc<UniformBuffer<T>>,
+  ) {
     self
       .descriptor
-      .add_uniform_buffer(&(Arc::clone(buffer) as UniformBufferDynPtr));
+      .add_uniform_buffer(&(Arc::clone(buffer) as Arc<dyn UniformBufferTrait>));
   }
   pub fn set_cull_mode(&mut self, mode: CullMode) {
     self.cull_mode = mode;

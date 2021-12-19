@@ -15,7 +15,7 @@ pub struct SampleSystem {
   surface: prgl::Texture,
   renderpass: prgl::RenderPass,
   pipeline: prgl::Pipeline,
-  global_ubo: prgl::UniformBufferPtr<Global>,
+  global_ubo: Arc<prgl::UniformBuffer<Global>>,
 }
 /* TODO:
 - キーボード入力 / タッチ入力を受け取る
@@ -69,8 +69,7 @@ impl System for SampleSystem {
       let color = Vec4::new(v, v, v, 0.0);
       self.renderpass.set_clear_color(Some(color));
       // update ubo
-      let mut lock = self.global_ubo.write().unwrap();
-      let mut ubo = lock.data_mut();
+      let mut ubo = self.global_ubo.write();
       ubo.add_color = Vec4::new(1.0 - v, 1.0 - v, 1.0 - v, 1.0);
       let rad = (frame as f32) / 100.0;
       ubo.view_mat = Mat4::look_at_rh(

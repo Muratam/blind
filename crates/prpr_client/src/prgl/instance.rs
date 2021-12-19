@@ -1,7 +1,7 @@
 use super::*;
 use crate::html;
 pub struct Instance {
-  gl: Arc<GlContext>,
+  gl: ArcGlContext,
   max_width: i32,
   max_height: i32,
 }
@@ -33,8 +33,8 @@ impl Instance {
   pub fn new_vertex_buffer<T: BufferAttribute>(&self, data: Vec<T>) -> VertexBuffer<T> {
     VertexBuffer::new(&self.gl, data)
   }
-  pub fn new_uniform_buffer<T: BufferAttribute>(&self, data: T) -> UniformBufferPtr<T> {
-    Arc::new(RwLock::new(UniformBuffer::new(&self.gl, data)))
+  pub fn new_uniform_buffer<T: BufferAttribute>(&self, data: T) -> Arc<UniformBuffer<T>> {
+    Arc::new(UniformBuffer::new(&self.gl, data))
   }
   pub fn new_vao<T: BufferAttribute>(
     &self,

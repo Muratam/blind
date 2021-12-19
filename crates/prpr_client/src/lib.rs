@@ -13,6 +13,7 @@ mod js;
 mod prgl;
 mod system;
 pub use prgl::*;
+use std::sync::{Arc, Mutex, RwLock};
 pub use system::{run, Core, System};
 
 // 最終的にhoge_clientに逃がす

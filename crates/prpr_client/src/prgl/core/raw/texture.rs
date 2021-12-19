@@ -162,7 +162,7 @@ pub struct TextureDescriptor {
   mipmap: bool,
 }
 pub struct RawTexture {
-  gl: Arc<GlContext>,
+  gl: ArcGlContext,
   raw_texture: web_sys::WebGlTexture,
   desc: TextureDescriptor,
   target: u32,
@@ -185,7 +185,7 @@ pub enum TextureWriteType<'a> {
 impl RawTexture {
   // pub fn new_cubemap() { target = TEXTURE_CUBE_MAP_??; }
   pub fn new<'a>(
-    gl: &Arc<GlContext>,
+    gl: &ArcGlContext,
     desc: &TextureDescriptor,
     write_type: TextureWriteType<'a>,
   ) -> Self {
@@ -242,7 +242,7 @@ impl RawTexture {
       gl.bind_texture(target, None);
     }
     Self {
-      gl: Arc::clone(gl),
+      gl: gl.clone(),
       raw_texture,
       desc: desc.clone(),
       target,

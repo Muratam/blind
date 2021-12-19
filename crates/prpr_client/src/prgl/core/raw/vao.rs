@@ -1,12 +1,12 @@
 use super::*;
 
 pub struct RawVao {
-  gl: Arc<GlContext>,
+  gl: ArcGlContext,
   vao: web_sys::WebGlVertexArrayObject,
 }
 impl RawVao {
   pub fn new(
-    gl: &Arc<GlContext>,
+    gl: &ArcGlContext,
     program: &web_sys::WebGlProgram,
     vs_in_template_buffer: Option<(&VsInTemplate, &RawBuffer)>,
     i_buffer: Option<&RawBuffer>,
@@ -54,7 +54,7 @@ impl RawVao {
       }
     }
     Self {
-      gl: Arc::clone(gl),
+      gl: gl.clone(),
       vao,
     }
   }

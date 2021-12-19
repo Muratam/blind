@@ -1,7 +1,7 @@
 use super::*;
 
 pub struct ShapeFactory {
-  gl: Arc<GlContext>,
+  gl: ArcGlContext,
 }
 crate::shader_attr! {
   struct ShapeFactoryVertex {
@@ -12,8 +12,8 @@ crate::shader_attr! {
   }
 }
 impl ShapeFactory {
-  pub fn new(gl: &Arc<GlContext>) -> Self {
-    Self { gl: Arc::clone(gl) }
+  pub fn new(gl: &ArcGlContext) -> Self {
+    Self { gl: gl.clone() }
   }
   pub fn create_cube(&self) -> Arc<Vao<ShapeFactoryVertex>> {
     let mut v_data: Vec<ShapeFactoryVertex> = Vec::new();

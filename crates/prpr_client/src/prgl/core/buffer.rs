@@ -8,7 +8,7 @@ pub struct IndexBuffer {
   data: Vec<IndexBufferType>,
 }
 impl IndexBuffer {
-  pub fn new(gl: &Arc<GlContext>, data: Vec<IndexBufferType>) -> Self {
+  pub fn new(gl: &ArcGlContext, data: Vec<IndexBufferType>) -> Self {
     Self {
       raw_buffer: RawBuffer::new(gl, data.as_slice(), BufferUsage::Index),
       data,
@@ -29,7 +29,7 @@ pub struct VertexBuffer<T: BufferAttribute> {
 }
 
 impl<T: BufferAttribute> VertexBuffer<T> {
-  pub fn new(gl: &Arc<GlContext>, data: Vec<T>) -> Self {
+  pub fn new(gl: &ArcGlContext, data: Vec<T>) -> Self {
     let template = if data.len() > 0 {
       data[0].vs_in_template()
     } else {
@@ -53,42 +53,44 @@ impl<T: BufferAttribute> VertexBuffer<T> {
 }
 
 pub struct UniformBuffer<T: BufferAttribute> {
-  gl: Arc<GlContext>,
+  gl: ArcGlContext,
   raw_buffer: RawBuffer,
-  data: T,
+  data: RwLock<T>,
   name: &'static str,
-  is_dirty: bool,
+  is_dirty: Mutex<bool>,
 }
 pub trait UniformBufferTrait {
   // returns successed
-  fn bind(&mut self, program: &RawShaderProgram) -> bool;
+  fn bind(&self, program: &RawShaderProgram) -> bool;
 }
-// 裏でも更新する
-pub type UniformBufferDynPtr = Arc<RwLock<dyn UniformBufferTrait>>;
-pub type UniformBufferPtr<T> = Arc<RwLock<UniformBuffer<T>>>;
 impl<T: BufferAttribute> UniformBuffer<T> {
-  pub fn new(gl: &Arc<GlContext>, data: T) -> Self {
+  pub fn new(gl: &ArcGlContext, data: T) -> Self {
     Self {
-      gl: Arc::clone(gl),
+      gl: gl.clone(),
       name: data.name(),
       raw_buffer: RawBuffer::new_untyped(gl, data.ub_data(), BufferUsage::Uniform),
-      is_dirty: false,
-      data,
+      is_dirty: Mutex::new(false),
+      data: RwLock::new(data),
     }
   }
-  pub fn data_mut(&mut self) -> &mut T {
-    self.is_dirty = true;
-    &mut self.data
+  pub fn write(&self) -> std::sync::RwLockWriteGuard<'_, T> {
+    *self.is_dirty.lock().unwrap() = true;
+    self.data.write().unwrap()
   }
-  pub fn data(&self) -> &T {
-    &self.data
+  pub fn read(&self) -> std::sync::RwLockReadGuard<'_, T> {
+    self.data.read().unwrap()
   }
 }
 impl<T: BufferAttribute> UniformBufferTrait for UniformBuffer<T> {
-  fn bind(&mut self, program: &RawShaderProgram) -> bool {
-    if self.is_dirty {
-      self.raw_buffer.write_untyped(0, self.data.ub_data());
-      self.is_dirty = false;
+  fn bind(&self, program: &RawShaderProgram) -> bool {
+    {
+      let mut is_dirty_lock = self.is_dirty.lock().unwrap();
+      if *is_dirty_lock {
+        self
+          .raw_buffer
+          .write_untyped(0, self.data.read().unwrap().ub_data());
+        *is_dirty_lock = false;
+      }
     }
     let u_index = self
       .gl
