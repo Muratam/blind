@@ -5,8 +5,8 @@ pub struct RenderPass {
   clear_colors: [Option<Vec4>; MAX_OUTPUT_SLOT],
   clear_depth: Option<f32>,
   clear_stencil: Option<i32>,
-  // frame_buffer: RawFrameBuffer,
-  // render_buffer: RawRenderBuffer,
+  raw_frame_buffer: RawFrameBuffer,
+  raw_render_buffer: RawRenderBuffer,
   // viewport: Option<Rect<f32>>,
   // scissor: Option<Rect<i32>>,
   // color_targets: Vec<RawTexture>,
@@ -17,6 +17,8 @@ impl RenderPass {
   pub fn new(gl: &Rc<GlContext>) -> Self {
     Self {
       gl: Rc::clone(gl),
+      raw_frame_buffer: RawFrameBuffer::new(gl),
+      raw_render_buffer: RawRenderBuffer::new(gl),
       clear_colors: [None; MAX_OUTPUT_SLOT],
       clear_depth: None,
       clear_stencil: None,

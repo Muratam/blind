@@ -4,17 +4,17 @@ use super::*;
 // -> 差はここで吸収
 
 pub struct IndexBuffer {
-  raw_buffer: RawGpuBuffer,
+  raw_buffer: RawBuffer,
   data: Vec<IndexBufferType>,
 }
 impl IndexBuffer {
   pub fn new(gl: &Rc<GlContext>, data: Vec<IndexBufferType>) -> Self {
     Self {
-      raw_buffer: RawGpuBuffer::new(gl, data.as_slice(), BufferUsage::Index),
+      raw_buffer: RawBuffer::new(gl, data.as_slice(), BufferUsage::Index),
       data,
     }
   }
-  pub fn raw_buffer(&self) -> &RawGpuBuffer {
+  pub fn raw_buffer(&self) -> &RawBuffer {
     &self.raw_buffer
   }
   pub fn len(&self) -> usize {
@@ -23,7 +23,7 @@ impl IndexBuffer {
 }
 
 pub struct VertexBuffer<T: BufferAttribute> {
-  raw_buffer: RawGpuBuffer,
+  raw_buffer: RawBuffer,
   template: VsInTemplate,
   data: Vec<T>,
 }
@@ -36,12 +36,12 @@ impl<T: BufferAttribute> VertexBuffer<T> {
       Default::default()
     };
     Self {
-      raw_buffer: RawGpuBuffer::new(gl, data.as_slice(), BufferUsage::Vertex),
+      raw_buffer: RawBuffer::new(gl, data.as_slice(), BufferUsage::Vertex),
       template,
       data,
     }
   }
-  pub fn raw_buffer(&self) -> &RawGpuBuffer {
+  pub fn raw_buffer(&self) -> &RawBuffer {
     &self.raw_buffer
   }
   pub fn template(&self) -> &VsInTemplate {
@@ -54,7 +54,7 @@ impl<T: BufferAttribute> VertexBuffer<T> {
 
 pub struct UniformBuffer<T: BufferAttribute> {
   gl: Rc<GlContext>,
-  raw_buffer: RawGpuBuffer,
+  raw_buffer: RawBuffer,
   data: T,
   name: &'static str,
   is_dirty: bool,
@@ -71,7 +71,7 @@ impl<T: BufferAttribute> UniformBuffer<T> {
     Self {
       gl: Rc::clone(gl),
       name: data.name(),
-      raw_buffer: RawGpuBuffer::new_untyped(gl, data.ub_data(), BufferUsage::Uniform),
+      raw_buffer: RawBuffer::new_untyped(gl, data.ub_data(), BufferUsage::Uniform),
       is_dirty: false,
       data,
     }

@@ -8,8 +8,8 @@ impl RawVao {
   pub fn new(
     gl: &Rc<GlContext>,
     program: &web_sys::WebGlProgram,
-    vs_in_template_buffer: Option<(&VsInTemplate, &RawGpuBuffer)>,
-    i_buffer: Option<&RawGpuBuffer>,
+    vs_in_template_buffer: Option<(&VsInTemplate, &RawBuffer)>,
+    i_buffer: Option<&RawBuffer>,
   ) -> Self {
     let vao = gl.create_vertex_array().expect("failed to create vao");
     gl.bind_vertex_array(Some(&vao));

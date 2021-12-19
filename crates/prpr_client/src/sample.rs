@@ -14,7 +14,12 @@ pub struct SampleSystem {
   pipeline: prgl::Pipeline,
   global_ubo: prgl::UniformBufferPtr<Global>,
 }
-
+/* TODO:
+- キーボード入力 / タッチ入力を受け取る
+- viewport size を可変にする
+- MRTしてポストプロセスをかけてみる
+- RenderPassにPipelineを登録する形式にする
+*/
 impl System for SampleSystem {
   fn new(core: &Core) -> Self {
     let prgl = core.get_main_prgl();

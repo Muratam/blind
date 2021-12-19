@@ -21,11 +21,15 @@ features = [
   "console",
   "CssStyleDeclaration",
   "CanvasRenderingContext2d",
+  "ImageBitmap",
+  "ImageData",
   # HTML
   'HtmlElement',
   'HtmlDivElement',
   'HtmlCanvasElement',
   "HtmlStyleElement",
+  "HtmlImageElement",
+  "HtmlVideoElement",
   # WebGL
   "WebGl2RenderingContext",
   "WebGlShader",

@@ -20,13 +20,13 @@ fn usage_to_store_type(usage: BufferUsage) -> u32 {
   }
 }
 
-pub struct RawGpuBuffer {
+pub struct RawBuffer {
   gl: Rc<GlContext>,
   buffer: web_sys::WebGlBuffer,
   size: i32,
   usage: BufferUsage,
 }
-impl RawGpuBuffer {
+impl RawBuffer {
   pub fn new<T: Sized>(gl: &Rc<GlContext>, data: &[T], usage: BufferUsage) -> Self {
     let result = Self::new_uninitialized::<T>(gl, data.len(), usage);
     result.write(0, data);
@@ -57,11 +57,10 @@ impl RawGpuBuffer {
     }
   }
   pub fn write<T: Sized>(&self, offset: usize, data: &[T]) {
-    use ::core::slice;
-    let u8_size = std::mem::size_of::<T>() * data.len();
+    let u8_size = ::std::mem::size_of::<T>() * data.len();
     let ptr = data.as_ptr() as *const u8;
-    let u8_data: &[u8] = unsafe { slice::from_raw_parts(ptr, u8_size) };
-    let u8_offset = std::mem::size_of::<T>() * offset;
+    let u8_data: &[u8] = unsafe { ::core::slice::from_raw_parts(ptr, u8_size) };
+    let u8_offset = ::std::mem::size_of::<T>() * offset;
     self.write_untyped(u8_offset as i32, u8_data);
   }
   pub fn write_untyped(&self, offset: i32, data: &[u8]) {
@@ -89,7 +88,7 @@ impl RawGpuBuffer {
     self.usage as u32
   }
 }
-impl Drop for RawGpuBuffer {
+impl Drop for RawBuffer {
   fn drop(&mut self) {
     self.gl.delete_buffer(Some(&self.buffer));
   }
