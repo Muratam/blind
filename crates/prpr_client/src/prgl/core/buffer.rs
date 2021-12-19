@@ -86,9 +86,7 @@ impl<T: BufferAttribute> UniformBufferTrait for UniformBuffer<T> {
     {
       let mut is_dirty_lock = self.is_dirty.lock().unwrap();
       if *is_dirty_lock {
-        self
-          .raw_buffer
-          .write_untyped(0, self.data.read().unwrap().ub_data());
+        self.raw_buffer.write_untyped(0, self.read().ub_data());
         *is_dirty_lock = false;
       }
     }
