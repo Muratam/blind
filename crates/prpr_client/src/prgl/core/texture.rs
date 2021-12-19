@@ -1,16 +1,16 @@
 use super::*;
 
 pub struct Texture {
-  gl: Rc<GlContext>,
+  gl: Arc<GlContext>,
   // raw_texture: RawTexture,
 }
 
 impl Texture {
   // sampler / textureimage2d
-  pub fn new(gl: &Rc<GlContext>) -> Self {
+  pub fn new(gl: &Arc<GlContext>) -> Self {
     // let raw_texture = RawTexture::new(gl);
     Self {
-      gl: Rc::clone(gl),
+      gl: Arc::clone(gl),
       // raw_texture,
     }
   }

@@ -21,27 +21,31 @@ fn usage_to_store_type(usage: BufferUsage) -> u32 {
 }
 
 pub struct RawBuffer {
-  gl: Rc<GlContext>,
+  gl: Arc<GlContext>,
   buffer: web_sys::WebGlBuffer,
   size: i32,
   usage: BufferUsage,
 }
 impl RawBuffer {
-  pub fn new<T: Sized>(gl: &Rc<GlContext>, data: &[T], usage: BufferUsage) -> Self {
+  pub fn new<T: Sized>(gl: &Arc<GlContext>, data: &[T], usage: BufferUsage) -> Self {
     let result = Self::new_uninitialized::<T>(gl, data.len(), usage);
     result.write(0, data);
     result
   }
-  pub fn new_untyped(gl: &Rc<GlContext>, data: &[u8], usage: BufferUsage) -> Self {
+  pub fn new_untyped(gl: &Arc<GlContext>, data: &[u8], usage: BufferUsage) -> Self {
     let result = Self::new_uninitialized::<u8>(gl, data.len(), usage);
     result.write_untyped(0, data);
     result
   }
-  pub fn new_uninitialized<T: Sized>(gl: &Rc<GlContext>, count: usize, usage: BufferUsage) -> Self {
+  pub fn new_uninitialized<T: Sized>(
+    gl: &Arc<GlContext>,
+    count: usize,
+    usage: BufferUsage,
+  ) -> Self {
     let u8_size = std::mem::size_of::<T>() * count;
     Self::new_uninitialized_untyped(gl, u8_size as i32, usage)
   }
-  pub fn new_uninitialized_untyped(gl: &Rc<GlContext>, size: i32, usage: BufferUsage) -> Self {
+  pub fn new_uninitialized_untyped(gl: &Arc<GlContext>, size: i32, usage: BufferUsage) -> Self {
     let buffer = gl.create_buffer().expect("failed to craete buffer");
     let target = usage as u32;
     gl.bind_buffer(target, Some(&buffer));
@@ -50,7 +54,7 @@ impl RawBuffer {
       gl.bind_buffer(target, None);
     }
     Self {
-      gl: Rc::clone(gl),
+      gl: Arc::clone(gl),
       buffer,
       size,
       usage,

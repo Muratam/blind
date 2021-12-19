@@ -1,19 +1,19 @@
 use super::*;
 
 pub struct Pipeline {
-  gl: Rc<GlContext>,
+  gl: Arc<GlContext>,
   // states
   draw_command: Option<DrawCommand>,
   cull_mode: CullMode,
   primitive_topology: PrimitiveToporogy,
-  shader: Option<Rc<Shader>>,
+  shader: Option<Arc<Shader>>,
   descriptor: Descriptor,
 }
 
 impl Pipeline {
-  pub fn new(gl: &Rc<GlContext>) -> Self {
+  pub fn new(gl: &Arc<GlContext>) -> Self {
     Self {
-      gl: Rc::clone(gl),
+      gl: Arc::clone(gl),
       draw_command: None,
       cull_mode: CullMode::Back,
       primitive_topology: PrimitiveToporogy::Triangles,
@@ -43,20 +43,20 @@ impl Pipeline {
     }
   }
   // set resource
-  pub fn set_shader(&mut self, shader: &Rc<Shader>) {
-    self.shader = Some(Rc::clone(shader));
+  pub fn set_shader(&mut self, shader: &Arc<Shader>) {
+    self.shader = Some(Arc::clone(shader));
   }
   pub fn set_vao<T: BufferAttribute + 'static>(&mut self, vao: &VaoPtr<T>) {
-    self.descriptor.set_vao(&(Rc::clone(vao) as VaoDynPtr));
+    self.descriptor.set_vao(&(Arc::clone(vao) as VaoDynPtr));
   }
   pub fn set_draw_vao<T: BufferAttribute + 'static>(&mut self, vao: &VaoPtr<T>) {
     self.set_vao(vao);
-    self.set_draw_command(vao.borrow().draw_command());
+    self.set_draw_command(vao.read().unwrap().draw_command());
   }
   pub fn add_uniform_buffer<T: BufferAttribute + 'static>(&mut self, buffer: &UniformBufferPtr<T>) {
     self
       .descriptor
-      .add_uniform_buffer(&(Rc::clone(buffer) as UniformBufferDynPtr));
+      .add_uniform_buffer(&(Arc::clone(buffer) as UniformBufferDynPtr));
   }
   pub fn set_cull_mode(&mut self, mode: CullMode) {
     self.cull_mode = mode;

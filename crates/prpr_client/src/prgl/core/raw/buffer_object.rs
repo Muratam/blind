@@ -1,15 +1,15 @@
 use super::*;
 pub struct RawRenderBuffer {
-  gl: Rc<GlContext>,
+  gl: Arc<GlContext>,
   raw_renderbuffer: web_sys::WebGlRenderbuffer,
 }
 impl RawRenderBuffer {
-  pub fn new(gl: &Rc<GlContext>) -> Self {
+  pub fn new(gl: &Arc<GlContext>) -> Self {
     let raw_renderbuffer = gl
       .create_renderbuffer()
       .expect("failed to create render buffer");
     Self {
-      gl: Rc::clone(gl),
+      gl: Arc::clone(gl),
       raw_renderbuffer,
     }
   }
@@ -24,16 +24,16 @@ impl Drop for RawRenderBuffer {
 }
 
 pub struct RawFrameBuffer {
-  gl: Rc<GlContext>,
+  gl: Arc<GlContext>,
   raw_framebuffer: web_sys::WebGlFramebuffer,
 }
 impl RawFrameBuffer {
-  pub fn new(gl: &Rc<GlContext>) -> Self {
+  pub fn new(gl: &Arc<GlContext>) -> Self {
     let raw_framebuffer = gl
       .create_framebuffer()
       .expect("failed to create frame buffer");
     Self {
-      gl: Rc::clone(gl),
+      gl: Arc::clone(gl),
       raw_framebuffer,
     }
   }

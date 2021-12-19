@@ -1,7 +1,7 @@
 use super::*;
 use crate::html;
 pub struct Instance {
-  gl: Rc<GlContext>,
+  gl: Arc<GlContext>,
   max_width: i32,
   max_height: i32,
 }
@@ -10,7 +10,7 @@ impl Instance {
     // 一度生成したら固定
     let screen = html::screen();
     Self {
-      gl: Rc::new(gl),
+      gl: Arc::new(gl),
       max_width: screen.width().unwrap(),
       max_height: screen.height().unwrap(),
     }
@@ -34,18 +34,18 @@ impl Instance {
     VertexBuffer::new(&self.gl, data)
   }
   pub fn new_uniform_buffer<T: BufferAttribute>(&self, data: T) -> UniformBufferPtr<T> {
-    Rc::new(RefCell::new(UniformBuffer::new(&self.gl, data)))
+    Arc::new(RwLock::new(UniformBuffer::new(&self.gl, data)))
   }
   pub fn new_vao<T: BufferAttribute>(
     &self,
     v_buffer: VertexBuffer<T>,
     i_buffer: IndexBuffer,
   ) -> VaoPtr<T> {
-    Rc::new(RefCell::new(Vao::new(&self.gl, v_buffer, i_buffer)))
+    Arc::new(RwLock::new(Vao::new(&self.gl, v_buffer, i_buffer)))
   }
-  pub fn new_shader(&self, template: ShaderTemplate) -> Option<Rc<Shader>> {
+  pub fn new_shader(&self, template: ShaderTemplate) -> Option<Arc<Shader>> {
     if let Some(shader) = Shader::new(&self.gl, template) {
-      Some(Rc::new(shader))
+      Some(Arc::new(shader))
     } else {
       None
     }

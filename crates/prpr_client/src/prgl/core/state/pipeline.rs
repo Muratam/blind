@@ -25,7 +25,7 @@ pub enum DrawCommand {
   // },
 }
 impl DrawCommand {
-  pub fn apply(&self, gl: &Rc<GlContext>, topology: PrimitiveToporogy) {
+  pub fn apply(&self, gl: &Arc<GlContext>, topology: PrimitiveToporogy) {
     let topology = topology as u32;
     match self {
       DrawCommand::Draw { first, count } => {
@@ -47,7 +47,7 @@ pub enum CullMode {
   All = gl::FRONT_AND_BACK as isize,
 }
 impl CullMode {
-  pub fn apply(&self, gl: &Rc<GlContext>) {
+  pub fn apply(&self, gl: &Arc<GlContext>) {
     if *self == CullMode::None {
       gl.disable(gl::CULL_FACE);
     } else {

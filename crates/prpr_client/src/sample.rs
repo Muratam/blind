@@ -7,6 +7,9 @@ crate::shader_attr! {
     proj_mat: mat4,
     add_color: vec4,
   }
+  // texture Pbr {
+  //   normal_map :
+  // }
 }
 pub struct SampleSystem {
   surface: prgl::Texture,
@@ -65,8 +68,9 @@ impl System for SampleSystem {
       let v = ((frame as f32) / 100.0).sin() * 0.25 + 0.75;
       let color = Vec4::new(v, v, v, 0.0);
       self.renderpass.set_clear_color(Some(color));
-      let mut ubo = self.global_ubo.borrow_mut();
-      let mut ubo = ubo.data_mut();
+      // update ubo
+      let mut lock = self.global_ubo.write().unwrap();
+      let mut ubo = lock.data_mut();
       ubo.add_color = Vec4::new(1.0 - v, 1.0 - v, 1.0 - v, 1.0);
       let rad = (frame as f32) / 100.0;
       ubo.view_mat = Mat4::look_at_rh(

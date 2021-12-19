@@ -1,7 +1,7 @@
 use super::*;
 
 pub struct RenderPass {
-  gl: Rc<GlContext>,
+  gl: Arc<GlContext>,
   clear_colors: [Option<Vec4>; MAX_OUTPUT_SLOT],
   clear_depth: Option<f32>,
   clear_stencil: Option<i32>,
@@ -14,9 +14,9 @@ pub struct RenderPass {
   // stencil_target: RawStencRawTextureilRenderTarget,
 }
 impl RenderPass {
-  pub fn new(gl: &Rc<GlContext>) -> Self {
+  pub fn new(gl: &Arc<GlContext>) -> Self {
     Self {
-      gl: Rc::clone(gl),
+      gl: Arc::clone(gl),
       raw_frame_buffer: RawFrameBuffer::new(gl),
       raw_render_buffer: RawRenderBuffer::new(gl),
       clear_colors: [None; MAX_OUTPUT_SLOT],

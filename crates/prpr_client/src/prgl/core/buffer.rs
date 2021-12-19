@@ -8,7 +8,7 @@ pub struct IndexBuffer {
   data: Vec<IndexBufferType>,
 }
 impl IndexBuffer {
-  pub fn new(gl: &Rc<GlContext>, data: Vec<IndexBufferType>) -> Self {
+  pub fn new(gl: &Arc<GlContext>, data: Vec<IndexBufferType>) -> Self {
     Self {
       raw_buffer: RawBuffer::new(gl, data.as_slice(), BufferUsage::Index),
       data,
@@ -29,7 +29,7 @@ pub struct VertexBuffer<T: BufferAttribute> {
 }
 
 impl<T: BufferAttribute> VertexBuffer<T> {
-  pub fn new(gl: &Rc<GlContext>, data: Vec<T>) -> Self {
+  pub fn new(gl: &Arc<GlContext>, data: Vec<T>) -> Self {
     let template = if data.len() > 0 {
       data[0].vs_in_template()
     } else {
@@ -53,7 +53,7 @@ impl<T: BufferAttribute> VertexBuffer<T> {
 }
 
 pub struct UniformBuffer<T: BufferAttribute> {
-  gl: Rc<GlContext>,
+  gl: Arc<GlContext>,
   raw_buffer: RawBuffer,
   data: T,
   name: &'static str,
@@ -63,13 +63,13 @@ pub trait UniformBufferTrait {
   // returns successed
   fn bind(&mut self, program: &RawShaderProgram) -> bool;
 }
-// 裏でも更新するためRc<RefCell<T>>
-pub type UniformBufferDynPtr = Rc<RefCell<dyn UniformBufferTrait>>;
-pub type UniformBufferPtr<T> = Rc<RefCell<UniformBuffer<T>>>;
+// 裏でも更新する
+pub type UniformBufferDynPtr = Arc<RwLock<dyn UniformBufferTrait>>;
+pub type UniformBufferPtr<T> = Arc<RwLock<UniformBuffer<T>>>;
 impl<T: BufferAttribute> UniformBuffer<T> {
-  pub fn new(gl: &Rc<GlContext>, data: T) -> Self {
+  pub fn new(gl: &Arc<GlContext>, data: T) -> Self {
     Self {
-      gl: Rc::clone(gl),
+      gl: Arc::clone(gl),
       name: data.name(),
       raw_buffer: RawBuffer::new_untyped(gl, data.ub_data(), BufferUsage::Uniform),
       is_dirty: false,
@@ -106,7 +106,7 @@ impl<T: BufferAttribute> UniformBufferTrait for UniformBuffer<T> {
 }
 use std::collections::HashMap;
 pub struct Vao<T: BufferAttribute> {
-  gl: Rc<GlContext>,
+  gl: Arc<GlContext>,
   v_buffer: VertexBuffer<T>,
   i_buffer: Option<IndexBuffer>,
   shader_id_to_raw_vao: HashMap<u64, RawVao>,
@@ -115,21 +115,21 @@ pub trait VaoTrait {
   // returns successed
   fn bind(&mut self, program: &RawShaderProgram);
 }
-// 裏でも更新するためRc<RefCell<T>>
-pub type VaoDynPtr = Rc<RefCell<dyn VaoTrait>>;
-pub type VaoPtr<T> = Rc<RefCell<Vao<T>>>;
+// 裏でも更新する
+pub type VaoDynPtr = Arc<RwLock<dyn VaoTrait>>;
+pub type VaoPtr<T> = Arc<RwLock<Vao<T>>>;
 impl<T: BufferAttribute> Vao<T> {
-  pub fn new(gl: &Rc<GlContext>, v_buffer: VertexBuffer<T>, i_buffer: IndexBuffer) -> Self {
+  pub fn new(gl: &Arc<GlContext>, v_buffer: VertexBuffer<T>, i_buffer: IndexBuffer) -> Self {
     Self {
-      gl: Rc::clone(gl),
+      gl: Arc::clone(gl),
       v_buffer,
       i_buffer: Some(i_buffer),
       shader_id_to_raw_vao: HashMap::new(),
     }
   }
-  pub fn new_without_index_buffer(gl: &Rc<GlContext>, v_buffer: VertexBuffer<T>) -> Self {
+  pub fn new_without_index_buffer(gl: &Arc<GlContext>, v_buffer: VertexBuffer<T>) -> Self {
     Self {
-      gl: Rc::clone(gl),
+      gl: Arc::clone(gl),
       v_buffer,
       i_buffer: None,
       shader_id_to_raw_vao: HashMap::new(),
