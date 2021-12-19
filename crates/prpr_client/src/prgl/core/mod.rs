@@ -29,3 +29,5 @@ mod template_macro;
 pub use self::template_macro::*;
 mod state;
 pub use self::state::*;
+mod vao;
+pub use self::vao::*;
