@@ -15,7 +15,7 @@ impl ShapeFactory {
   pub fn new(gl: &Arc<GlContext>) -> Self {
     Self { gl: Arc::clone(gl) }
   }
-  pub fn create_cube(&self) -> VaoPtr<ShapeFactoryVertex> {
+  pub fn create_cube(&self) -> Arc<Vao<ShapeFactoryVertex>> {
     let mut v_data: Vec<ShapeFactoryVertex> = Vec::new();
     for ix in 0..=1 {
       let x = (ix as f32) - 0.5;
@@ -44,6 +44,6 @@ impl ShapeFactory {
     ];
     let i_buffer = IndexBuffer::new(&self.gl, i_data);
     let v_buffer = VertexBuffer::new(&self.gl, v_data);
-    Arc::new(RwLock::new(Vao::new(&self.gl, v_buffer, i_buffer)))
+    Arc::new(Vao::new(&self.gl, v_buffer, i_buffer))
   }
 }

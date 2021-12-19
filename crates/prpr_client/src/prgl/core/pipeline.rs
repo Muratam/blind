@@ -46,12 +46,14 @@ impl Pipeline {
   pub fn set_shader(&mut self, shader: &Arc<Shader>) {
     self.shader = Some(Arc::clone(shader));
   }
-  pub fn set_vao<T: BufferAttribute + 'static>(&mut self, vao: &VaoPtr<T>) {
-    self.descriptor.set_vao(&(Arc::clone(vao) as VaoDynPtr));
+  pub fn set_vao<T: BufferAttribute + 'static>(&mut self, vao: &Arc<Vao<T>>) {
+    self
+      .descriptor
+      .set_vao(&(Arc::clone(vao) as Arc<dyn VaoTrait>));
   }
-  pub fn set_draw_vao<T: BufferAttribute + 'static>(&mut self, vao: &VaoPtr<T>) {
+  pub fn set_draw_vao<T: BufferAttribute + 'static>(&mut self, vao: &Arc<Vao<T>>) {
     self.set_vao(vao);
-    self.set_draw_command(vao.read().unwrap().draw_command());
+    self.set_draw_command(vao.draw_command());
   }
   pub fn add_uniform_buffer<T: BufferAttribute + 'static>(&mut self, buffer: &UniformBufferPtr<T>) {
     self

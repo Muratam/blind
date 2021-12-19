@@ -5,7 +5,7 @@ use super::*;
 // TODO: ShaderBind時にデフォルトテクスチャを貼る
 
 pub struct Descriptor {
-  vao: Option<VaoDynPtr>,
+  vao: Option<Arc<dyn VaoTrait>>,
   u_buffers: Vec<UniformBufferDynPtr>,
   // u_textures: Vec<Texture>
 }
@@ -16,7 +16,7 @@ impl Descriptor {
       u_buffers: Vec::new(),
     }
   }
-  pub fn set_vao(&mut self, vao: &VaoDynPtr) {
+  pub fn set_vao(&mut self, vao: &Arc<dyn VaoTrait>) {
     self.vao = Some(Arc::clone(vao));
   }
   pub fn add_uniform_buffer(&mut self, buffer: &UniformBufferDynPtr) {
@@ -45,7 +45,7 @@ impl<'a, 'b> DescriptorContext<'a, 'b> {
         u_buffer.write().unwrap().bind(program);
       }
       if let Some(vao) = &mut prior.vao {
-        vao.write().unwrap().bind(program);
+        vao.bind(program);
       } else {
         log::error("No Vertex Array Object");
         return;

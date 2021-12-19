@@ -40,8 +40,8 @@ impl Instance {
     &self,
     v_buffer: VertexBuffer<T>,
     i_buffer: IndexBuffer,
-  ) -> VaoPtr<T> {
-    Arc::new(RwLock::new(Vao::new(&self.gl, v_buffer, i_buffer)))
+  ) -> Arc<Vao<T>> {
+    Arc::new(Vao::new(&self.gl, v_buffer, i_buffer))
   }
   pub fn new_shader(&self, template: ShaderTemplate) -> Option<Arc<Shader>> {
     if let Some(shader) = Shader::new(&self.gl, template) {
