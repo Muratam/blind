@@ -8,7 +8,7 @@ crate::shader_attr! {
     proj_mat: mat4,
     add_color: vec4,
   }
-  textures PbrTexture {
+  mapping PbrMapping {
     normal_map : sampler2D,
     roughness_map : sampler2D
   }
@@ -33,7 +33,7 @@ impl System for SampleSystem {
     renderpass.set_color_target(&surface);
     let mut pipeline = Pipeline::new(gl);
     let template = crate::shader_template! {
-      attrs: [Global],
+      attrs: [Global, PbrMapping],
       vs_attr: ShapeFactoryVertex,
       fs_attr: { in_color: vec4 },
       out_attr: { out_color: vec4 }
@@ -45,6 +45,7 @@ impl System for SampleSystem {
         out_color = in_color + add_color;
       }
     };
+    system::log::info(format!("{}", template));
     let vao = ShapeFactory::new(gl).create_cube();
     pipeline.set_draw_vao(&Arc::new(vao));
     let global_ubo = UniformBuffer::new(

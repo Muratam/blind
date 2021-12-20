@@ -126,7 +126,7 @@ macro_rules! shader_attr_by_type {
       }
     }
   };
-  (textures $s:ident { $( $k:ident : $v:ident)* }) => {
+  (mapping $s:ident { $( $k:ident : $v:ident)* }) => {
     // new は定義せず、全て揃ってから代入？
     pub struct $s {
       $(pub $k : $v,)*
@@ -137,7 +137,7 @@ macro_rules! shader_attr_by_type {
       #[allow(dead_code)]
       pub fn ub_code() -> &'static str {
         concat!(
-          $("uniform ", stringify!($v), " ", stringify!($k), ";",)*
+          $("uniform ", stringify!($v), " ", stringify!($k), ";\n",)*
         )
       }
       #[allow(dead_code)]
@@ -273,9 +273,9 @@ macro_rules! shader_template {
       template.version, template.precision_float
     );
     let mut result = ShaderTemplate::new(
-      format!("{}{}{}{}",
+      format!("{}\n{}{}\n{}",
         common, template.attrs, template.vs_attr, template.fs_attr.0),
-      format!("{}{}{}{}",
+      format!("{}\n{}{}\n{}",
         common, template.attrs, template.fs_attr.1, template.out_attr),
     );
     result.vs_code_impl = template.vs_code;

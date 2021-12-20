@@ -16,6 +16,9 @@ impl Texture {
     }
   }
 }
+
+// ShaderTemplateで生成したmappingを引数に取ってバインドに使う
+pub struct TextureMapping {}
 // gl.active_texture(to_slot(0));
 // gl.bind_texture(gl::TEXTURE_2D, texture);
 // gl.uniform1i(gl.getUniformLocation(program, "uSampler"), 0);

@@ -110,7 +110,7 @@ impl ::std::fmt::Display for ShaderTemplate {
   fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
     write!(
       f,
-      "// vs define\n{}\n// vs impl\n{}\n\n// fs define\n{}\n// fs impl\n{}",
+      "// ------------------\n// vertex shader\n// ------------------\n{}\n{}\n\n// ------------------\n// fragment shader\n// ------------------\n{}\n{}",
       self.vs_code_template, self.vs_code_impl, self.fs_code_template, self.fs_code_impl
     )
   }
