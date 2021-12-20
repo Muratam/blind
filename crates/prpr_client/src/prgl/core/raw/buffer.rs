@@ -27,7 +27,7 @@ pub struct RawBuffer {
   usage: BufferUsage,
 }
 impl RawBuffer {
-  pub fn new<T: Sized>(gl: &ArcGlContext, data: &[T], usage: BufferUsage) -> Self {
+  pub fn new<T>(gl: &ArcGlContext, data: &[T], usage: BufferUsage) -> Self {
     let result = Self::new_uninitialized::<T>(gl, data.len(), usage);
     result.write(0, data);
     result
@@ -37,7 +37,7 @@ impl RawBuffer {
     result.write_untyped(0, data);
     result
   }
-  pub fn new_uninitialized<T: Sized>(gl: &ArcGlContext, count: usize, usage: BufferUsage) -> Self {
+  pub fn new_uninitialized<T>(gl: &ArcGlContext, count: usize, usage: BufferUsage) -> Self {
     let u8_size = std::mem::size_of::<T>() * count;
     Self::new_uninitialized_untyped(gl, u8_size as i32, usage)
   }
@@ -56,7 +56,7 @@ impl RawBuffer {
       usage,
     }
   }
-  pub fn write<T: Sized>(&self, offset: usize, data: &[T]) {
+  pub fn write<T>(&self, offset: usize, data: &[T]) {
     let u8_size = ::std::mem::size_of::<T>() * data.len();
     let ptr = data.as_ptr() as *const u8;
     let u8_data: &[u8] = unsafe { ::core::slice::from_raw_parts(ptr, u8_size) };

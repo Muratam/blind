@@ -1,7 +1,7 @@
 use super::*;
 use crate::html;
 pub struct Instance {
-  gl: ArcGlContext,
+  pub gl: ArcGlContext,
   max_width: i32,
   max_height: i32,
 }
@@ -21,45 +21,5 @@ impl Instance {
     let gl = &self.gl;
     gl.flush();
     // client_wait_sync ?
-  }
-  // create gpu objects
-  // pub fn new_sampler(&self) {}
-  // pub fn new_texture(&self) -> Texture {
-  //   Texture {}
-  // }
-  pub fn new_index_buffer(&self, data: Vec<IndexBufferType>) -> IndexBuffer {
-    IndexBuffer::new(&self.gl, data)
-  }
-  pub fn new_vertex_buffer<T: BufferAttribute>(&self, data: Vec<T>) -> VertexBuffer<T> {
-    VertexBuffer::new(&self.gl, data)
-  }
-  pub fn new_uniform_buffer<T: BufferAttribute>(&self, data: T) -> Arc<UniformBuffer<T>> {
-    Arc::new(UniformBuffer::new(&self.gl, data))
-  }
-  pub fn new_vao<T: BufferAttribute>(
-    &self,
-    v_buffer: VertexBuffer<T>,
-    i_buffer: IndexBuffer,
-  ) -> Arc<Vao<T>> {
-    Arc::new(Vao::new(&self.gl, v_buffer, i_buffer))
-  }
-  pub fn new_shader(&self, template: ShaderTemplate) -> Option<Arc<Shader>> {
-    if let Some(shader) = Shader::new(&self.gl, template) {
-      Some(Arc::new(shader))
-    } else {
-      None
-    }
-  }
-  pub fn new_surface(&self) -> Texture {
-    Texture::new(&self.gl)
-  }
-  pub fn new_pipeline(&self) -> Pipeline {
-    Pipeline::new(&self.gl)
-  }
-  pub fn new_renderpass(&self) -> RenderPass {
-    RenderPass::new(&self.gl)
-  }
-  pub fn new_shape_factory(&self) -> ShapeFactory {
-    ShapeFactory::new(&self.gl)
   }
 }

@@ -1,6 +1,7 @@
 // hoge_client に逃がす前段階でのサンプル
-use crate::*;
-
+use super::*;
+use prgl;
+use std::sync::Arc;
 crate::shader_attr! {
   struct Global {
     view_mat: mat4,
@@ -25,11 +26,11 @@ pub struct SampleSystem {
 */
 impl System for SampleSystem {
   fn new(core: &Core) -> Self {
-    let prgl = core.get_main_prgl();
-    let surface = prgl.new_surface();
-    let mut renderpass = prgl.new_renderpass();
+    let gl = &core.get_main_prgl().gl;
+    let surface = Texture::new(gl);
+    let mut renderpass = RenderPass::new(gl);
     renderpass.set_color_target(&surface);
-    let mut pipeline = prgl.new_pipeline();
+    let mut pipeline = Pipeline::new(gl);
     let template = crate::shader_template! {
       attrs: [Global],
       vs_attr: ShapeFactoryVertex,
@@ -43,16 +44,20 @@ impl System for SampleSystem {
         out_color = in_color + add_color;
       }
     };
-    let vao = prgl.new_shape_factory().create_cube();
-    pipeline.set_draw_vao(&vao);
-    let global_ubo = prgl.new_uniform_buffer(Global {
-      add_color: Vec4::new(0.5, 0.5, 0.5, 0.5),
-      view_mat: Mat4::look_at_rh(Vec3::ONE * 5.0, Vec3::ZERO, Vec3::Y),
-      proj_mat: Mat4::perspective_rh(3.1415 * 0.25, 1.0, 0.01, 50.0),
-    });
+    let vao = ShapeFactory::new(gl).create_cube();
+    pipeline.set_draw_vao(&Arc::new(vao));
+    let global_ubo = UniformBuffer::new(
+      gl,
+      Global {
+        add_color: Vec4::new(0.5, 0.5, 0.5, 0.5),
+        view_mat: Mat4::look_at_rh(Vec3::ONE * 5.0, Vec3::ZERO, Vec3::Y),
+        proj_mat: Mat4::perspective_rh(3.1415 * 0.25, 1.0, 0.01, 50.0),
+      },
+    );
+    let global_ubo = Arc::new(global_ubo);
     pipeline.add_uniform_buffer(&global_ubo);
-    if let Some(shader) = prgl.new_shader(template) {
-      pipeline.set_shader(&shader);
+    if let Some(shader) = Shader::new(gl, template) {
+      pipeline.set_shader(&Arc::new(shader));
     }
     Self {
       surface,
