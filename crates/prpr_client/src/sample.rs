@@ -61,6 +61,14 @@ impl System for SampleSystem {
     if let Some(shader) = Shader::new(gl, template) {
       pipeline.set_shader(&Arc::new(shader));
     }
+    // let pbr_mapping = TextureMapping::new(
+    //   gl,
+    //   PbrMapping {
+    //     normal_map: Arc::new(Texture::new(&gl)),
+    //     roughness_map: Arc::new(Texture::new(&gl)),
+    //   },
+    // );
+    // pipeline.add_texture_mapping(Arc::new(pbr_mapping));
     Self {
       surface,
       renderpass,
