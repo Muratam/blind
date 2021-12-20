@@ -27,11 +27,11 @@ pub struct SampleSystem {
 */
 impl System for SampleSystem {
   fn new(core: &Core) -> Self {
-    let gl = core.get_main_prgl().gl();
-    let surface = Texture::new(gl);
-    let mut renderpass = RenderPass::new(gl);
+    let ctx = core.get_main_prgl().ctx();
+    let surface = Texture::new(ctx);
+    let mut renderpass = RenderPass::new(ctx);
     renderpass.set_color_target(&surface);
-    let mut pipeline = Pipeline::new(gl);
+    let mut pipeline = Pipeline::new(ctx);
     let template = crate::shader_template! {
       attrs: [Global, PbrMapping],
       vs_attr: ShapeFactoryVertex,
@@ -46,10 +46,10 @@ impl System for SampleSystem {
       }
     };
     system::log::info(format!("{}", template));
-    let vao = ShapeFactory::new(gl).create_cube();
+    let vao = ShapeFactory::new(ctx).create_cube();
     pipeline.set_draw_vao(&Arc::new(vao));
     let global_ubo = UniformBuffer::new(
-      gl,
+      ctx,
       Global {
         add_color: Vec4::new(0.5, 0.5, 0.5, 0.5),
         view_mat: Mat4::look_at_rh(Vec3::ONE * 5.0, Vec3::ZERO, Vec3::Y),
@@ -58,14 +58,14 @@ impl System for SampleSystem {
     );
     let global_ubo = Arc::new(global_ubo);
     pipeline.add_uniform_buffer(&global_ubo);
-    if let Some(shader) = Shader::new(gl, template) {
+    if let Some(shader) = Shader::new(ctx, template) {
       pipeline.set_shader(&Arc::new(shader));
     }
     // let pbr_mapping = TextureMapping::new(
-    //   gl,
+    //   ctx,
     //   PbrMapping {
-    //     normal_map: Arc::new(Texture::new(&gl)),
-    //     roughness_map: Arc::new(Texture::new(&gl)),
+    //     normal_map: Arc::new(Texture::new(&ctx)),
+    //     roughness_map: Arc::new(Texture::new(&ctx)),
     //   },
     // );
     // pipeline.add_texture_mapping(Arc::new(pbr_mapping));

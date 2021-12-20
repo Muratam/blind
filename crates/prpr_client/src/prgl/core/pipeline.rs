@@ -1,7 +1,7 @@
 use super::*;
 
 pub struct Pipeline {
-  gl: ArcGlContext,
+  ctx: ArcGlContext,
   // states
   draw_command: Option<DrawCommand>,
   cull_mode: CullMode,
@@ -11,9 +11,9 @@ pub struct Pipeline {
 }
 
 impl Pipeline {
-  pub fn new(gl: &ArcGlContext) -> Self {
+  pub fn new(ctx: &ArcGlContext) -> Self {
     Self {
-      gl: gl.clone(),
+      ctx: ctx.clone(),
       draw_command: None,
       cull_mode: CullMode::Back,
       primitive_topology: PrimitiveToporogy::Triangles,
@@ -23,7 +23,7 @@ impl Pipeline {
   }
 
   pub fn draw(&self) {
-    let gl = &self.gl;
+    let ctx = &self.ctx;
     let mut outer_desc_ctx = DescriptorContext::Nil;
     if let Some(shader) = &self.shader {
       shader.use_program();
@@ -34,9 +34,9 @@ impl Pipeline {
       log::error("No Shader Program");
       return;
     }
-    self.cull_mode.apply(&self.gl);
+    self.cull_mode.apply(&self.ctx);
     if let Some(draw_command) = &self.draw_command {
-      draw_command.apply(&self.gl, self.primitive_topology);
+      draw_command.apply(&self.ctx, self.primitive_topology);
     } else {
       log::error("No Draw Command");
       return;

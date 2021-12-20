@@ -25,15 +25,15 @@ pub enum DrawCommand {
   // },
 }
 impl DrawCommand {
-  pub fn apply(&self, gl: &ArcGlContext, topology: PrimitiveToporogy) {
+  pub fn apply(&self, ctx: &ArcGlContext, topology: PrimitiveToporogy) {
     let topology = topology as u32;
     match self {
       DrawCommand::Draw { first, count } => {
-        gl.draw_arrays(topology, *first, *count);
+        ctx.draw_arrays(topology, *first, *count);
       }
       DrawCommand::DrawIndexed { first, count } => {
         assert_type_eq!(u32, IndexBufferType);
-        gl.draw_elements_with_i32(topology, *count, gl::UNSIGNED_INT, *first);
+        ctx.draw_elements_with_i32(topology, *count, gl::UNSIGNED_INT, *first);
       }
     }
   }
@@ -47,12 +47,12 @@ pub enum CullMode {
   All = gl::FRONT_AND_BACK as isize,
 }
 impl CullMode {
-  pub fn apply(&self, gl: &ArcGlContext) {
+  pub fn apply(&self, ctx: &ArcGlContext) {
     if *self == CullMode::None {
-      gl.disable(gl::CULL_FACE);
+      ctx.disable(gl::CULL_FACE);
     } else {
-      gl.enable(gl::CULL_FACE);
-      gl.cull_face(*self as u32);
+      ctx.enable(gl::CULL_FACE);
+      ctx.cull_face(*self as u32);
     }
   }
 }

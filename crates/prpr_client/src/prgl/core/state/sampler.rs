@@ -38,10 +38,10 @@ impl Default for Sampler {
 }
 
 impl Sampler {
-  pub fn apply(&self, gl: &ArcGlContext, target: u32) {
-    gl.tex_parameteri(target, gl::TEXTURE_MAG_FILTER, self.mag_filter as i32);
-    gl.tex_parameteri(target, gl::TEXTURE_MIN_FILTER, self.min_filter as i32);
-    gl.tex_parameteri(target, gl::TEXTURE_WRAP_S, self.wrap_mode_s as i32);
-    gl.tex_parameteri(target, gl::TEXTURE_WRAP_T, self.wrap_mode_t as i32);
+  pub fn apply(&self, ctx: &ArcGlContext, target: u32) {
+    ctx.tex_parameteri(target, gl::TEXTURE_MAG_FILTER, self.mag_filter as i32);
+    ctx.tex_parameteri(target, gl::TEXTURE_MIN_FILTER, self.min_filter as i32);
+    ctx.tex_parameteri(target, gl::TEXTURE_WRAP_S, self.wrap_mode_s as i32);
+    ctx.tex_parameteri(target, gl::TEXTURE_WRAP_T, self.wrap_mode_t as i32);
   }
 }

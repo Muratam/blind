@@ -8,9 +8,9 @@ pub struct IndexBuffer {
   data: Vec<IndexBufferType>,
 }
 impl IndexBuffer {
-  pub fn new(gl: &ArcGlContext, data: Vec<IndexBufferType>) -> Self {
+  pub fn new(ctx: &ArcGlContext, data: Vec<IndexBufferType>) -> Self {
     Self {
-      raw_buffer: RawBuffer::new(gl, data.as_slice(), BufferUsage::Index),
+      raw_buffer: RawBuffer::new(ctx, data.as_slice(), BufferUsage::Index),
       data,
     }
   }
@@ -29,14 +29,14 @@ pub struct VertexBuffer<T: BufferAttribute> {
 }
 
 impl<T: BufferAttribute> VertexBuffer<T> {
-  pub fn new(gl: &ArcGlContext, data: Vec<T>) -> Self {
+  pub fn new(ctx: &ArcGlContext, data: Vec<T>) -> Self {
     let template = if data.len() > 0 {
       data[0].vs_in_template()
     } else {
       Default::default()
     };
     Self {
-      raw_buffer: RawBuffer::new(gl, data.as_slice(), BufferUsage::Vertex),
+      raw_buffer: RawBuffer::new(ctx, data.as_slice(), BufferUsage::Vertex),
       template,
       data,
     }
@@ -53,7 +53,7 @@ impl<T: BufferAttribute> VertexBuffer<T> {
 }
 
 pub struct UniformBuffer<T: BufferAttribute> {
-  gl: ArcGlContext,
+  ctx: ArcGlContext,
   raw_buffer: RawBuffer,
   data: RwLock<T>,
   name: &'static str,
@@ -64,11 +64,11 @@ pub trait UniformBufferTrait {
   fn bind(&self, program: &RawShaderProgram) -> bool;
 }
 impl<T: BufferAttribute> UniformBuffer<T> {
-  pub fn new(gl: &ArcGlContext, data: T) -> Self {
+  pub fn new(ctx: &ArcGlContext, data: T) -> Self {
     Self {
-      gl: gl.clone(),
+      ctx: ctx.clone(),
       name: data.name(),
-      raw_buffer: RawBuffer::new_untyped(gl, data.ub_data(), BufferUsage::Uniform),
+      raw_buffer: RawBuffer::new_untyped(ctx, data.ub_data(), BufferUsage::Uniform),
       is_dirty: Mutex::new(false),
       data: RwLock::new(data),
     }
@@ -91,12 +91,12 @@ impl<T: BufferAttribute> UniformBufferTrait for UniformBuffer<T> {
       }
     }
     let u_index = self
-      .gl
+      .ctx
       .get_uniform_block_index(&program.raw_program(), self.name);
     if u_index == gl::INVALID_INDEX {
       return false;
     }
-    self.gl.bind_buffer_base(
+    self.ctx.bind_buffer_base(
       gl::UNIFORM_BUFFER,
       u_index,
       Some(self.raw_buffer.raw_buffer()),

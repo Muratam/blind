@@ -1,15 +1,15 @@
 use super::*;
 pub struct RawRenderBuffer {
-  gl: ArcGlContext,
+  ctx: ArcGlContext,
   raw_renderbuffer: web_sys::WebGlRenderbuffer,
 }
 impl RawRenderBuffer {
-  pub fn new(gl: &ArcGlContext) -> Self {
-    let raw_renderbuffer = gl
+  pub fn new(ctx: &ArcGlContext) -> Self {
+    let raw_renderbuffer = ctx
       .create_renderbuffer()
       .expect("failed to create render buffer");
     Self {
-      gl: gl.clone(),
+      ctx: ctx.clone(),
       raw_renderbuffer,
     }
   }
@@ -19,21 +19,21 @@ impl RawRenderBuffer {
 }
 impl Drop for RawRenderBuffer {
   fn drop(&mut self) {
-    self.gl.delete_renderbuffer(Some(&self.raw_renderbuffer));
+    self.ctx.delete_renderbuffer(Some(&self.raw_renderbuffer));
   }
 }
 
 pub struct RawFrameBuffer {
-  gl: ArcGlContext,
+  ctx: ArcGlContext,
   raw_framebuffer: web_sys::WebGlFramebuffer,
 }
 impl RawFrameBuffer {
-  pub fn new(gl: &ArcGlContext) -> Self {
-    let raw_framebuffer = gl
+  pub fn new(ctx: &ArcGlContext) -> Self {
+    let raw_framebuffer = ctx
       .create_framebuffer()
       .expect("failed to create frame buffer");
     Self {
-      gl: gl.clone(),
+      ctx: ctx.clone(),
       raw_framebuffer,
     }
   }
@@ -43,6 +43,6 @@ impl RawFrameBuffer {
 }
 impl Drop for RawFrameBuffer {
   fn drop(&mut self) {
-    self.gl.delete_framebuffer(Some(&self.raw_framebuffer));
+    self.ctx.delete_framebuffer(Some(&self.raw_framebuffer));
   }
 }

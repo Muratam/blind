@@ -5,8 +5,8 @@ pub struct Shader {
   raw_program: RawShaderProgram,
 }
 impl Shader {
-  pub fn new(gl: &ArcGlContext, template: ShaderTemplate) -> Option<Self> {
-    if let Some(raw_program) = RawShaderProgram::new(gl, &template) {
+  pub fn new(ctx: &ArcGlContext, template: ShaderTemplate) -> Option<Self> {
+    if let Some(raw_program) = RawShaderProgram::new(ctx, &template) {
       Some(Self {
         template,
         raw_program,

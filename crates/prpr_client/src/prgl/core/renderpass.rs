@@ -1,7 +1,7 @@
 use super::*;
 
 pub struct RenderPass {
-  gl: ArcGlContext,
+  ctx: ArcGlContext,
   clear_colors: [Option<Vec4>; MAX_OUTPUT_SLOT],
   clear_depth: Option<f32>,
   clear_stencil: Option<i32>,
@@ -14,33 +14,33 @@ pub struct RenderPass {
   // stencil_target: RawStencRawTextureilRenderTarget,
 }
 impl RenderPass {
-  pub fn new(gl: &ArcGlContext) -> Self {
+  pub fn new(ctx: &ArcGlContext) -> Self {
     Self {
-      gl: gl.clone(),
-      raw_frame_buffer: RawFrameBuffer::new(gl),
-      raw_render_buffer: RawRenderBuffer::new(gl),
+      ctx: ctx.clone(),
+      raw_frame_buffer: RawFrameBuffer::new(ctx),
+      raw_render_buffer: RawRenderBuffer::new(ctx),
       clear_colors: [None; MAX_OUTPUT_SLOT],
       clear_depth: None,
       clear_stencil: None,
     }
   }
   pub fn bind(&self) {
-    let gl = &self.gl;
+    let ctx = &self.ctx;
     // TODO: 今はゼロスロット目のみ. 今はテクスチャバインドなし
     let mut flag = 0;
     if let Some(color) = self.clear_colors[0] {
-      gl.clear_color(color.x, color.y, color.z, color.w);
+      ctx.clear_color(color.x, color.y, color.z, color.w);
       flag |= gl::COLOR_BUFFER_BIT;
     }
     if let Some(depth) = self.clear_depth {
-      gl.clear_depth(depth);
+      ctx.clear_depth(depth);
       flag |= gl::DEPTH_BUFFER_BIT;
     }
     if let Some(stencil) = self.clear_stencil {
-      gl.clear_stencil(stencil);
+      ctx.clear_stencil(stencil);
       flag |= gl::STENCIL_BUFFER_BIT;
     }
-    gl.clear(flag);
+    ctx.clear(flag);
   }
   pub fn set_color_target(&mut self, target: &Texture) {
     self.set_color_target_by_slot(target, 0);

@@ -21,36 +21,36 @@ fn usage_to_store_type(usage: BufferUsage) -> u32 {
 }
 
 pub struct RawBuffer {
-  gl: ArcGlContext,
+  ctx: ArcGlContext,
   buffer: web_sys::WebGlBuffer,
   size: i32,
   usage: BufferUsage,
 }
 impl RawBuffer {
-  pub fn new<T>(gl: &ArcGlContext, data: &[T], usage: BufferUsage) -> Self {
-    let result = Self::new_uninitialized::<T>(gl, data.len(), usage);
+  pub fn new<T>(ctx: &ArcGlContext, data: &[T], usage: BufferUsage) -> Self {
+    let result = Self::new_uninitialized::<T>(ctx, data.len(), usage);
     result.write(0, data);
     result
   }
-  pub fn new_untyped(gl: &ArcGlContext, data: &[u8], usage: BufferUsage) -> Self {
-    let result = Self::new_uninitialized::<u8>(gl, data.len(), usage);
+  pub fn new_untyped(ctx: &ArcGlContext, data: &[u8], usage: BufferUsage) -> Self {
+    let result = Self::new_uninitialized::<u8>(ctx, data.len(), usage);
     result.write_untyped(0, data);
     result
   }
-  pub fn new_uninitialized<T>(gl: &ArcGlContext, count: usize, usage: BufferUsage) -> Self {
+  pub fn new_uninitialized<T>(ctx: &ArcGlContext, count: usize, usage: BufferUsage) -> Self {
     let u8_size = std::mem::size_of::<T>() * count;
-    Self::new_uninitialized_untyped(gl, u8_size as i32, usage)
+    Self::new_uninitialized_untyped(ctx, u8_size as i32, usage)
   }
-  pub fn new_uninitialized_untyped(gl: &ArcGlContext, size: i32, usage: BufferUsage) -> Self {
-    let buffer = gl.create_buffer().expect("failed to craete buffer");
+  pub fn new_uninitialized_untyped(ctx: &ArcGlContext, size: i32, usage: BufferUsage) -> Self {
+    let buffer = ctx.create_buffer().expect("failed to craete buffer");
     let target = usage as u32;
-    gl.bind_buffer(target, Some(&buffer));
-    gl.buffer_data_with_i32(target, size, usage_to_store_type(usage));
+    ctx.bind_buffer(target, Some(&buffer));
+    ctx.buffer_data_with_i32(target, size, usage_to_store_type(usage));
     if SET_BIND_NONE_AFTER_WORK {
-      gl.bind_buffer(target, None);
+      ctx.bind_buffer(target, None);
     }
     Self {
-      gl: gl.clone(),
+      ctx: ctx.clone(),
       buffer,
       size,
       usage,
@@ -73,12 +73,12 @@ impl RawBuffer {
       return;
     }
     let target = self.usage as u32;
-    self.gl.bind_buffer(target, Some(&self.buffer));
+    self.ctx.bind_buffer(target, Some(&self.buffer));
     self
-      .gl
+      .ctx
       .buffer_sub_data_with_i32_and_u8_array(target, offset, data);
     if SET_BIND_NONE_AFTER_WORK {
-      self.gl.bind_buffer(target, None);
+      self.ctx.bind_buffer(target, None);
     }
   }
   pub fn raw_buffer(&self) -> &web_sys::WebGlBuffer {
@@ -90,6 +90,6 @@ impl RawBuffer {
 }
 impl Drop for RawBuffer {
   fn drop(&mut self) {
-    self.gl.delete_buffer(Some(&self.buffer));
+    self.ctx.delete_buffer(Some(&self.buffer));
   }
 }

@@ -162,7 +162,7 @@ pub struct TextureDescriptor {
   mipmap: bool,
 }
 pub struct RawTexture {
-  gl: ArcGlContext,
+  ctx: ArcGlContext,
   raw_texture: web_sys::WebGlTexture,
   desc: TextureDescriptor,
   target: u32,
@@ -185,11 +185,11 @@ pub enum TextureWriteType<'a> {
 impl RawTexture {
   // pub fn new_cubemap() { target = TEXTURE_CUBE_MAP_??; }
   pub fn new<'a>(
-    gl: &ArcGlContext,
+    ctx: &ArcGlContext,
     desc: &TextureDescriptor,
     write_type: TextureWriteType<'a>,
   ) -> Self {
-    let raw_texture = gl.create_texture().expect("failed to create texture");
+    let raw_texture = ctx.create_texture().expect("failed to create texture");
     let target = gl::TEXTURE_2D;
     let level = 0;
     let internalformat = desc.format as i32;
@@ -218,31 +218,32 @@ impl RawTexture {
       }
       _ => None,
     };
-    gl.bind_texture(target, Some(&raw_texture));
+    ctx.bind_texture(target, Some(&raw_texture));
     if pixels.is_some() || write_type == TextureWriteType::Uninitialized {
-      gl.tex_image_2d_with_i32_and_i32_and_i32_and_format_and_type_and_opt_u8_array(
-        target,
-        level,
-        internalformat,
-        width as i32,
-        height as i32,
-        border,
-        format as u32,
-        type_ as u32,
-        pixels,
-      )
-      .ok();
+      ctx
+        .tex_image_2d_with_i32_and_i32_and_i32_and_format_and_type_and_opt_u8_array(
+          target,
+          level,
+          internalformat,
+          width as i32,
+          height as i32,
+          border,
+          format as u32,
+          type_ as u32,
+          pixels,
+        )
+        .ok();
     } else {
       log::error("currently not supported texture type specified.");
     }
     if desc.mipmap {
-      gl.generate_mipmap(target);
+      ctx.generate_mipmap(target);
     }
     if SET_BIND_NONE_AFTER_WORK {
-      gl.bind_texture(target, None);
+      ctx.bind_texture(target, None);
     }
     Self {
-      gl: gl.clone(),
+      ctx: ctx.clone(),
       raw_texture,
       desc: desc.clone(),
       target,
@@ -318,6 +319,6 @@ impl RawTexture {
 }
 impl Drop for RawTexture {
   fn drop(&mut self) {
-    self.gl.delete_texture(Some(&self.raw_texture));
+    self.ctx.delete_texture(Some(&self.raw_texture));
   }
 }

@@ -1,17 +1,17 @@
 use super::*;
 
 pub struct Texture {
-  gl: ArcGlContext,
+  ctx: ArcGlContext,
   // raw_texture: RawTexture,
 }
 
 impl Texture {
   // sampler / textureimage2d
-  pub fn new(gl: &ArcGlContext) -> Self {
+  pub fn new(ctx: &ArcGlContext) -> Self {
     // once
-    // let raw_texture = RawTexture::new(gl);
+    // let raw_texture = RawTexture::new(ctx);
     Self {
-      gl: gl.clone(),
+      ctx: ctx.clone(),
       // raw_texture,
     }
   }
@@ -19,6 +19,6 @@ impl Texture {
 
 // ShaderTemplateで生成したmappingを引数に取ってバインドに使う
 pub struct TextureMapping {}
-// gl.active_texture(to_slot(0));
-// gl.bind_texture(gl::TEXTURE_2D, texture);
-// gl.uniform1i(gl.getUniformLocation(program, "uSampler"), 0);
+// ctx.active_texture(to_slot(0));
+// ctx.bind_texture(gl::TEXTURE_2D, texture);
+// ctx.uniform1i(ctx.getUniformLocation(program, "uSampler"), 0);
