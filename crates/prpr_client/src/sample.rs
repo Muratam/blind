@@ -27,7 +27,7 @@ pub struct SampleSystem {
 */
 impl System for SampleSystem {
   fn new(core: &Core) -> Self {
-    let gl = &core.get_main_prgl().gl;
+    let gl = core.get_main_prgl().gl();
     let surface = Texture::new(gl);
     let mut renderpass = RenderPass::new(gl);
     renderpass.set_color_target(&surface);

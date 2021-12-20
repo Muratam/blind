@@ -1,7 +1,7 @@
 use super::*;
 use crate::html;
 pub struct Instance {
-  pub gl: ArcGlContext,
+  gl: ArcGlContext,
   max_width: i32,
   max_height: i32,
 }
@@ -21,5 +21,8 @@ impl Instance {
     let gl = &self.gl;
     gl.flush();
     // client_wait_sync ?
+  }
+  pub fn gl(&self) -> &ArcGlContext {
+    &self.gl
   }
 }
