@@ -18,6 +18,9 @@ pub type uvec3 = (uint, uint, uint);
 pub type uvec4 = (uint, uint, uint, uint);
 #[allow(non_camel_case_types)]
 pub type mat4 = math::Mat4;
+// Texture用, 名前だけ欲しい
+#[allow(non_camel_case_types)]
+pub type sampler2D = Arc<Texture>;
 
 #[derive(Debug, Clone)]
 #[allow(non_camel_case_types)]
@@ -33,6 +36,12 @@ pub enum ShaderPrimitiveType {
   vec4(vec4),
   mat4(mat4),
 }
+#[allow(non_camel_case_types)]
+#[allow(dead_code)]
+pub enum ShaderSamplerType {
+  sampler2D(sampler2D),
+}
+
 #[allow(non_camel_case_types)]
 #[allow(unused)]
 pub enum ShaderSinglePrimitiveType {
@@ -129,7 +138,10 @@ pub trait BufferAttribute {
 
 pub trait TextureAttribute {
   fn name(&self) -> &'static str;
-  // gl.active_texture(to_slot(0));
-  // gl.bind_texture(gl::TEXTURE_2D, texture);
-  // gl.uniform1i(gl.getUniformLocation(program, "uSampler"), 0);
+  fn keys(&self) -> Vec<&'static str>;
+  fn values(&self) -> Vec<ShaderSamplerType>;
+  // for dynamic loading
+  fn find(&self, key: &str) -> Option<ShaderSamplerType>;
+  fn from_hashmap(&mut self, map: &HashMap<String, ShaderSamplerType>) -> Vec<&'static str>; // returns ignored keys
+  fn to_hashmap(&self) -> HashMap<String, ShaderSamplerType>;
 }

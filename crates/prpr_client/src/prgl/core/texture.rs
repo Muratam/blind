@@ -8,6 +8,7 @@ pub struct Texture {
 impl Texture {
   // sampler / textureimage2d
   pub fn new(gl: &ArcGlContext) -> Self {
+    // once
     // let raw_texture = RawTexture::new(gl);
     Self {
       gl: gl.clone(),
@@ -15,3 +16,6 @@ impl Texture {
     }
   }
 }
+// gl.active_texture(to_slot(0));
+// gl.bind_texture(gl::TEXTURE_2D, texture);
+// gl.uniform1i(gl.getUniformLocation(program, "uSampler"), 0);

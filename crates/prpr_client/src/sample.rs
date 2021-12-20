@@ -8,9 +8,10 @@ crate::shader_attr! {
     proj_mat: mat4,
     add_color: vec4,
   }
-  // texture Pbr {
-  //   normal_map :
-  // }
+  textures PbrTexture {
+    normal_map : sampler2D,
+    roughness_map : sampler2D
+  }
 }
 pub struct SampleSystem {
   surface: prgl::Texture,

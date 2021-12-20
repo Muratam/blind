@@ -2,162 +2,202 @@
 use super::*;
 
 #[macro_export]
-macro_rules! shader_type_str {
-  (uint) => {
-    "uint"
+macro_rules! shader_attr_by_type {
+  (struct $s:ident { $( $k:ident : $v:ident)* }) => {
+    #[derive(Default, Debug)]
+    #[repr(C)]
+    pub struct $s {
+      $(pub $k : $v,)*
+    }
+
+    #[allow(unused_variables)]
+    #[allow(unused_mut)]
+    impl $s {
+      #[allow(dead_code)]
+      pub fn new() -> Self { Default::default() }
+      #[allow(dead_code)]
+      pub fn ub_code() -> &'static str {
+        concat!(
+          "layout (std140) uniform ", stringify!($s), " {\n",
+            $("  ", stringify!($v) ," ", stringify!($k), ";\n",)*
+          "};"
+        )
+      }
+      #[allow(dead_code)]
+      pub fn vs_in_code() -> &'static str {
+        concat!(
+          $("in ", stringify!($v)," ",stringify!($k),";\n", )*
+        )
+      }
+      #[allow(dead_code)]
+      pub fn vs_out_code() -> &'static str {
+        concat!(
+          $("out ", stringify!($v) ," ", stringify!($k), ";\n",)*
+        )
+      }
+      #[allow(dead_code)]
+      pub fn fs_in_code() -> &'static str {
+        concat!($("in ", stringify!($v) ," ", stringify!($k), ";\n",)*)
+      }
+      #[allow(dead_code)]
+      pub fn fs_out_code() -> &'static str {
+        concat!($("out ", stringify!($v) ," ", stringify!($k), ";\n",)*)
+      }
+      #[allow(dead_code)]
+      pub fn struct_size() -> usize {
+        ::std::mem::size_of::<$s>()
+      }
+      #[allow(dead_code)]
+      pub fn offsets() -> Vec<usize> {
+        let mut result = Vec::new();
+        let dummy = ::core::mem::MaybeUninit::<Self>::uninit();
+        let dummy_ptr = dummy.as_ptr();
+        $(
+          let member_ptr = unsafe{ ::core::ptr::addr_of!((*dummy_ptr).$k) };
+          result.push(member_ptr as usize - dummy_ptr as usize);
+        )*
+        result
+      }
+      #[allow(dead_code)]
+      pub fn name_static() -> &'static str { stringify!($s) }
+      #[allow(dead_code)]
+      #[allow(unused_variables)]
+      pub fn keys_static() -> Vec<&'static str> {
+        let mut result = Vec::new();
+        $(result.push(stringify!($k));)*
+        result
+      }
+    }
+    impl BufferAttribute for $s {
+      fn ub_data(&self) -> &[u8] {
+        let u8_size = Self::struct_size();
+        let ptr = self as *const $s as *const u8;
+        unsafe { ::core::slice::from_raw_parts(ptr, u8_size) }
+      }
+      fn vs_in_template(&self) -> VsInTemplate {
+        VsInTemplate{
+          keys: Self::keys_static(),
+          values: Self::new().values(),
+          offsets: Self::offsets(),
+          size: Self::struct_size(),
+        }
+      }
+      fn keys(&self) -> Vec<&'static str> { Self::keys_static() }
+      #[allow(unused_variables)]
+      #[allow(unused_mut)]
+      fn values(&self) -> Vec<ShaderPrimitiveType> {
+        let mut result = Vec::new();
+        $(result.push(ShaderPrimitiveType::$v(self.$k));)*
+        result
+      }
+      fn name(&self) -> &'static str { Self::name_static() }
+      fn find(&self, key: &str) -> Option<ShaderPrimitiveType> {
+        match key {
+          $(stringify!($k) => Some(ShaderPrimitiveType::$v(self.$k)),)*
+          _ => None,
+        }
+      }
+      #[allow(unused_variables)]
+      #[allow(unused_mut)]
+      fn from_hashmap(&mut self, map: &::std::collections::HashMap<String, ShaderPrimitiveType>) -> Vec<&'static str> {
+        let mut ignored = Vec::new();
+        $(
+          if let Some(ShaderPrimitiveType::$v(v)) = map.get(stringify!($k)) {
+            self.$k = *v;
+          } else {
+            ignored.push(stringify!($k));
+          }
+        )*
+        ignored
+      }
+      #[allow(unused_variables)]
+      #[allow(unused_mut)]
+      fn to_hashmap(&self) -> ::std::collections::HashMap<String, ShaderPrimitiveType> {
+        let mut result = ::std::collections::HashMap::new();
+        $(result.insert(String::from(stringify!($k)), ShaderPrimitiveType::$v(self.$k));)*
+        result
+      }
+    }
+    impl ::std::fmt::Display for $s {
+      fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+        write!(f, "struct {} {{\n", stringify!($s))?;
+        $(write!(f, "  {}: {} = {:?}, \n", stringify!($k), stringify!($v), self.$k)?;)*
+        write!(f, "}}")
+      }
+    }
   };
-  (uvec2) => {
-    "uvec2"
-  };
-  (uvec3) => {
-    "uvec3"
-  };
-  (uvec4) => {
-    "uvec4"
-  };
-  (float) => {
-    "float"
-  };
-  (vec2) => {
-    "vec2"
-  };
-  (vec3) => {
-    "vec3"
-  };
-  (vec4) => {
-    "vec4"
-  };
-  (mat4) => {
-    "mat4"
+  (textures $s:ident { $( $k:ident : $v:ident)* }) => {
+    // new は定義せず、全て揃ってから代入？
+    pub struct $s {
+      $(pub $k : $v,)*
+    }
+    #[allow(unused_variables)]
+    #[allow(unused_mut)]
+    impl $s {
+      #[allow(dead_code)]
+      pub fn ub_code() -> &'static str {
+        concat!(
+          $("uniform ", stringify!($v), " ", stringify!($k), ";",)*
+        )
+      }
+      #[allow(dead_code)]
+      pub fn name_static() -> &'static str { stringify!($s) }
+      #[allow(dead_code)]
+      #[allow(unused_variables)]
+      pub fn keys_static() -> Vec<&'static str> {
+        let mut result = Vec::new();
+        $(result.push(stringify!($k));)*
+        result
+      }
+    }
+    impl TextureAttribute for $s {
+      fn keys(&self) -> Vec<&'static str>{
+        Self::keys_static()
+      }
+      #[allow(unused_variables)]
+      #[allow(unused_mut)]
+      fn values(&self) -> Vec<ShaderSamplerType>{
+        let mut result = Vec::new();
+        $(result.push(ShaderSamplerType::$v(Arc::clone(&self.$k)));)*
+        result
+      }
+      fn name(&self) -> &'static str {
+        Self::name_static()
+      }
+      fn find(&self, key: &str) -> Option<ShaderSamplerType>{
+        match key {
+          $(stringify!($k) => Some(ShaderSamplerType::$v(Arc::clone(&self.$k))),)*
+          _ => None,
+        }
+      }
+      #[allow(unused_variables)]
+      #[allow(unused_mut)]
+      fn from_hashmap(&mut self, map: &::std::collections::HashMap<String, ShaderSamplerType>) -> Vec<&'static str>{
+        let mut ignored = Vec::new();
+        $(
+          if let Some(ShaderSamplerType::$v(v)) = map.get(stringify!($k)) {
+            self.$k = Arc::clone(v);
+          } else {
+            ignored.push(stringify!($k));
+          }
+        )*
+        ignored
+      }
+      #[allow(unused_variables)]
+      #[allow(unused_mut)]
+      fn to_hashmap(&self) -> ::std::collections::HashMap<String, ShaderSamplerType>{
+        let mut result = ::std::collections::HashMap::new();
+        $(result.insert(String::from(stringify!($k)), ShaderSamplerType::$v(Arc::clone(&self.$k)));)*
+        result
+      }
+    }
   };
 }
 
 #[macro_export]
 macro_rules! shader_attr {
-  ($( struct $s:ident { $( $k:ident : $v:ident $(,)?)* } $(;)?)*) => (
-    $(
-      #[derive(Default, Debug)]
-      #[repr(C)]
-      pub struct $s {
-        $(pub $k : $v,)*
-      }
-
-      #[allow(unused_variables)]
-      #[allow(unused_mut)]
-      impl $s {
-        #[allow(dead_code)]
-        pub fn new() -> Self { Default::default() }
-        #[allow(dead_code)]
-        pub fn ub_code() -> &'static str {
-          concat!(
-            "layout (std140) uniform ", stringify!($s), " {\n",
-              $("  ", $crate::shader_type_str!($v) ," ", stringify!($k), ";\n",)*
-            "};"
-          )
-        }
-        #[allow(dead_code)]
-        pub fn vs_in_code() -> &'static str {
-          concat!(
-            $("in ", $crate::shader_type_str!($v)," ",stringify!($k),";\n", )*
-          )
-        }
-        #[allow(dead_code)]
-        pub fn vs_out_code() -> &'static str {
-          concat!(
-            $("out ", $crate::shader_type_str!($v) ," ", stringify!($k), ";\n",)*
-          )
-        }
-        #[allow(dead_code)]
-        pub fn fs_in_code() -> &'static str {
-          concat!($("in ", $crate::shader_type_str!($v) ," ", stringify!($k), ";\n",)*)
-        }
-        #[allow(dead_code)]
-        pub fn fs_out_code() -> &'static str {
-          concat!($("out ", $crate::shader_type_str!($v) ," ", stringify!($k), ";\n",)*)
-        }
-        #[allow(dead_code)]
-        pub fn struct_size() -> usize {
-          ::std::mem::size_of::<$s>()
-        }
-        #[allow(dead_code)]
-        pub fn offsets() -> Vec<usize> {
-          let mut result = Vec::new();
-          let dummy = ::core::mem::MaybeUninit::<Self>::uninit();
-          let dummy_ptr = dummy.as_ptr();
-          $(
-            let member_ptr = unsafe{ ::core::ptr::addr_of!((*dummy_ptr).$k) };
-            result.push(member_ptr as usize - dummy_ptr as usize);
-          )*
-          result
-        }
-        #[allow(dead_code)]
-        pub fn name_static() -> &'static str { stringify!($s) }
-        #[allow(dead_code)]
-        #[allow(unused_variables)]
-        pub fn keys_static() -> Vec<&'static str> {
-          let mut result = Vec::new();
-          $(result.push(stringify!($k));)*
-          result
-        }
-      }
-      impl BufferAttribute for $s {
-        fn ub_data(&self) -> &[u8] {
-          let u8_size = Self::struct_size();
-          let ptr = self as *const $s as *const u8;
-          unsafe { ::core::slice::from_raw_parts(ptr, u8_size) }
-        }
-        fn vs_in_template(&self) -> VsInTemplate {
-          VsInTemplate{
-            keys: Self::keys_static(),
-            values: Self::new().values(),
-            offsets: Self::offsets(),
-            size: Self::struct_size(),
-          }
-        }
-        fn keys(&self) -> Vec<&'static str> { Self::keys_static() }
-        #[allow(unused_variables)]
-        #[allow(unused_mut)]
-        fn values(&self) -> Vec<ShaderPrimitiveType> {
-          let mut result = Vec::new();
-          $(result.push(ShaderPrimitiveType::$v(self.$k));)*
-          result
-        }
-        fn name(&self) -> &'static str { Self::name_static() }
-        fn find(&self, key: &str) -> Option<ShaderPrimitiveType> {
-          match key {
-            $(stringify!($k) => Some(ShaderPrimitiveType::$v(self.$k)),)*
-            _ => None,
-          }
-        }
-        #[allow(unused_variables)]
-        #[allow(unused_mut)]
-        fn from_hashmap(&mut self, map: &::std::collections::HashMap<String, ShaderPrimitiveType>) -> Vec<&'static str> {
-          let mut ignored = Vec::new();
-          $(
-            if let Some(ShaderPrimitiveType::$v(v)) = map.get(stringify!($k)) {
-              self.$k = *v;
-            } else {
-              ignored.push(stringify!($k));
-            }
-          )*
-          ignored
-        }
-        #[allow(unused_variables)]
-        #[allow(unused_mut)]
-        fn to_hashmap(&self) -> ::std::collections::HashMap<String, ShaderPrimitiveType> {
-          let mut result = ::std::collections::HashMap::new();
-          $(result.insert(String::from(stringify!($k)), ShaderPrimitiveType::$v(self.$k));)*
-          result
-        }
-      }
-      impl ::std::fmt::Display for $s {
-        fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-          write!(f, "struct {} {{\n", stringify!($s))?;
-          $(write!(f, "  {}: {} = {:?}, \n", stringify!($k), stringify!($v), self.$k)?;)*
-          write!(f, "}}")
-        }
-      }
-    )*
+  ($( $type:ident $s:ident { $( $k:ident : $v:ident $(,)?)* } $(;)?)*) => (
+    $(shader_attr_by_type!{ $type $s { $( $k : $v )* } })*
   );
 }
 
