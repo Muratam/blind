@@ -69,7 +69,7 @@ impl System for SampleSystem {
       let color = Vec4::new(v, v, v, 0.0);
       self.renderpass.set_clear_color(Some(color));
       // update ubo
-      let mut ubo = self.global_ubo.write();
+      let mut ubo = self.global_ubo.write_lock();
       ubo.add_color = Vec4::new(1.0 - v, 1.0 - v, 1.0 - v, 1.0);
       let rad = (frame as f32) / 100.0;
       ubo.view_mat = Mat4::look_at_rh(
