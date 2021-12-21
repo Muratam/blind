@@ -50,7 +50,7 @@ impl System for SampleSystem {
         gl_Position = proj_mat * view_mat * vec4(position, 1.0);
       },
       fs_code: {
-        out_color = in_color + add_color;
+        out_color = in_color + add_color + texture(normal_map, vec2(0.5, 0.5));
       }
     };
     system::log::info(format!("{}", template));
@@ -76,7 +76,7 @@ impl System for SampleSystem {
         roughness_map: surface.clone(),
       },
     );
-    // pipeline.add_texture_mapping(Arc::new(pbr_mapping));
+    pipeline.add_texture_mapping(&Arc::new(pbr_mapping));
     Self {
       surface,
       renderpass,

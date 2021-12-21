@@ -61,6 +61,14 @@ impl Pipeline {
       .descriptor
       .add_uniform_buffer(&(Arc::clone(buffer) as Arc<dyn UniformBufferTrait>));
   }
+  pub fn add_texture_mapping<T: TextureMappingAttribute + 'static>(
+    &mut self,
+    mapping: &Arc<TextureMapping<T>>,
+  ) {
+    self
+      .descriptor
+      .add_texture_mapping(&(Arc::clone(mapping) as Arc<dyn TextureMappingTrait>));
+  }
   pub fn set_cull_mode(&mut self, mode: CullMode) {
     self.cull_mode = mode;
   }
