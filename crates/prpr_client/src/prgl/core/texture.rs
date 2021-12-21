@@ -7,6 +7,40 @@ pub struct Texture {
 pub type Texture2dDescriptor = RawTexture2dDescriptor;
 pub type PixelFormat = RawPixelFormat;
 impl Texture {
+  pub fn new_fill_color(ctx: &ArcGlContext, width: usize, height: usize, color: Vec4) -> Self {
+    let size = width * height;
+    let mut data: Vec<u8> = Vec::new();
+    fn clamp(x: f32) -> u8 {
+      if x > 1.0 {
+        255
+      } else if x < 0.0 {
+        0
+      } else {
+        (x * 255.0) as u8
+      }
+    }
+    let color_u8x4 = [
+      clamp(color.x),
+      clamp(color.y),
+      clamp(color.z),
+      clamp(color.w),
+    ];
+    for _ in 0..size {
+      for color_u8 in color_u8x4 {
+        data.push(color_u8);
+      }
+    }
+    Self::new_bytes(
+      ctx,
+      &Texture2dDescriptor {
+        width,
+        height,
+        format: PixelFormat::R8G8B8A8,
+        mipmap: true,
+      },
+      data.as_slice(),
+    )
+  }
   pub fn new_bytes(ctx: &ArcGlContext, desc: &Texture2dDescriptor, data: &[u8]) -> Self {
     Self::new_impl(ctx, desc, TextureWriteType::u8(data))
   }

@@ -28,15 +28,14 @@ pub struct SampleSystem {
 impl System for SampleSystem {
   fn new(core: &Core) -> Self {
     let ctx = core.get_main_prgl().ctx();
-    let surface = Arc::new(Texture::new_fill_zero(
+    let surface = Arc::new(Texture::new_fill_color(
       ctx,
-      &Texture2dDescriptor {
-        width: 10,
-        height: 10,
-        format: PixelFormat::R8G8B8A8,
-        mipmap: true,
-      },
+      10,
+      10,
+      Vec4::new(0.0, 0.0, 1.0, 0.0),
     ));
+    let normal_map = surface.clone();
+    let roughness_map = surface.clone();
     let mut renderpass = RenderPass::new(ctx);
     renderpass.set_color_target(&surface);
     let mut pipeline = Pipeline::new(ctx);
@@ -69,14 +68,13 @@ impl System for SampleSystem {
     if let Some(shader) = Shader::new(ctx, template) {
       pipeline.set_shader(&Arc::new(shader));
     }
-    let pbr_mapping = TextureMapping::new(
+    pipeline.add_texture_mapping(&Arc::new(TextureMapping::new(
       ctx,
       PbrMapping {
-        normal_map: surface.clone(),
-        roughness_map: surface.clone(),
+        normal_map,
+        roughness_map,
       },
-    );
-    pipeline.add_texture_mapping(&Arc::new(pbr_mapping));
+    )));
     Self {
       surface,
       renderpass,
