@@ -86,6 +86,7 @@ impl ShaderPrimitiveType {
 pub struct ShaderTemplate {
   vs_code_template: String,
   fs_code_template: String,
+
   pub vs_code_impl: String,
   pub fs_code_impl: String,
 }

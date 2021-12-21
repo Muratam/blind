@@ -38,14 +38,14 @@ impl<'a, 'b> DescriptorContext<'a, 'b> {
       others: self,
     }
   }
-  pub fn bind(&self, program: &RawShaderProgram) {
+  pub fn bind(&self, shader: &Shader) {
     if let Self::Cons { prior, others } = self {
-      others.bind(program);
+      others.bind(shader);
       for u_buffer in &prior.u_buffers {
-        u_buffer.bind(program);
+        u_buffer.bind(shader);
       }
       if let Some(vao) = &prior.vao {
-        vao.bind(program);
+        vao.bind(shader);
       } else {
         log::error("No Vertex Array Object");
         return;

@@ -27,9 +27,7 @@ impl Pipeline {
     let mut outer_desc_ctx = DescriptorContext::Nil;
     if let Some(shader) = &self.shader {
       shader.use_program();
-      outer_desc_ctx
-        .cons(&self.descriptor)
-        .bind(shader.raw_program());
+      outer_desc_ctx.cons(&self.descriptor).bind(shader);
     } else {
       log::error("No Shader Program");
       return;

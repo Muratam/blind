@@ -61,7 +61,7 @@ pub struct UniformBuffer<T: BufferAttribute> {
 }
 pub trait UniformBufferTrait {
   // returns successed
-  fn bind(&self, program: &RawShaderProgram) -> bool;
+  fn bind(&self, shader: &Shader) -> bool;
 }
 impl<T: BufferAttribute> UniformBuffer<T> {
   pub fn new(ctx: &ArcGlContext, data: T) -> Self {
@@ -82,7 +82,7 @@ impl<T: BufferAttribute> UniformBuffer<T> {
   }
 }
 impl<T: BufferAttribute> UniformBufferTrait for UniformBuffer<T> {
-  fn bind(&self, program: &RawShaderProgram) -> bool {
+  fn bind(&self, shader: &Shader) -> bool {
     {
       let mut is_dirty_lock = self.is_dirty.lock().unwrap();
       if *is_dirty_lock {
@@ -90,17 +90,15 @@ impl<T: BufferAttribute> UniformBufferTrait for UniformBuffer<T> {
         *is_dirty_lock = false;
       }
     }
-    let u_index = self
-      .ctx
-      .get_uniform_block_index(&program.raw_program(), self.name);
-    if u_index == gl::INVALID_INDEX {
+    if let Some(index) = shader.get_uniform_block_index(self.name) {
+      self.ctx.bind_buffer_base(
+        gl::UNIFORM_BUFFER,
+        index,
+        Some(self.raw_buffer.raw_buffer()),
+      );
+      return true;
+    } else {
       return false;
     }
-    self.ctx.bind_buffer_base(
-      gl::UNIFORM_BUFFER,
-      u_index,
-      Some(self.raw_buffer.raw_buffer()),
-    );
-    return true;
   }
 }

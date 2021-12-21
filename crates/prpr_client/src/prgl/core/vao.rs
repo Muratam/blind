@@ -8,7 +8,7 @@ pub struct Vao<T: BufferAttribute> {
 }
 pub trait VaoTrait {
   // returns successed
-  fn bind(&self, program: &RawShaderProgram);
+  fn bind(&self, shader: &Shader);
 }
 impl<T: BufferAttribute> Vao<T> {
   pub fn new(ctx: &ArcGlContext, v_buffer: VertexBuffer<T>, i_buffer: IndexBuffer) -> Self {
@@ -43,8 +43,8 @@ impl<T: BufferAttribute> Vao<T> {
   // pub fn draw_instanced_command() -> DrawCommand {}
 }
 impl<T: BufferAttribute> VaoTrait for Vao<T> {
-  fn bind(&self, program: &RawShaderProgram) {
-    let id = program.raw_program_id();
+  fn bind(&self, shader: &Shader) {
+    let id = shader.id();
     let mut lock = self.shader_id_to_raw_vao.lock().unwrap();
     if let Some(raw_vao) = lock.get(&id) {
       self.ctx.bind_vertex_array(Some(raw_vao.get_raw_vao()));
@@ -57,7 +57,7 @@ impl<T: BufferAttribute> VaoTrait for Vao<T> {
     };
     let raw_vao = RawVao::new(
       &self.ctx,
-      program.raw_program(),
+      shader.raw_program().raw_program(),
       Some((self.v_buffer.template(), self.v_buffer.raw_buffer())),
       i_buffer,
     );

@@ -128,12 +128,14 @@ impl<T: TextureMappingAttribute> TextureMappingTrait for TextureMapping<T> {
   fn bind(&self, program: &RawShaderProgram) -> bool {
     let lock = self.mapping.read().unwrap();
     let values = lock.values();
+    let mut result = true;
     for i in 0..self.keys.len() {
       let location = self
         .ctx
         .get_uniform_location(&program.raw_program(), self.keys[i]);
       if location.is_none() {
-        return false;
+        result = false;
+        continue;
       }
       // TODO:
       let index = i as i32;
@@ -145,6 +147,6 @@ impl<T: TextureMappingAttribute> TextureMappingTrait for TextureMapping<T> {
         }
       }
     }
-    true
+    result
   }
 }
