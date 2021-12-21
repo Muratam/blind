@@ -136,7 +136,7 @@ pub trait BufferAttribute {
   fn to_hashmap(&self) -> HashMap<String, ShaderPrimitiveType>;
 }
 
-pub trait TextureAttribute {
+pub trait TextureMappingAttribute {
   fn name(&self) -> &'static str;
   fn keys(&self) -> Vec<&'static str>;
   fn values(&self) -> Vec<ShaderSamplerType>;

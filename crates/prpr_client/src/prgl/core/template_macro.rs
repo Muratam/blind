@@ -150,7 +150,7 @@ macro_rules! shader_attr_by_type {
         result
       }
     }
-    impl TextureAttribute for $s {
+    impl TextureMappingAttribute for $s {
       fn keys(&self) -> Vec<&'static str>{
         Self::keys_static()
       }

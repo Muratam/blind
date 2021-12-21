@@ -2,13 +2,13 @@ use super::*;
 
 // = format
 #[derive(Clone, Copy, PartialEq)]
-pub enum PixelFormatSimple {
+pub enum RawPixelFormatSimple {
   R = gl::RED as isize,
   Rg = gl::RG as isize,
   Rgb = gl::RGB as isize,
   Rgba = gl::RGBA as isize,
 }
-impl PixelFormatSimple {
+impl RawPixelFormatSimple {
   pub fn channels(&self) -> usize {
     match self {
       Self::R => 1,
@@ -27,7 +27,7 @@ pub enum PixelType {
 }
 // = internalFormat
 #[derive(Clone, Copy, PartialEq)]
-pub enum PixelFormat {
+pub enum RawPixelFormat {
   // color renderble & texture filterable
   R8 = gl::R8 as isize,
   R8G8 = gl::RG8 as isize,
@@ -55,7 +55,7 @@ pub enum PixelFormat {
   R32G32B32F = gl::RGB32F as isize,
   R32G32B32A32F = gl::RGBA32F as isize,
 }
-impl PixelFormat {
+impl RawPixelFormat {
   // bit per pixel
   pub fn bpp(&self) -> usize {
     match self {
@@ -88,35 +88,35 @@ impl PixelFormat {
       Self::R10G10B10A2 => 4,
     }
   }
-  pub fn to_simple_format(&self) -> PixelFormatSimple {
+  pub fn to_simple_format(&self) -> RawPixelFormatSimple {
     match self {
       // R
-      Self::R8 => PixelFormatSimple::R,
-      Self::R8Snorm => PixelFormatSimple::R,
-      Self::R16F => PixelFormatSimple::R,
-      Self::R32F => PixelFormatSimple::R,
+      Self::R8 => RawPixelFormatSimple::R,
+      Self::R8Snorm => RawPixelFormatSimple::R,
+      Self::R16F => RawPixelFormatSimple::R,
+      Self::R32F => RawPixelFormatSimple::R,
       // RG
-      Self::R8G8 => PixelFormatSimple::Rg,
-      Self::R8G8Snorm => PixelFormatSimple::Rg,
-      Self::R16G16F => PixelFormatSimple::Rg,
-      Self::R32G32F => PixelFormatSimple::Rg,
+      Self::R8G8 => RawPixelFormatSimple::Rg,
+      Self::R8G8Snorm => RawPixelFormatSimple::Rg,
+      Self::R16G16F => RawPixelFormatSimple::Rg,
+      Self::R32G32F => RawPixelFormatSimple::Rg,
       // RGB
-      Self::R8G8B8 => PixelFormatSimple::Rgb,
-      Self::R8G8B8Snorm => PixelFormatSimple::Rgb,
-      Self::R16G16B16F => PixelFormatSimple::Rgb,
-      Self::R32G32B32F => PixelFormatSimple::Rgb,
-      Self::R8G8B8Srgb => PixelFormatSimple::Rgb,
-      Self::R5G6B5 => PixelFormatSimple::Rgb,     // non-u
-      Self::R11G11B10F => PixelFormatSimple::Rgb, // non-u
+      Self::R8G8B8 => RawPixelFormatSimple::Rgb,
+      Self::R8G8B8Snorm => RawPixelFormatSimple::Rgb,
+      Self::R16G16B16F => RawPixelFormatSimple::Rgb,
+      Self::R32G32B32F => RawPixelFormatSimple::Rgb,
+      Self::R8G8B8Srgb => RawPixelFormatSimple::Rgb,
+      Self::R5G6B5 => RawPixelFormatSimple::Rgb, // non-u
+      Self::R11G11B10F => RawPixelFormatSimple::Rgb, // non-u
       // RGBA
-      Self::R8G8B8A8 => PixelFormatSimple::Rgba,
-      Self::R8G8B8A8Snorm => PixelFormatSimple::Rgba,
-      Self::R16G16B16A16F => PixelFormatSimple::Rgba,
-      Self::R32G32B32A32F => PixelFormatSimple::Rgba,
-      Self::R8G8B8A8Srgb => PixelFormatSimple::Rgba,
-      Self::R4G4B4A4 => PixelFormatSimple::Rgba,
-      Self::R5G5B5A1 => PixelFormatSimple::Rgba, // non-u
-      Self::R10G10B10A2 => PixelFormatSimple::Rgba, // non-u
+      Self::R8G8B8A8 => RawPixelFormatSimple::Rgba,
+      Self::R8G8B8A8Snorm => RawPixelFormatSimple::Rgba,
+      Self::R16G16B16A16F => RawPixelFormatSimple::Rgba,
+      Self::R32G32B32A32F => RawPixelFormatSimple::Rgba,
+      Self::R8G8B8A8Srgb => RawPixelFormatSimple::Rgba,
+      Self::R4G4B4A4 => RawPixelFormatSimple::Rgba,
+      Self::R5G5B5A1 => RawPixelFormatSimple::Rgba, // non-u
+      Self::R10G10B10A2 => RawPixelFormatSimple::Rgba, // non-u
     }
   }
   pub fn to_writable_uniform_type(&self) -> PixelType {
@@ -155,17 +155,37 @@ impl PixelFormat {
 }
 
 #[derive(Clone)]
-pub struct TextureDescriptor {
-  format: PixelFormat,
-  width: usize,
-  height: usize,
-  mipmap: bool,
+pub struct RawTexture2dDescriptor {
+  pub width: usize,
+  pub height: usize,
+  pub format: RawPixelFormat,
+  pub mipmap: bool,
+}
+#[derive(Clone)]
+pub struct RawTextureDescriptor {
+  pub format: RawPixelFormat,
+  pub width: usize,
+  pub height: usize,
+  pub depth: usize,
+  pub mipmap: bool,
+  pub target: u32,
+}
+impl RawTextureDescriptor {
+  pub fn from_2d_descriptor(desc: &RawTexture2dDescriptor) -> Self {
+    Self {
+      format: desc.format,
+      width: desc.width,
+      height: desc.height,
+      depth: 1,
+      mipmap: desc.mipmap,
+      target: gl::TEXTURE_2D,
+    }
+  }
 }
 pub struct RawTexture {
   ctx: ArcGlContext,
   raw_texture: web_sys::WebGlTexture,
-  desc: TextureDescriptor,
-  target: u32,
+  desc: RawTextureDescriptor,
 }
 #[derive(PartialEq)]
 #[allow(non_camel_case_types)]
@@ -186,7 +206,7 @@ impl RawTexture {
   // pub fn new_cubemap() { target = TEXTURE_CUBE_MAP_??; }
   pub fn new<'a>(
     ctx: &ArcGlContext,
-    desc: &TextureDescriptor,
+    desc: &RawTexture2dDescriptor,
     write_type: TextureWriteType<'a>,
   ) -> Self {
     let raw_texture = ctx.create_texture().expect("failed to create texture");
@@ -245,11 +265,11 @@ impl RawTexture {
     Self {
       ctx: ctx.clone(),
       raw_texture,
-      desc: desc.clone(),
-      target,
+      desc: RawTextureDescriptor::from_2d_descriptor(desc),
     }
   }
   pub fn write(&self) {
+    log::error("not implemented(RawTexture::write)");
     // TODO:
     // tex_sub_image_2d_with_u32_and_u32_and_image(
     // copy_tex_sub_image_2d
@@ -264,11 +284,17 @@ impl RawTexture {
   pub fn height(&self) -> usize {
     self.desc.height
   }
-  pub fn format(&self) -> PixelFormat {
+  pub fn depth(&self) -> usize {
+    self.desc.depth
+  }
+  pub fn format(&self) -> RawPixelFormat {
     self.desc.format
   }
+  pub fn desc(&self) -> &RawTextureDescriptor {
+    &self.desc
+  }
   pub fn target(&self) -> u32 {
-    self.target
+    self.desc.target
   }
   pub fn channels(&self) -> usize {
     self.desc.format.to_simple_format().channels()

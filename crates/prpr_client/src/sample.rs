@@ -14,7 +14,7 @@ crate::shader_attr! {
   }
 }
 pub struct SampleSystem {
-  surface: prgl::Texture,
+  surface: Arc<prgl::Texture>,
   renderpass: prgl::RenderPass,
   pipeline: prgl::Pipeline,
   global_ubo: Arc<prgl::UniformBuffer<Global>>,
@@ -28,7 +28,15 @@ pub struct SampleSystem {
 impl System for SampleSystem {
   fn new(core: &Core) -> Self {
     let ctx = core.get_main_prgl().ctx();
-    let surface = Texture::new(ctx);
+    let surface = Arc::new(Texture::new_fill_zero(
+      ctx,
+      &Texture2dDescriptor {
+        width: 10,
+        height: 10,
+        format: PixelFormat::R8G8B8A8,
+        mipmap: true,
+      },
+    ));
     let mut renderpass = RenderPass::new(ctx);
     renderpass.set_color_target(&surface);
     let mut pipeline = Pipeline::new(ctx);
@@ -61,13 +69,13 @@ impl System for SampleSystem {
     if let Some(shader) = Shader::new(ctx, template) {
       pipeline.set_shader(&Arc::new(shader));
     }
-    // let pbr_mapping = TextureMapping::new(
-    //   ctx,
-    //   PbrMapping {
-    //     normal_map: Arc::new(Texture::new(&ctx)),
-    //     roughness_map: Arc::new(Texture::new(&ctx)),
-    //   },
-    // );
+    let pbr_mapping = TextureMapping::new(
+      ctx,
+      PbrMapping {
+        normal_map: surface.clone(),
+        roughness_map: surface.clone(),
+      },
+    );
     // pipeline.add_texture_mapping(Arc::new(pbr_mapping));
     Self {
       surface,
