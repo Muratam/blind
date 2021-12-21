@@ -61,7 +61,7 @@ pub struct UniformBuffer<T: BufferAttribute> {
 }
 pub trait UniformBufferTrait {
   // returns successed
-  fn bind(&self, shader: &Shader) -> bool;
+  fn bind(&self, shader: &Shader);
 }
 impl<T: BufferAttribute> UniformBuffer<T> {
   pub fn new(ctx: &ArcGlContext, data: T) -> Self {
@@ -82,7 +82,7 @@ impl<T: BufferAttribute> UniformBuffer<T> {
   }
 }
 impl<T: BufferAttribute> UniformBufferTrait for UniformBuffer<T> {
-  fn bind(&self, shader: &Shader) -> bool {
+  fn bind(&self, shader: &Shader) {
     {
       let mut is_dirty_lock = self.is_dirty.lock().unwrap();
       if *is_dirty_lock {
@@ -96,9 +96,6 @@ impl<T: BufferAttribute> UniformBufferTrait for UniformBuffer<T> {
         index,
         Some(self.raw_buffer.raw_buffer()),
       );
-      return true;
-    } else {
-      return false;
     }
   }
 }

@@ -106,7 +106,7 @@ pub struct TextureMapping<T: TextureMappingAttribute> {
 }
 pub trait TextureMappingTrait {
   // returns successed
-  fn bind(&self, program: &RawShaderProgram) -> bool;
+  fn bind(&self, shader: &Shader);
 }
 impl<T: TextureMappingAttribute> TextureMapping<T> {
   pub fn new(ctx: &ArcGlContext, mapping: T) -> Self {
@@ -125,28 +125,19 @@ impl<T: TextureMappingAttribute> TextureMapping<T> {
 }
 
 impl<T: TextureMappingAttribute> TextureMappingTrait for TextureMapping<T> {
-  fn bind(&self, program: &RawShaderProgram) -> bool {
+  fn bind(&self, shader: &Shader) {
     let lock = self.mapping.read().unwrap();
     let values = lock.values();
-    let mut result = true;
     for i in 0..self.keys.len() {
-      let location = self
-        .ctx
-        .get_uniform_location(&program.raw_program(), self.keys[i]);
-      if location.is_none() {
-        result = false;
-        continue;
-      }
-      // TODO:
-      let index = i as i32;
-      match &values[i] {
-        ShaderSamplerType::sampler2D(texture) => {
-          self.ctx.active_texture(RawTexture::to_slot_enum(index));
-          texture.bind();
-          self.ctx.uniform1i(Some(&location.unwrap()), index);
+      if let Some((location, index)) = shader.get_uniform_texture_location(self.keys[i]) {
+        match &values[i] {
+          ShaderSamplerType::sampler2D(texture) => {
+            self.ctx.active_texture(RawTexture::to_slot_enum(*index));
+            texture.bind();
+            self.ctx.uniform1i(Some(location), *index);
+          }
         }
       }
     }
-    result
   }
 }

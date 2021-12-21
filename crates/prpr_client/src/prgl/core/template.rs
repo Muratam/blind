@@ -83,27 +83,43 @@ impl ShaderPrimitiveType {
     }
   }
 }
+use std::collections::HashMap;
+pub type UniformTextureLocation = (web_sys::WebGlUniformLocation, i32);
 pub struct ShaderTemplate {
-  vs_code_template: String,
-  fs_code_template: String,
-
-  pub vs_code_impl: String,
-  pub fs_code_impl: String,
+  vs_code_definitions: String,
+  fs_code_definitions: String,
+  uniform_blocks: Vec<&'static str>,
+  uniform_textures: Vec<&'static str>,
+  pub vs_code_body: String,
+  pub fs_code_body: String,
 }
 impl ShaderTemplate {
-  pub fn new(vs_code_template: String, fs_code_template: String) -> Self {
+  pub fn new(
+    uniform_blocks: Vec<&'static str>,
+    uniform_textures: Vec<&'static str>,
+    vs_code_definitions: String,
+    fs_code_definitions: String,
+  ) -> Self {
     Self {
-      vs_code_template,
-      fs_code_template,
-      vs_code_impl: String::from(""),
-      fs_code_impl: String::from(""),
+      uniform_blocks,
+      uniform_textures,
+      vs_code_definitions,
+      fs_code_definitions,
+      vs_code_body: String::from(""),
+      fs_code_body: String::from(""),
     }
   }
   pub fn vs_code(&self) -> String {
-    format!("{}{}", self.vs_code_template, self.vs_code_impl)
+    format!("{}{}", self.vs_code_definitions, self.vs_code_body)
   }
   pub fn fs_code(&self) -> String {
-    format!("{}{}", self.fs_code_template, self.fs_code_impl)
+    format!("{}{}", self.fs_code_definitions, self.fs_code_body)
+  }
+  pub fn uniform_blocks(&self) -> &Vec<&'static str> {
+    &self.uniform_blocks
+  }
+  pub fn uniform_textures(&self) -> &Vec<&'static str> {
+    &self.uniform_textures
   }
 }
 
@@ -112,7 +128,7 @@ impl ::std::fmt::Display for ShaderTemplate {
     write!(
       f,
       "// ------------------\n// vertex shader\n// ------------------\n{}\n{}\n\n// ------------------\n// fragment shader\n// ------------------\n{}\n{}",
-      self.vs_code_template, self.vs_code_impl, self.fs_code_template, self.fs_code_impl
+      self.vs_code_definitions, self.vs_code_body, self.fs_code_definitions, self.fs_code_body
     )
   }
 }

@@ -24,6 +24,14 @@ macro_rules! shader_attr_by_type {
         )
       }
       #[allow(dead_code)]
+      pub fn uniform_block_name() -> Option<&'static str> {
+        Some(Self::name_static())
+      }
+      #[allow(dead_code)]
+      pub fn uniform_textures() -> Vec<&'static str> {
+        Vec::new()
+      }
+      #[allow(dead_code)]
       pub fn vs_in_code() -> &'static str {
         concat!(
           $("in ", stringify!($v)," ",stringify!($k),";\n", )*
@@ -141,6 +149,14 @@ macro_rules! shader_attr_by_type {
         )
       }
       #[allow(dead_code)]
+      pub fn uniform_block_name() -> Option<&'static str> {
+        None
+      }
+      #[allow(dead_code)]
+      pub fn uniform_textures() -> Vec<&'static str> {
+        Self::keys_static()
+      }
+      #[allow(dead_code)]
       pub fn name_static() -> &'static str { stringify!($s) }
       #[allow(dead_code)]
       #[allow(unused_variables)]
@@ -233,9 +249,24 @@ macro_rules! shader_template_element {
     OutAttr::fs_out_code()
   }};
   (attrs: [$($v:ident),*]) => {{
-    let mut s = String::new();
-    $(s += $v::ub_code(); s += "\n";)*
-    s
+    let mut definitions = String::new();
+    $(
+      definitions += $v::ub_code();
+      definitions += "\n";
+    )*
+    let mut u_blocks = Vec::new();
+    $(
+      if let Some(block) = $v::uniform_block_name() {
+        u_blocks.push(block);
+      }
+    )*
+    let mut u_textures = Vec::new();
+    $(
+      for name in $v::uniform_textures() {
+        u_textures.push(name);
+      }
+    )*
+    (definitions, u_blocks, u_textures)
   }};
   (vs_code: $v:tt) => {
     concat!("void main() ", stringify!($v)).to_string()
@@ -258,7 +289,7 @@ macro_rules! shader_template {
       vs_attr: &'static str,
       fs_attr: (&'static str, &'static str), // -> vs_out_code, fs_in_code
       out_attr : &'static str, // -> fs_out_code
-      attrs: String, // -> ub_code[]
+      attrs: (String, Vec<&'static str>, Vec<&'static str>), // -> concat!(ub_code*), uniforms, textures)
       vs_code: String,
       fs_code: String,
     }
@@ -273,13 +304,15 @@ macro_rules! shader_template {
       template.version, template.precision_float
     );
     let mut result = ShaderTemplate::new(
+      template.attrs.1,
+      template.attrs.2,
       format!("{}\n{}{}\n{}",
-        common, template.attrs, template.vs_attr, template.fs_attr.0),
+        common, template.attrs.0, template.vs_attr, template.fs_attr.0),
       format!("{}\n{}{}\n{}",
-        common, template.attrs, template.fs_attr.1, template.out_attr),
+        common, template.attrs.0, template.fs_attr.1, template.out_attr),
     );
-    result.vs_code_impl = template.vs_code;
-    result.fs_code_impl = template.fs_code;
+    result.vs_code_body = template.vs_code;
+    result.fs_code_body = template.fs_code;
     result
   }};
 }

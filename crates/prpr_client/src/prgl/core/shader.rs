@@ -1,14 +1,33 @@
 use super::*;
 
+use std::collections::HashMap;
 pub struct Shader {
   ctx: ArcGlContext,
   template: ShaderTemplate,
+  uniform_block_indices: HashMap<String, u32>,
+  uniform_texture_locations: HashMap<String, UniformTextureLocation>,
   raw_program: RawShaderProgram,
 }
 impl Shader {
   pub fn new(ctx: &ArcGlContext, template: ShaderTemplate) -> Option<Self> {
     if let Some(raw_program) = RawShaderProgram::new(ctx, &template) {
+      let mut uniform_block_indices: HashMap<String, u32> = HashMap::new();
+      for name in template.uniform_blocks() {
+        let u_index = ctx.get_uniform_block_index(raw_program.raw_program(), name);
+        uniform_block_indices.insert(String::from(*name), u_index);
+      }
+      let mut uniform_texture_locations: HashMap<String, UniformTextureLocation> = HashMap::new();
+      let template_uniform_textures = template.uniform_textures();
+      for i in 0..template_uniform_textures.len() {
+        let name = template_uniform_textures[i];
+        let location = ctx.get_uniform_location(raw_program.raw_program(), name);
+        if let Some(location) = location {
+          uniform_texture_locations.insert(String::from(name), (location, i as i32));
+        }
+      }
       Some(Self {
+        uniform_block_indices,
+        uniform_texture_locations,
         ctx: ctx.clone(),
         template,
         raw_program,
@@ -27,14 +46,17 @@ impl Shader {
     &self.raw_program
   }
   pub fn get_uniform_block_index(&self, name: &str) -> Option<u32> {
-    // 高速にできるかも
-    let u_index = self
-      .ctx
-      .get_uniform_block_index(&self.raw_program.raw_program(), name);
-    if u_index != gl::INVALID_INDEX {
-      return Some(u_index);
+    if let Some(index) = self.uniform_block_indices.get(name) {
+      Some(*index)
     } else {
-      return None;
+      None
+    }
+  }
+  pub fn get_uniform_texture_location(&self, name: &str) -> Option<&UniformTextureLocation> {
+    if let Some(location) = self.uniform_texture_locations.get(name) {
+      Some(location)
+    } else {
+      None
     }
   }
 }
