@@ -114,11 +114,17 @@ impl Texture {
   pub fn depth(&self) -> usize {
     self.raw_texture.desc().depth
   }
+  pub fn target(&self) -> u32 {
+    self.raw_texture.target()
+  }
   pub fn format(&self) -> PixelFormat {
     self.raw_texture.desc().format
   }
   pub fn channels(&self) -> usize {
     self.raw_texture.channels()
+  }
+  pub fn raw_texture(&self) -> &RawTexture {
+    &self.raw_texture
   }
   fn new_impl<'a>(
     ctx: &ArcGlContext,

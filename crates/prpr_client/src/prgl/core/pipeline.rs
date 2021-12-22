@@ -23,7 +23,6 @@ impl Pipeline {
   }
 
   pub fn draw(&self) {
-    let ctx = &self.ctx;
     let mut outer_desc_ctx = DescriptorContext::Nil;
     if let Some(shader) = &self.shader {
       shader.use_program();

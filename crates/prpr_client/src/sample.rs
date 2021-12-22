@@ -30,14 +30,19 @@ impl System for SampleSystem {
     let ctx = core.get_main_prgl().ctx();
     let surface = Arc::new(Texture::new_fill_color(
       ctx,
+      640,
+      640,
+      Vec4::new(1.0, 0.0, 1.0, 0.0),
+    ));
+    let normal_map = Arc::new(Texture::new_fill_color(
+      ctx,
       10,
       10,
       Vec4::new(0.0, 0.0, 1.0, 0.0),
     ));
-    let normal_map = surface.clone();
-    let roughness_map = surface.clone();
+    let roughness_map = normal_map.clone();
     let mut renderpass = RenderPass::new(ctx);
-    renderpass.set_color_target(&surface);
+    renderpass.set_color_target(Some(&surface));
     let mut pipeline = Pipeline::new(ctx);
     let template = crate::shader_template! {
       attrs: [Global, PbrMapping],
@@ -45,14 +50,13 @@ impl System for SampleSystem {
       fs_attr: { in_color: vec4 },
       out_attr: { out_color: vec4 }
       vs_code: {
-        in_color = vec4(position, 1.0);
+        in_color = vec4(position, 1.0) + texture(roughness_map, vec2(0.5, 0.5));
         gl_Position = proj_mat * view_mat * vec4(position, 1.0);
       },
       fs_code: {
         out_color = in_color + add_color + texture(normal_map, vec2(0.5, 0.5));
       }
     };
-    system::log::info(format!("{}", template));
     let vao = ShapeFactory::new(ctx).create_cube();
     pipeline.set_draw_vao(&Arc::new(vao));
     let global_ubo = UniformBuffer::new(
@@ -87,7 +91,7 @@ impl System for SampleSystem {
     {
       // update world
       let v = ((frame as f32) / 100.0).sin() * 0.25 + 0.75;
-      let color = Vec4::new(v, v, v, 0.0);
+      let color = Vec4::new(v, v, v, 1.0);
       self.renderpass.set_clear_color(Some(color));
       // update ubo
       let mut ubo = self.global_ubo.write_lock();
