@@ -6,7 +6,7 @@ pub struct RenderPass {
   clear_depth: Option<f32>,
   clear_stencil: Option<i32>,
   raw_framebuffer: RawFrameBuffer,
-  raw_renderbuffer: RawRenderBuffer,
+  // raw_renderbuffer: RawRenderBuffer,
   // viewport: Option<Rect<f32>>,
   // scissor: Option<Rect<i32>>,
   color_targets: Vec<Option<Arc<Texture>>>,
@@ -18,7 +18,6 @@ impl RenderPass {
     Self {
       ctx: ctx.clone(),
       raw_framebuffer: RawFrameBuffer::new(ctx),
-      raw_renderbuffer: RawRenderBuffer::new(ctx),
       clear_colors: [None; MAX_OUTPUT_SLOT],
       clear_depth: None,
       clear_stencil: None,
@@ -45,6 +44,9 @@ impl RenderPass {
           0, // must be 0
         );
         color_attachment_indices.push(color_attachment_index);
+        if SET_BIND_NONE_AFTER_WORK {
+          ctx.bind_texture(gl::TEXTURE_2D, None);
+        }
       }
     }
     if let Some(texture) = &self.depth_target {
@@ -62,24 +64,6 @@ impl RenderPass {
     if let Some(buffers) = JsValue::from_serde(color_attachment_indices.as_slice()).ok() {
       ctx.draw_buffers(&buffers);
     }
-    // let mut max_width = 0;
-    // let mut max_height = 0;
-    // max_width = std::cmp::max(max_width, texture.width());
-    // max_height = std::cmp::max(max_height, texture.height());
-    // let renderbuffer = self.raw_renderbuffer.raw_renderbuffer();
-    // ctx.bind_renderbuffer(gl::RENDERBUFFER, Some(renderbuffer));
-    // ctx.renderbuffer_storage(
-    //   gl::RENDERBUFFER,
-    //   gl::DEPTH_COMPONENT16,
-    //   max_width as i32,
-    //   max_height as i32,
-    // );
-    // ctx.framebuffer_renderbuffer(
-    //   gl::FRAMEBUFFER,
-    //   gl::DEPTH_ATTACHMENT,
-    //   gl::RENDERBUFFER,
-    //   Some(self.raw_renderbuffer.raw_renderbuffer()),
-    // );
 
     // clear flag
     let mut clear_flag = 0;
@@ -99,13 +83,6 @@ impl RenderPass {
     }
     if clear_flag != 0 {
       ctx.clear(clear_flag);
-    }
-
-    if SET_BIND_NONE_AFTER_WORK {
-      // バインドしたままにする必要がある
-      // ctx.bind_framebuffer(gl::FRAMEBUFFER, None);
-      // ctx.bind_renderbuffer(gl::RENDERBUFFER, None);
-      ctx.bind_texture(gl::TEXTURE_2D, None); // 違うケースがありえはする
     }
   }
   pub fn set_color_target(&mut self, target: Option<&Arc<Texture>>) {
