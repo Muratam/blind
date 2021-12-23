@@ -21,12 +21,13 @@ pub struct SampleSystem {
 }
 /* TODO:
 - キーボード入力 / タッチ入力を受け取る
-- texture2darray, texture3d 対応する
-- MRTしてポストプロセスをかけてみる
 - RenderPassにPipelineを登録する形式にする
-- VAOは最後だけに設定できる方がいい (nil -> Vao?)
+  - ステートの変更関数呼び出しを減らしたい
 - fullscreenのテンプレートほしい
-- ステートの変更関数呼び出しを減らしたい
+  - VAOは最後だけに設定できる方がいい (nil -> Vao?)
+  - MRTしてポストプロセスをかけてみる
+- texture2darray, texture3d 対応する
+  - texture として扱いたい？
 */
 impl System for SampleSystem {
   fn new(core: &Core) -> Self {
@@ -91,6 +92,7 @@ impl System for SampleSystem {
       let v = ((frame as f32) / 100.0).sin() * 0.25 + 0.75;
       let color = Vec4::new(v, v, v, 1.0);
       self.renderpass.set_clear_color(Some(color));
+      self.renderpass.set_viewport(Some(&prgl.full_viewport()));
       // update ubo
       let mut ubo = self.global_ubo.write_lock();
       ubo.add_color = Vec4::new(1.0 - v, 1.0 - v, 1.0 - v, 1.0);
@@ -104,7 +106,6 @@ impl System for SampleSystem {
     }
     {
       // update draw
-      self.renderpass.set_viewport(Some(&prgl.full_viewport()));
       self.renderpass.bind();
       self.pipeline.draw();
       prgl.flush();
