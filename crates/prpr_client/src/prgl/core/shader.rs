@@ -45,14 +45,14 @@ impl Shader {
   pub fn raw_program(&self) -> &RawShaderProgram {
     &self.raw_program
   }
-  pub fn get_uniform_block_index(&self, name: &str) -> Option<u32> {
+  pub fn uniform_block_index(&self, name: &str) -> Option<u32> {
     if let Some(index) = self.uniform_block_indices.get(name) {
       Some(*index)
     } else {
       None
     }
   }
-  pub fn get_uniform_texture_location(&self, name: &str) -> Option<&UniformTextureLocation> {
+  pub fn uniform_texture_location(&self, name: &str) -> Option<&UniformTextureLocation> {
     if let Some(location) = self.uniform_texture_locations.get(name) {
       Some(location)
     } else {

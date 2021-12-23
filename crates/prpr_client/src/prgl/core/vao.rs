@@ -47,7 +47,7 @@ impl<T: BufferAttribute> VaoTrait for Vao<T> {
     let id = shader.id();
     let mut lock = self.shader_id_to_raw_vao.lock().unwrap();
     if let Some(raw_vao) = lock.get(&id) {
-      self.ctx.bind_vertex_array(Some(raw_vao.get_raw_vao()));
+      self.ctx.bind_vertex_array(Some(raw_vao.raw_vao()));
       return;
     }
     let i_buffer = if let Some(i_buffer) = &self.i_buffer {
@@ -61,7 +61,7 @@ impl<T: BufferAttribute> VaoTrait for Vao<T> {
       Some((self.v_buffer.template(), self.v_buffer.raw_buffer())),
       i_buffer,
     );
-    self.ctx.bind_vertex_array(Some(raw_vao.get_raw_vao()));
+    self.ctx.bind_vertex_array(Some(raw_vao.raw_vao()));
     lock.insert(id, raw_vao);
   }
 }

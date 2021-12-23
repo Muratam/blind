@@ -32,8 +32,8 @@ impl RawVao {
         let value = &vs_in.values[i];
         ctx.vertex_attrib_pointer_with_i32(
           location as u32,
-          value.get_single_primitive_count(),
-          value.get_single_primitive_type() as u32,
+          value.single_primitive_count(),
+          value.single_primitive_type() as u32,
           false,
           vs_in.size as i32,
           vs_in.offsets[i] as i32,
@@ -59,7 +59,7 @@ impl RawVao {
     }
   }
 
-  pub fn get_raw_vao(&self) -> &web_sys::WebGlVertexArrayObject {
+  pub fn raw_vao(&self) -> &web_sys::WebGlVertexArrayObject {
     &self.vao
   }
 }

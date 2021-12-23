@@ -13,7 +13,7 @@ pub struct Core {
 impl Core {
   pub fn new() -> Self {
     let layers = Layers::new();
-    let main_prgl = prgl::Instance::new(layers.get_main_3d_context());
+    let main_prgl = prgl::Instance::new(layers.main_3d_context());
     Self {
       layers,
       main_prgl,
@@ -23,19 +23,22 @@ impl Core {
   pub fn update(&mut self) {
     self.frame += 1;
     self.layers.adjust_screen_size();
+    self
+      .main_prgl
+      .update_size(self.layers.width(), self.layers.height());
   }
-  pub fn get_frame(&self) -> i64 {
+  pub fn frame(&self) -> i64 {
     self.frame
   }
-  pub fn get_main_prgl(&self) -> &prgl::Instance {
+  pub fn main_prgl(&self) -> &prgl::Instance {
     &self.main_prgl
   }
   // depracated(もっとラップする)
-  pub fn get_main_2d_context(&self) -> web_sys::CanvasRenderingContext2d {
-    self.layers.get_main_2d_context()
+  pub fn main_2d_context(&self) -> web_sys::CanvasRenderingContext2d {
+    self.layers.main_2d_context()
   }
   // depracated(もっとラップする)
-  pub fn get_html_layer(&self) -> &web_sys::HtmlDivElement {
-    self.layers.get_html_layer()
+  pub fn html_layer(&self) -> &web_sys::HtmlDivElement {
+    self.layers.html_layer()
   }
 }

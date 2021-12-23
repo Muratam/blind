@@ -1,9 +1,9 @@
 pub trait Canvas {
-  fn get_2d_context(&self) -> web_sys::CanvasRenderingContext2d;
-  fn get_webgl2_context(&self) -> web_sys::WebGl2RenderingContext;
+  fn canvas_2d_context(&self) -> web_sys::CanvasRenderingContext2d;
+  fn webgl2_context(&self) -> web_sys::WebGl2RenderingContext;
 }
 impl Canvas for web_sys::HtmlCanvasElement {
-  fn get_2d_context(&self) -> web_sys::CanvasRenderingContext2d {
+  fn canvas_2d_context(&self) -> web_sys::CanvasRenderingContext2d {
     let context = self
       .get_context("2d")
       .expect("failed to get context 2d")
@@ -11,7 +11,7 @@ impl Canvas for web_sys::HtmlCanvasElement {
     wasm_bindgen::JsCast::dyn_into::<web_sys::CanvasRenderingContext2d>(context)
       .expect("failed to cast to CanvasRenderingContext2d")
   }
-  fn get_webgl2_context(&self) -> web_sys::WebGl2RenderingContext {
+  fn webgl2_context(&self) -> web_sys::WebGl2RenderingContext {
     let context = self
       .get_context("webgl2")
       .expect("failed to get webgl2 context")

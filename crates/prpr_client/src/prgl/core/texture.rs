@@ -169,7 +169,7 @@ impl<T: TextureMappingAttribute> TextureMappingTrait for TextureMapping<T> {
     let lock = self.mapping.read().unwrap();
     let values = lock.values();
     for i in 0..self.keys.len() {
-      if let Some((location, index)) = shader.get_uniform_texture_location(self.keys[i]) {
+      if let Some((location, index)) = shader.uniform_texture_location(self.keys[i]) {
         match &values[i] {
           ShaderSamplerType::sampler2D(texture) => {
             self.ctx.active_texture(RawTexture::to_slot_enum(*index));

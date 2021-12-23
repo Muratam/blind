@@ -90,7 +90,7 @@ impl<T: BufferAttribute> UniformBufferTrait for UniformBuffer<T> {
         *is_dirty_lock = false;
       }
     }
-    if let Some(index) = shader.get_uniform_block_index(self.name) {
+    if let Some(index) = shader.uniform_block_index(self.name) {
       self.ctx.bind_buffer_base(
         gl::UNIFORM_BUFFER,
         index,

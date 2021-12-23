@@ -26,8 +26,8 @@ pub struct Layers {
   // overlay3d_layer: web_sys::HtmlCanvasElement,
   // overlay2d_layer: web_sys::HtmlCanvasElement,
   html_layer: web_sys::HtmlDivElement,
-  width: i64,
-  height: i64,
+  width: i32,
+  height: i32,
 }
 
 impl Layers {
@@ -52,23 +52,23 @@ impl Layers {
     result
   }
 
-  pub fn get_main_2d_context(&self) -> web_sys::CanvasRenderingContext2d {
-    self.main_2d_layer.get_2d_context()
+  pub fn main_2d_context(&self) -> web_sys::CanvasRenderingContext2d {
+    self.main_2d_layer.canvas_2d_context()
   }
-  pub fn get_main_3d_context(&self) -> web_sys::WebGl2RenderingContext {
-    self.main_3d_layer.get_webgl2_context()
+  pub fn main_3d_context(&self) -> web_sys::WebGl2RenderingContext {
+    self.main_3d_layer.webgl2_context()
   }
-  pub fn get_html_layer(&self) -> &web_sys::HtmlDivElement {
+  pub fn html_layer(&self) -> &web_sys::HtmlDivElement {
     &self.html_layer
   }
   pub fn adjust_screen_size(&mut self) {
     let mut updated = false;
     if let Some(width) = html::window().inner_width().unwrap().as_f64() {
-      self.width = width as i64;
+      self.width = width as i32;
       updated = true;
     }
     if let Some(height) = html::window().inner_height().unwrap().as_f64() {
-      self.height = height as i64;
+      self.height = height as i32;
       updated = true;
     }
     if !updated {
@@ -78,5 +78,11 @@ impl Layers {
       c.set_attribute("width", &self.width.to_string()).ok();
       c.set_attribute("height", &self.height.to_string()).ok();
     }
+  }
+  pub fn width(&self) -> i32 {
+    self.width
+  }
+  pub fn height(&self) -> i32 {
+    self.height
   }
 }

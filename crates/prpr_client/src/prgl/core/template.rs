@@ -55,7 +55,7 @@ pub enum ShaderSinglePrimitiveType {
   f32 = gl::FLOAT as isize,
 }
 impl ShaderPrimitiveType {
-  pub fn get_single_primitive_type(&self) -> ShaderSinglePrimitiveType {
+  pub fn single_primitive_type(&self) -> ShaderSinglePrimitiveType {
     type Result = ShaderSinglePrimitiveType;
     match self {
       Self::uint(_) => Result::u16,
@@ -69,7 +69,7 @@ impl ShaderPrimitiveType {
       Self::mat4(_) => Result::f32,
     }
   }
-  pub fn get_single_primitive_count(&self) -> i32 {
+  pub fn single_primitive_count(&self) -> i32 {
     match self {
       Self::uint(_) => 1,
       Self::uvec2(_) => 2,

@@ -21,13 +21,17 @@ pub struct SampleSystem {
 }
 /* TODO:
 - キーボード入力 / タッチ入力を受け取る
-- viewport size を可変にする
+- viewport size を可変にする(w,hを毎度取れるようにする)
+- surfaceつくる
+- texture2darray, texture3d 対応する
 - MRTしてポストプロセスをかけてみる
 - RenderPassにPipelineを登録する形式にする
+- VAOは最後だけに設定できる方がいい (nil -> Vao?)
+- fullscreenのテンプレートほしい
 */
 impl System for SampleSystem {
   fn new(core: &Core) -> Self {
-    let ctx = core.get_main_prgl().ctx();
+    let ctx = core.main_prgl().ctx();
     let surface = Arc::new(Texture::new_fill_color(
       ctx,
       640,
@@ -87,7 +91,9 @@ impl System for SampleSystem {
     }
   }
   fn update(&mut self, core: &Core) {
-    let frame = core.get_frame();
+    let frame = core.frame();
+    let width = core.main_prgl().width();
+    let height = core.main_prgl().height();
     {
       // update world
       let v = ((frame as f32) / 100.0).sin() * 0.25 + 0.75;
@@ -102,18 +108,20 @@ impl System for SampleSystem {
         Vec3::ZERO,
         Vec3::Y,
       );
+      ubo.proj_mat = Mat4::perspective_rh(3.1415 * 0.25, width as f32 / height as f32, 0.01, 50.0);
     }
     {
       // update draw
-      self.renderpass.bind();
+      // self.renderpass.bind();
+      core.main_prgl().ctx().viewport(0, 0, width, height);
       self.pipeline.draw();
-      core.get_main_prgl().swap_surface(&self.surface);
+      core.main_prgl().swap_surface(&self.surface);
     }
     // TODO: 2D
-    self.render_sample(&core.get_main_2d_context());
+    self.render_sample(&core.main_2d_context());
     // TODO: HTML
     if frame < 200 {
-      let html_layer = core.get_html_layer();
+      let html_layer = core.html_layer();
       let text = format!("requestAnimationFrame has been called {} times.", frame);
       let pre_text = html_layer.text_content().unwrap();
       html_layer.set_text_content(Some(&format!("{}{}", &pre_text, &text)));
