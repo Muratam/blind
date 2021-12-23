@@ -28,6 +28,15 @@ pub struct SampleSystem {
   - MRTしてポストプロセスをかけてみる
 - texture2darray, texture3d 対応する
   - texture として扱いたい？
+    - https://ics.media/web3d-maniacs/webgl2_texture2darray/
+    - https://ics.media/web3d-maniacs/webgl2_texture3d/
+  - texStorage2D
+    - https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext/copyBufferSubData
+    - https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/texImage2D
+  - https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/WebGL_best_practices#teximagetexsubimage_uploads_esp._videos_can_cause_pipeline_flushes
+- client_wait_sync ?
+  - https://ics.media/entry/19043/
+  - https://inside.pixiv.blog/petamoriken/5853
 */
 impl System for SampleSystem {
   fn new(core: &Core) -> Self {

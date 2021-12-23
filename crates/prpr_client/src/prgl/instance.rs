@@ -20,10 +20,8 @@ impl Instance {
     }
   }
   pub fn flush(&self) {
-    // WARN: surfaceテクスチャを使う
     let ctx = &self.ctx;
     ctx.flush();
-    // TODO: client_wait_sync ?
   }
   pub fn ctx(&self) -> &ArcGlContext {
     &self.ctx
