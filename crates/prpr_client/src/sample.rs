@@ -31,18 +31,12 @@ pub struct SampleSystem {
 impl System for SampleSystem {
   fn new(core: &Core) -> Self {
     let ctx = core.main_prgl().ctx();
-    let surface = Arc::new(Texture::new_fill_color(
-      ctx,
-      640,
-      640,
-      Vec4::new(1.0, 0.0, 1.0, 0.0),
-    ));
-    let normal_map = Arc::new(Texture::new_fill_color(
-      ctx,
-      10,
-      10,
-      Vec4::new(0.0, 0.0, 1.0, 0.0),
-    ));
+    let surface = Arc::new(Texture::new_rgba_map(ctx, 640, 640, |x, y| {
+      Vec4::new(x, y, 1.0, 1.0)
+    }));
+    let normal_map = Arc::new(Texture::new_rgba_map(ctx, 100, 100, |x, y| {
+      Vec4::new(x, y, 0.0, 1.0)
+    }));
     let roughness_map = normal_map.clone();
     let mut renderpass = RenderPass::new(ctx);
     // renderpass.set_color_target(Some(&surface));

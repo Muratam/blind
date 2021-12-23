@@ -7,9 +7,14 @@ pub struct Texture {
 pub type Texture2dDescriptor = RawTexture2dDescriptor;
 pub type PixelFormat = RawPixelFormat;
 impl Texture {
-  pub fn new_fill_color(ctx: &ArcGlContext, width: usize, height: usize, color: Vec4) -> Self {
-    let size = width * height;
-    let mut data: Vec<u8> = Vec::new();
+  pub fn new_rgba_map<F: Fn(f32, f32) -> Vec4>(
+    ctx: &ArcGlContext,
+    width: usize,
+    height: usize,
+    color_fn: F,
+  ) -> Self {
+    let size = width * height * 4;
+    let mut data: Vec<u8> = vec![0; size];
     fn clamp(x: f32) -> u8 {
       if x > 1.0 {
         255
@@ -19,15 +24,19 @@ impl Texture {
         (x * 255.0) as u8
       }
     }
-    let color_u8x4 = [
-      clamp(color.x),
-      clamp(color.y),
-      clamp(color.z),
-      clamp(color.w),
-    ];
-    for _ in 0..size {
-      for color_u8 in color_u8x4 {
-        data.push(color_u8);
+    {
+      let mut i = 0;
+      let inv_width = 1.0 / width as f32;
+      let inv_height = 1.0 / height as f32;
+      for y in 0..height {
+        for x in 0..width {
+          let color = color_fn(x as f32 * inv_width, 1.0 - (y as f32 * inv_height));
+          data[i] = clamp(color.x);
+          data[i + 1] = clamp(color.y);
+          data[i + 2] = clamp(color.z);
+          data[i + 3] = clamp(color.w);
+          i += 4;
+        }
       }
     }
     Self::new_bytes(
