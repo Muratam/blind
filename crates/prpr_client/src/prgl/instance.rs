@@ -19,8 +19,7 @@ impl Instance {
       height: 1,
     }
   }
-  // 諸々更新が終わった後このテクスチャを利用する
-  pub fn swap_surface(&self, surface: &Texture) {
+  pub fn flush(&self) {
     // WARN: surfaceテクスチャを使う
     let ctx = &self.ctx;
     ctx.flush();
@@ -40,6 +39,12 @@ impl Instance {
   }
   pub fn height(&self) -> i32 {
     self.height
+  }
+  pub fn full_viewport(&self) -> Rect<i32> {
+    Rect::new(0, 0, self.width, self.height)
+  }
+  pub fn aspect_ratio(&self) -> f32 {
+    self.width as f32 / self.height as f32
   }
   pub fn update_size(&mut self, width: i32, height: i32) {
     self.width = width;

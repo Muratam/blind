@@ -50,11 +50,7 @@ impl<T: BufferAttribute> VaoTrait for Vao<T> {
       self.ctx.bind_vertex_array(Some(raw_vao.raw_vao()));
       return;
     }
-    let i_buffer = if let Some(i_buffer) = &self.i_buffer {
-      Some(i_buffer.raw_buffer())
-    } else {
-      None
-    };
+    let i_buffer = self.i_buffer.as_ref().map(|x| x.raw_buffer());
     let raw_vao = RawVao::new(
       &self.ctx,
       shader.raw_program().raw_program(),

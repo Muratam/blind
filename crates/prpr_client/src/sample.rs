@@ -28,6 +28,7 @@ pub struct SampleSystem {
 - RenderPassにPipelineを登録する形式にする
 - VAOは最後だけに設定できる方がいい (nil -> Vao?)
 - fullscreenのテンプレートほしい
+- ステートの変更関数呼び出しを減らしたい
 */
 impl System for SampleSystem {
   fn new(core: &Core) -> Self {
@@ -46,7 +47,7 @@ impl System for SampleSystem {
     ));
     let roughness_map = normal_map.clone();
     let mut renderpass = RenderPass::new(ctx);
-    renderpass.set_color_target(Some(&surface));
+    // renderpass.set_color_target(Some(&surface));
     let mut pipeline = Pipeline::new(ctx);
     let template = crate::shader_template! {
       attrs: [Global, PbrMapping],
@@ -92,8 +93,7 @@ impl System for SampleSystem {
   }
   fn update(&mut self, core: &Core) {
     let frame = core.frame();
-    let width = core.main_prgl().width();
-    let height = core.main_prgl().height();
+    let prgl = core.main_prgl();
     {
       // update world
       let v = ((frame as f32) / 100.0).sin() * 0.25 + 0.75;
@@ -108,14 +108,14 @@ impl System for SampleSystem {
         Vec3::ZERO,
         Vec3::Y,
       );
-      ubo.proj_mat = Mat4::perspective_rh(3.1415 * 0.25, width as f32 / height as f32, 0.01, 50.0);
+      ubo.proj_mat = Mat4::perspective_rh(3.1415 * 0.25, prgl.aspect_ratio(), 0.01, 50.0);
     }
     {
       // update draw
-      // self.renderpass.bind();
-      core.main_prgl().ctx().viewport(0, 0, width, height);
+      self.renderpass.set_viewport(Some(&prgl.full_viewport()));
+      self.renderpass.bind();
       self.pipeline.draw();
-      core.main_prgl().swap_surface(&self.surface);
+      prgl.flush();
     }
     // TODO: 2D
     self.render_sample(&core.main_2d_context());

@@ -31,5 +31,3 @@ mod state;
 pub use self::state::*;
 mod vao;
 pub use self::vao::*;
-mod surface;
-pub use self::surface::*;
