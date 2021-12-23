@@ -21,6 +21,7 @@ pub struct SampleSystem {
 }
 /* TODO:
 - キーボード入力 / タッチ入力を受け取る
+  - https://rustwasm.github.io/docs/wasm-bindgen/examples/paint.html
 - RenderPassにPipelineを登録する形式にする
   - ステートの変更関数呼び出しを減らしたい
 - fullscreenのテンプレートほしい
@@ -37,6 +38,7 @@ pub struct SampleSystem {
 - client_wait_sync ?
   - https://ics.media/entry/19043/
   - https://inside.pixiv.blog/petamoriken/5853
+- zoom-inの解像度耐えたい
 */
 impl System for SampleSystem {
   fn new(core: &Core) -> Self {
@@ -120,19 +122,25 @@ impl System for SampleSystem {
       prgl.flush();
     }
     // TODO: 2D
-    self.render_sample(&core.main_2d_context());
-    // TODO: HTML
-    if frame < 200 {
-      let html_layer = core.html_layer();
-      let text = format!("requestAnimationFrame has been called {} times.", frame);
-      let pre_text = html_layer.text_content().unwrap();
-      html_layer.set_text_content(Some(&format!("{}{}", &pre_text, &text)));
+    if frame < 100 {
+      self.render_sample(core);
     }
+    // TODO: HTML
+    let html_layer = core.html_layer();
+    if frame > 1000 {
+      html_layer.set_text_content(None);
+    }
+    let frame = frame % 200;
+    let text = format!("{} ", frame);
+    let pre_text = html_layer.text_content().unwrap();
+    html_layer.set_text_content(Some(&format!("{}{}", &pre_text, &text)));
   }
 }
 
 impl SampleSystem {
-  fn render_sample(&mut self, ctx: &web_sys::CanvasRenderingContext2d) {
+  fn render_sample(&mut self, core: &Core) {
+    let ctx = core.main_2d_context();
+    let width = 0;
     // note use: `?;` for Result
     use std::f64::consts::PI;
     ctx.begin_path();

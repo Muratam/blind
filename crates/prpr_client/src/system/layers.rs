@@ -64,12 +64,18 @@ impl Layers {
   pub fn adjust_screen_size(&mut self) {
     let mut updated = false;
     if let Some(width) = html::window().inner_width().unwrap().as_f64() {
-      self.width = width as i32;
-      updated = true;
+      let width = width as i32;
+      if self.width != width {
+        self.width = width;
+        updated = true;
+      }
     }
     if let Some(height) = html::window().inner_height().unwrap().as_f64() {
-      self.height = height as i32;
-      updated = true;
+      let height = height as i32;
+      if self.height != height {
+        self.height = height;
+        updated = true;
+      }
     }
     if !updated {
       return;
