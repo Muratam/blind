@@ -21,8 +21,6 @@ pub struct SampleSystem {
 }
 /* TODO:
 - キーボード入力 / タッチ入力を受け取る
-- viewport size を可変にする(w,hを毎度取れるようにする)
-- surfaceつくる
 - texture2darray, texture3d 対応する
 - MRTしてポストプロセスをかけてみる
 - RenderPassにPipelineを登録する形式にする
