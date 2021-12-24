@@ -38,7 +38,13 @@ pub struct SampleSystem {
 - client_wait_sync ?
   - https://ics.media/entry/19043/
   - https://inside.pixiv.blog/petamoriken/5853
-- zoom-inの解像度耐えたい
+  - 描画だけをメインスレッドにすればいいかも
+  - https://rustwasm.github.io/wasm-bindgen/examples/wasm-in-web-worker.html
+- zoom-in/outの解像度耐えたい
+  - pinch-in/out も
+  - window.visualViewport
+- Async Computeしたい
+  - tf
 */
 impl System for SampleSystem {
   fn new(core: &Core) -> Self {
