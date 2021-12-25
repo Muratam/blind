@@ -1,5 +1,11 @@
 use super::*;
 
+struct FrameBufferSetupInfo {
+  pub is_dirty: bool,
+  pub viewport: Option<Rect<i32>>, // ターゲットなしならBuffer=None
+  pub use_default_framebuffer: bool,
+}
+
 pub struct RenderPass {
   ctx: ArcGlContext,
   clear_colors: [Option<Vec4>; MAX_OUTPUT_SLOT],
@@ -16,10 +22,8 @@ pub struct RenderPass {
   depth_target: Option<Arc<Texture>>,
   // stencil_target: Option<Arc<Texture>>,
   //
-  // 不要な更新は避ける
   raw_framebuffer: RawFrameBuffer,
-  is_dirty_targets: Mutex<bool>,
-  max_targets_rect: RwLock<Option<Rect<i32>>>, // None => No Target => Surface
+  framebuffer_setup_info: RwLock<FrameBufferSetupInfo>,
 }
 impl RenderPass {
   pub fn new(ctx: &ArcGlContext) -> Self {
@@ -35,13 +39,16 @@ impl RenderPass {
       depth_target: None,
       //
       raw_framebuffer: RawFrameBuffer::new(ctx),
-      is_dirty_targets: Mutex::new(true),
-      max_targets_rect: RwLock::new(None),
+      framebuffer_setup_info: RwLock::new(FrameBufferSetupInfo {
+        is_dirty: true,
+        viewport: None,
+        use_default_framebuffer: false,
+      }),
     }
   }
   fn setup_framebuffer_impl(&self) {
-    let mut is_dirty_targets = self.is_dirty_targets.lock().unwrap();
-    if !*is_dirty_targets {
+    let mut setup_info = self.framebuffer_setup_info.write().unwrap();
+    if !setup_info.is_dirty {
       return;
     }
     let ctx = &self.ctx;
@@ -86,8 +93,8 @@ impl RenderPass {
       ctx.bind_framebuffer(gl::FRAMEBUFFER, None);
     }
 
-    *is_dirty_targets = false;
-    *self.max_targets_rect.write().unwrap() = if bind_count > 0 {
+    setup_info.is_dirty = false;
+    setup_info.viewport = if bind_count > 0 {
       Some(Rect::new(0, 0, max_width, max_height))
     } else {
       None
@@ -95,12 +102,17 @@ impl RenderPass {
   }
   fn bind_framebuffer_impl(&self) {
     let ctx = &self.ctx;
-    if self.max_targets_rect.read().unwrap().is_none() {
-      // None => to surface
-      ctx.bind_framebuffer(gl::FRAMEBUFFER, None);
-    } else {
+    let info = &self.framebuffer_setup_info.read().unwrap();
+    if info.viewport.is_some() {
+      if info.use_default_framebuffer {
+        log::error("[uses default framebuffer] && [has color target]");
+      }
       let framebuffer = self.raw_framebuffer.raw_framebuffer();
       ctx.bind_framebuffer(gl::FRAMEBUFFER, Some(framebuffer));
+    } else if info.use_default_framebuffer {
+      ctx.bind_framebuffer(gl::FRAMEBUFFER, None);
+    } else {
+      log::error("[not use default framebuffer] && [no color target]");
     }
   }
 
@@ -127,10 +139,10 @@ impl RenderPass {
   }
   fn viewport_impl(&self) {
     if let Some(v) = &self.viewport {
-      // 設定されているものに
+      // 設定されているなら使用
       self.ctx.viewport(v.x, v.y, v.width, v.height);
-    } else if let Some(v) = &*self.max_targets_rect.read().unwrap() {
-      // 描画先の最大サイズに
+    } else if let Some(v) = &self.framebuffer_setup_info.read().unwrap().viewport {
+      // 描画先があるならその最大サイズに
       self.ctx.viewport(v.x, v.y, v.width, v.height);
     } else {
       log::error("no renderpass viewport size (unstable)");
@@ -159,13 +171,17 @@ impl RenderPass {
   pub fn set_viewport(&mut self, viewport: Option<&Rect<i32>>) {
     self.viewport = viewport.map(|v| v.clone());
   }
+  pub fn set_use_default_framebuffer(&mut self, use_default_framebuffer: bool) {
+    let mut info = self.framebuffer_setup_info.write().unwrap();
+    info.use_default_framebuffer = use_default_framebuffer;
+  }
   pub fn set_color_target_by_slot(&mut self, target: Option<&Arc<Texture>>, slot: i32) {
     if slot < 0 || slot >= MAX_OUTPUT_SLOT as i32 {
       log::error(format!("Invalid set_color_target_by_slot {}", slot));
       return;
     }
     self.color_targets[slot as usize] = target.map(|target| target.clone());
-    *self.is_dirty_targets.lock().unwrap() = true;
+    self.framebuffer_setup_info.write().unwrap().is_dirty = true;
   }
   pub fn set_clear_color_by_slot(&mut self, value: Option<Vec4>, slot: i32) {
     if slot < 0 || slot >= MAX_OUTPUT_SLOT as i32 {

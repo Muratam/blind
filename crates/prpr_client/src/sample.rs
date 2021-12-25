@@ -40,11 +40,20 @@ pub struct SampleSystem {
   - https://inside.pixiv.blog/petamoriken/5853
   - 描画だけをメインスレッドにすればいいかも
   - https://rustwasm.github.io/wasm-bindgen/examples/wasm-in-web-worker.html
+- renderbuffer
+  - MSAA: https://ics.media/web3d-maniacs/webgl2_renderbufferstoragemultisample/
 - zoom-in/outの解像度耐えたい
   - pinch-in/out も
   - window.visualViewport
+  - cssの方でscaleいじれば強引にいけそう
 - Async Computeしたい
   - tf
+- 複数のカメラで描画したい
+  - 同じのを別カメラで２回やればOK
+  - Selection はカメラから？
+  - 指操作はカメラに紐付ける？
+  - デバッグ用のが欲しくはなるかも
+  - 結局ズーム操作はエミュレーションすることになるのでは
 */
 impl System for SampleSystem {
   fn new(core: &Core) -> Self {
@@ -57,6 +66,7 @@ impl System for SampleSystem {
     }));
     let roughness_map = normal_map.clone();
     let mut renderpass = RenderPass::new(ctx);
+    renderpass.set_use_default_framebuffer(true);
     // renderpass.set_color_target(Some(&surface));
     let mut pipeline = Pipeline::new(ctx);
     let template = crate::shader_template! {
