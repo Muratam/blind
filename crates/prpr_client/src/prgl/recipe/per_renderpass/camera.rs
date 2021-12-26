@@ -17,7 +17,7 @@ crate::shader_attr! {
 }
 
 pub struct Camera {
-  pub ubo: Arc<UniformBuffer<CameraAttribute>>,
+  ubo: Arc<UniformBuffer<CameraAttribute>>,
   pub camera_pos: Vec3,
   pub camera_target_pos: Vec3,
   pub fovy: f32,

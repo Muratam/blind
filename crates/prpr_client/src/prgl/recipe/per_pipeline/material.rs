@@ -10,8 +10,8 @@ crate::shader_attr! {
   }
 }
 pub struct PbrMaterial {
-  pub ubo: Arc<UniformBuffer<PbrAttribute>>,
-  pub mapping: Arc<TextureMapping<PbrMapping>>,
+  ubo: Arc<UniformBuffer<PbrAttribute>>,
+  mapping: Arc<TextureMapping<PbrMapping>>,
 }
 impl PbrMaterial {
   pub fn new(ctx: &ArcGlContext) -> Self {

@@ -4,8 +4,8 @@ use prgl;
 use std::sync::Arc;
 pub struct SampleSystem {
   surface: prgl::Surface,
-  pipeline: prgl::Pipeline,
   camera: prgl::Camera,
+  object: prgl::TransformObject,
 }
 
 impl System for SampleSystem {
@@ -16,7 +16,7 @@ impl System for SampleSystem {
       vs_attr: ShapeVertex,
       vs_code: {
         in_color = vec4(position, 1.0);
-        gl_Position = view_proj_mat * vec4(position, 1.0);
+        gl_Position = view_proj_mat * model_mat * vec4(position, 1.0);
       },
       fs_attr: { in_color: vec4 },
       fs_code: {
@@ -24,21 +24,16 @@ impl System for SampleSystem {
       }
       out_attr: { out_color: vec4 }
     };
-    let mut surface = Surface::new(ctx);
-    let mut pipeline = Pipeline::new(ctx);
-    Shape::new_cube(ctx).bind(&mut pipeline);
-    PbrMaterial::new(ctx).bind(&mut pipeline);
-    Transform::new(ctx).bind(&mut pipeline);
+    let mut object = TransformObject::new(ctx);
+    object.add(&Shape::new_cube(ctx));
+    object.add(&PbrMaterial::new(ctx));
+    object.add(&MayShader::new(ctx, template));
+    let mut surface = Surface::new(ctx); // 自分で生成？
     let camera = Camera::new(ctx);
-    surface.add(&camera);
-    if let Some(shader) = Shader::new(ctx, template) {
-      system::log::info(shader.vs_code());
-      system::log::info(shader.fs_code());
-      pipeline.set_shader(&Arc::new(shader));
-    }
+    surface.add(&camera); // screen ？
     Self {
       surface,
-      pipeline,
+      object,
       camera,
     }
   }
@@ -46,19 +41,21 @@ impl System for SampleSystem {
     let frame = core.frame();
     let prgl = core.main_prgl();
 
-    // update world
+    // update by user world
     let rad = (frame as f32) / 100.0;
     let v = rad.sin() * 0.25 + 0.75;
     let color = Vec4::new(v, v, v, 1.0);
     self.surface.set_clear_color(Some(color));
-    self.surface.update(prgl);
     self.camera.camera_pos = Vec3::new(rad.sin(), rad.cos(), rad.cos()) * 5.0;
-    self.camera.aspect_ratio = prgl.aspect_ratio();
-    self.camera.update();
 
-    // update draw
+    // notify update
+    self.surface.update(prgl); // 消したい
+    self.camera.aspect_ratio = prgl.aspect_ratio(); // by screen
+    self.camera.update(); // 消したい
+
+    // draw start
     let desc_ctx = self.surface.bind();
-    self.pipeline.draw(&desc_ctx);
+    self.object.pipeline.draw(&desc_ctx);
     prgl.flush();
 
     // the others

@@ -8,6 +8,7 @@ pub struct Shader {
   uniform_texture_locations: HashMap<String, UniformTextureLocation>,
   raw_program: RawShaderProgram,
 }
+
 impl Shader {
   pub fn new(ctx: &ArcGlContext, template: ShaderTemplate) -> Option<Self> {
     if let Some(raw_program) = RawShaderProgram::new(ctx, &template) {
@@ -57,5 +58,36 @@ impl Shader {
   }
   pub fn uniform_texture_location(&self, name: &str) -> Option<&UniformTextureLocation> {
     self.uniform_texture_locations.get(name)
+  }
+}
+impl std::fmt::Display for Shader {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    write!(f, "{}{}", self.template.vs_code(), self.template.fs_code())
+  }
+}
+
+pub struct MayShader {
+  shader: Option<Arc<Shader>>,
+}
+impl MayShader {
+  pub fn new(ctx: &ArcGlContext, template: ShaderTemplate) -> Self {
+    let shader = Shader::new(ctx, template).map(|x| Arc::new(x));
+    Self { shader }
+  }
+}
+impl std::fmt::Display for MayShader {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    if let Some(shader) = &self.shader {
+      write!(f, "{}", shader)
+    } else {
+      write!(f, "No Shader!")
+    }
+  }
+}
+impl PipelineBindable for MayShader {
+  fn bind(&self, pipeline: &mut Pipeline) {
+    if let Some(shader) = &self.shader {
+      pipeline.set_shader(shader);
+    }
   }
 }

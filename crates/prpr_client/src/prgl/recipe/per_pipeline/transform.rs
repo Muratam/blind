@@ -6,7 +6,7 @@ crate::shader_attr! {
   }
 }
 pub struct Transform {
-  pub ubo: Arc<UniformBuffer<TransformAttribute>>,
+  ubo: Arc<UniformBuffer<TransformAttribute>>,
 }
 impl Transform {
   pub fn new(ctx: &ArcGlContext) -> Self {
