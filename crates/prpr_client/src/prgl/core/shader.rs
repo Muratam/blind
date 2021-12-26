@@ -14,6 +14,7 @@ impl Shader {
       let mut uniform_block_indices: HashMap<String, u32> = HashMap::new();
       for name in template.uniform_blocks() {
         let u_index = ctx.get_uniform_block_index(raw_program.raw_program(), name);
+        ctx.uniform_block_binding(raw_program.raw_program(), u_index, u_index);
         uniform_block_indices.insert(String::from(*name), u_index);
       }
       let mut uniform_texture_locations: HashMap<String, UniformTextureLocation> = HashMap::new();

@@ -1,9 +1,8 @@
 use super::*;
 
-// ubo per pipeline
-
 crate::shader_attr! {
   struct PbrAttribute {
+    albedo_color: vec3
     roughness: float
   }
   mapping PbrMapping {
@@ -20,7 +19,13 @@ impl PbrMaterial {
       Vec4::new(0.0, 0.0, 1.0, 0.0)
     }));
     Self {
-      ubo: Arc::new(UniformBuffer::new(ctx, PbrAttribute { roughness: 0.0 })),
+      ubo: Arc::new(UniformBuffer::new(
+        ctx,
+        PbrAttribute {
+          albedo_color: Vec3::ONE,
+          roughness: 0.0,
+        },
+      )),
       mapping: Arc::new(TextureMapping::new(
         ctx,
         PbrMapping {

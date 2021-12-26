@@ -24,6 +24,7 @@ pub struct RenderPass {
   //
   raw_framebuffer: RawFrameBuffer,
   framebuffer_setup_info: RwLock<FrameBufferSetupInfo>,
+  descriptor: Descriptor,
 }
 impl RenderPass {
   pub fn new(ctx: &ArcGlContext) -> Self {
@@ -44,6 +45,7 @@ impl RenderPass {
         viewport: None,
         use_default_framebuffer: false,
       }),
+      descriptor: Descriptor::new(),
     }
   }
   fn setup_framebuffer_impl(&self) {
@@ -149,11 +151,12 @@ impl RenderPass {
     }
   }
 
-  pub fn bind(&self) {
+  pub fn bind(&self) -> DescriptorContext {
     self.setup_framebuffer_impl();
     self.bind_framebuffer_impl();
     self.viewport_impl();
     self.clear_impl();
+    DescriptorContext::Nil.cons(&self.descriptor)
   }
 
   pub fn set_color_target(&mut self, target: Option<&Arc<Texture>>) {
@@ -190,4 +193,24 @@ impl RenderPass {
     }
     self.clear_colors[slot as usize] = value;
   }
+  pub fn add_uniform_buffer<T: BufferAttribute + 'static>(
+    &mut self,
+    buffer: &Arc<UniformBuffer<T>>,
+  ) {
+    self
+      .descriptor
+      .add_uniform_buffer(&(Arc::clone(buffer) as Arc<dyn UniformBufferTrait>));
+  }
+  pub fn add_texture_mapping<T: TextureMappingAttribute + 'static>(
+    &mut self,
+    mapping: &Arc<TextureMapping<T>>,
+  ) {
+    self
+      .descriptor
+      .add_texture_mapping(&(Arc::clone(mapping) as Arc<dyn TextureMappingTrait>));
+  }
+}
+
+pub trait RenderPassBindable {
+  fn bind(&self, renderpass: &mut RenderPass);
 }

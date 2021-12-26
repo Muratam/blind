@@ -53,9 +53,6 @@ impl<'a, 'b> DescriptorContext<'a, 'b> {
       }
       if let Some(vao) = &prior.vao {
         vao.bind(shader);
-      } else {
-        log::error("No Vertex Array Object");
-        return;
       }
     }
   }

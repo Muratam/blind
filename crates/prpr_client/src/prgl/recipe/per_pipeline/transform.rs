@@ -19,3 +19,8 @@ impl Transform {
     Self { ubo }
   }
 }
+impl PipelineBindable for Transform {
+  fn bind(&self, pipeline: &mut Pipeline) {
+    pipeline.add_uniform_buffer(&self.ubo);
+  }
+}

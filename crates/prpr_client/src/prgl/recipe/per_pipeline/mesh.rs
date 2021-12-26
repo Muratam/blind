@@ -1,7 +1,5 @@
 use super::*;
 
-// vbo per pipeline
-
 crate::shader_attr! {
   struct ShapeVertex {
     position: vec3,

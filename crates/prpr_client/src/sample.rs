@@ -12,7 +12,7 @@ impl System for SampleSystem {
   fn new(core: &Core) -> Self {
     let ctx = core.main_prgl().ctx();
     let template = crate::shader_template! {
-      attrs: [CameraAttribute, PbrMapping], // PbrAttribute, TransformAttribute
+      attrs: [CameraAttribute, PbrMapping, TransformAttribute, PbrAttribute],
       vs_attr: ShapeVertex,
       vs_code: {
         in_color = vec4(position, 1.0);
@@ -24,18 +24,20 @@ impl System for SampleSystem {
       }
       out_attr: { out_color: vec4 }
     };
+    let mut surface = Surface::new(ctx);
     let mut pipeline = Pipeline::new(ctx);
     Shape::new_cube(ctx).bind(&mut pipeline);
     PbrMaterial::new(ctx).bind(&mut pipeline);
+    Transform::new(ctx).bind(&mut pipeline);
     let camera = Camera::new(ctx);
-    pipeline.add_uniform_buffer(&camera.ubo);
+    surface.add(&camera);
     if let Some(shader) = Shader::new(ctx, template) {
       system::log::info(shader.vs_code());
       system::log::info(shader.fs_code());
       pipeline.set_shader(&Arc::new(shader));
     }
     Self {
-      surface: Surface::new(ctx),
+      surface,
       pipeline,
       camera,
     }
@@ -55,8 +57,8 @@ impl System for SampleSystem {
     self.camera.update();
 
     // update draw
-    self.surface.bind();
-    self.pipeline.draw();
+    let desc_ctx = self.surface.bind();
+    self.pipeline.draw(&desc_ctx);
     prgl.flush();
 
     // the others

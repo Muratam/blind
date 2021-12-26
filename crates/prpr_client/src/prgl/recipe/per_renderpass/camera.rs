@@ -1,7 +1,5 @@
 use super::*;
 
-// ubo per renderpass
-
 crate::shader_attr! {
   struct CameraAttribute {
     view_mat: mat4,
@@ -86,5 +84,11 @@ impl Camera {
   }
   fn to_proj_mat(fovy: f32, aspect_ratio: f32, near: f32, far: f32) -> Mat4 {
     Mat4::perspective_rh(fovy, aspect_ratio, near, far)
+  }
+}
+
+impl RenderPassBindable for Camera {
+  fn bind(&self, renderpass: &mut RenderPass) {
+    renderpass.add_uniform_buffer(&self.ubo);
   }
 }
