@@ -36,6 +36,12 @@ impl Shader {
       None
     }
   }
+  pub fn vs_code(&self) -> String {
+    self.template.vs_code()
+  }
+  pub fn fs_code(&self) -> String {
+    self.template.fs_code()
+  }
   pub fn id(&self) -> u64 {
     self.raw_program.raw_program_id()
   }

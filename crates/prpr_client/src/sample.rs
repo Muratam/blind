@@ -2,17 +2,66 @@
 use super::*;
 use prgl;
 use std::sync::Arc;
-crate::shader_attr! {
-  mapping PbrMapping {
-    normal_map : sampler2D,
-    roughness_map : sampler2D
-  }
-}
 pub struct SampleSystem {
-  surface: Arc<prgl::Texture>,
-  renderpass: prgl::RenderPass,
+  surface: prgl::Surface,
   pipeline: prgl::Pipeline,
   camera: prgl::Camera,
+}
+
+impl System for SampleSystem {
+  fn new(core: &Core) -> Self {
+    let ctx = core.main_prgl().ctx();
+    let template = crate::shader_template! {
+      attrs: [CameraAttribute, PbrMapping], // PbrAttribute, TransformAttribute
+      vs_attr: ShapeVertex,
+      vs_code: {
+        in_color = vec4(position, 1.0);
+        gl_Position = view_proj_mat * vec4(position, 1.0);
+      },
+      fs_attr: { in_color: vec4 },
+      fs_code: {
+        out_color = in_color + texture(normal_map, vec2(0.5, 0.5));
+      }
+      out_attr: { out_color: vec4 }
+    };
+    let mut pipeline = Pipeline::new(ctx);
+    Shape::new_cube(ctx).bind(&mut pipeline);
+    PbrMaterial::new(ctx).bind(&mut pipeline);
+    let camera = Camera::new(ctx);
+    pipeline.add_uniform_buffer(&camera.ubo);
+    if let Some(shader) = Shader::new(ctx, template) {
+      system::log::info(shader.vs_code());
+      system::log::info(shader.fs_code());
+      pipeline.set_shader(&Arc::new(shader));
+    }
+    Self {
+      surface: Surface::new(ctx),
+      pipeline,
+      camera,
+    }
+  }
+  fn update(&mut self, core: &Core) {
+    let frame = core.frame();
+    let prgl = core.main_prgl();
+
+    // update world
+    let rad = (frame as f32) / 100.0;
+    let v = rad.sin() * 0.25 + 0.75;
+    let color = Vec4::new(v, v, v, 1.0);
+    self.surface.set_clear_color(Some(color));
+    self.surface.update(prgl);
+    self.camera.camera_pos = Vec3::new(rad.sin(), rad.cos(), rad.cos()) * 5.0;
+    self.camera.aspect_ratio = prgl.aspect_ratio();
+    self.camera.update();
+
+    // update draw
+    self.surface.bind();
+    self.pipeline.draw();
+    prgl.flush();
+
+    // the others
+    self.render_sample(core);
+  }
 }
 /* TODO:
 - キーボード入力 / タッチ入力を受け取る
@@ -50,84 +99,12 @@ pub struct SampleSystem {
   - デバッグ用のが欲しくはなるかも
   - 結局ズーム操作はエミュレーションすることになるのでは
 */
-impl System for SampleSystem {
-  fn new(core: &Core) -> Self {
-    let ctx = core.main_prgl().ctx();
-    let surface = Arc::new(Texture::new_rgba_map(ctx, 640, 640, |x, y| {
-      Vec4::new(x, y, 1.0, 1.0)
-    }));
-    let normal_map = Arc::new(Texture::new_rgba_map(ctx, 100, 100, |x, y| {
-      Vec4::new(x, y, 0.0, 1.0)
-    }));
-    let roughness_map = normal_map.clone();
-    let mut renderpass = RenderPass::new(ctx);
-    renderpass.set_use_default_framebuffer(true);
-    // renderpass.set_color_target(Some(&surface));
-    let mut pipeline = Pipeline::new(ctx);
-    let template = crate::shader_template! {
-      attrs: [CameraAttribute, PbrMapping],
-      vs_attr: ShapeFactoryVertex,
-      fs_attr: { in_color: vec4 },
-      out_attr: { out_color: vec4 }
-      vs_code: {
-        in_color = vec4(position, 1.0) + texture(roughness_map, vec2(0.5, 0.5));
-        gl_Position = view_proj_mat * vec4(position, 1.0);
-      },
-      fs_code: {
-        out_color = in_color + texture(normal_map, vec2(0.5, 0.5));
-      }
-    };
-    let vao = ShapeFactory::new(ctx).create_cube();
-    pipeline.set_draw_vao(&Arc::new(vao));
-    let camera = Camera::new(ctx);
-    pipeline.add_uniform_buffer(&camera.ubo);
-    if let Some(shader) = Shader::new(ctx, template) {
-      pipeline.set_shader(&Arc::new(shader));
-    }
-    pipeline.add_texture_mapping(&Arc::new(TextureMapping::new(
-      ctx,
-      PbrMapping {
-        normal_map,
-        roughness_map,
-      },
-    )));
-    Self {
-      surface,
-      renderpass,
-      pipeline,
-      camera,
-    }
-  }
-  fn update(&mut self, core: &Core) {
-    let frame = core.frame();
-    let prgl = core.main_prgl();
-    {
-      // update world
-      let v = ((frame as f32) / 100.0).sin() * 0.25 + 0.75;
-      let color = Vec4::new(v, v, v, 1.0);
-      self.renderpass.set_clear_color(Some(color));
-      self.renderpass.set_viewport(Some(&prgl.full_viewport()));
-      let rad = (frame as f32) / 100.0;
-      self.camera.camera_pos = Vec3::new(rad.sin(), rad.cos(), rad.cos()) * 5.0;
-      self.camera.aspect_ratio = prgl.aspect_ratio();
-      self.camera.update();
-    }
-    {
-      // update draw
-      self.renderpass.bind();
-      self.pipeline.draw();
-      prgl.flush();
-    }
-    self.render_sample(core);
-  }
-}
 
 impl SampleSystem {
   fn render_sample(&mut self, core: &Core) {
     // TODO: 2D
     {
       let ctx = core.main_2d_context();
-      let width = 0;
       // note use: `?;` for Result
       use std::f64::consts::PI;
       ctx.begin_path();

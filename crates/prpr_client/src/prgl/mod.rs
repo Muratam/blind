@@ -1,8 +1,8 @@
 use super::*;
 mod core;
 pub use self::core::*;
-mod template;
-pub use self::template::*;
+mod recipe;
+pub use self::recipe::*;
 mod instance;
 pub use self::instance::*;
 

@@ -1,4 +1,7 @@
 use super::*;
+
+// ubo per renderpass
+
 crate::shader_attr! {
   struct CameraAttribute {
     view_mat: mat4,

@@ -79,3 +79,7 @@ impl Pipeline {
     self.primitive_topology = primitive_topology;
   }
 }
+
+pub trait PipelineBindable {
+  fn bind(&self, pipeline: &mut Pipeline);
+}
