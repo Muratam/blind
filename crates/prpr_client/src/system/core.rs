@@ -20,12 +20,15 @@ impl Core {
       frame: 0,
     }
   }
-  pub fn update(&mut self) {
+  pub fn pre_update(&mut self) {
     self.frame += 1;
     self.layers.adjust_screen_size();
     self
       .main_prgl
       .update_size(self.layers.width(), self.layers.height());
+  }
+  pub fn post_update(&mut self) {
+    self.main_prgl.flush();
   }
   pub fn frame(&self) -> i64 {
     self.frame

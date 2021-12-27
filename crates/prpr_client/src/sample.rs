@@ -31,7 +31,7 @@ impl System for SampleSystem {
     object.add(&Shape::new_cube(ctx));
     object.add(&PbrMaterial::new(ctx));
     object.add(&MayShader::new(ctx, template));
-    let mut surface = Surface::new(ctx); // 自分で生成？
+    let mut surface = Surface::new(core.main_prgl()); // 自分で生成？
     let camera = Camera::new(ctx);
     surface.add(&camera); // screen ？
     Self {
@@ -43,7 +43,6 @@ impl System for SampleSystem {
 
   fn update(&mut self, core: &Core) {
     let frame = core.frame();
-    let prgl = core.main_prgl();
 
     // update by user world
     let rad = (frame as f32) / 100.0;
@@ -58,13 +57,12 @@ impl System for SampleSystem {
     );
 
     // update by screen
-    self.surface.update(prgl); // 消したい
-    self.camera.write_lock().aspect_ratio = prgl.aspect_ratio(); // by screen
+    self.surface.update(core.main_prgl()); // 消したい
+    self.camera.write_lock().aspect_ratio = self.surface.aspect_ratio(); // by screen
 
     // draw start
     let desc_ctx = self.surface.bind();
     self.object.pipeline.draw(&desc_ctx);
-    prgl.flush();
 
     // the others
     self.render_sample(core);

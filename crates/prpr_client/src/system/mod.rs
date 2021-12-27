@@ -12,7 +12,8 @@ pub fn run<T: 'static + System>() {
   let mut core = Core::new();
   let mut system = T::new(&core);
   js::start_animation_frame_loop(Box::new(move || {
-    core.update();
+    core.pre_update();
     system.update(&core);
+    core.post_update();
   }))
 }

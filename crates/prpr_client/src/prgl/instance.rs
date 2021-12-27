@@ -42,9 +42,6 @@ impl Instance {
   pub fn full_viewport(&self) -> Rect<i32> {
     Rect::new(0, 0, self.width, self.height)
   }
-  pub fn aspect_ratio(&self) -> f32 {
-    self.width as f32 / self.height as f32
-  }
   pub fn update_size(&mut self, width: i32, height: i32) {
     self.width = width;
     self.height = height;
