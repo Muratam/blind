@@ -108,6 +108,7 @@ name = "prpr-client"
 version = "0.1.0"
 dependencies = [
  "assert-type-eq",
+ "js-sys",
  "prpr",
  "wasm-bindgen",
  "web-sys",

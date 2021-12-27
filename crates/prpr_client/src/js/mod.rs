@@ -1,6 +1,7 @@
 // pure js
 use crate::html;
 use wasm_bindgen::closure::Closure;
+use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 
 pub fn start_animation_frame_loop(mut a: Box<dyn FnMut()>) {
@@ -16,6 +17,12 @@ pub fn start_animation_frame_loop(mut a: Box<dyn FnMut()>) {
     request_animation_frame(f.borrow().as_ref().unwrap());
   }) as Box<dyn FnMut()>));
   request_animation_frame(g.borrow().as_ref().unwrap());
+}
+
+pub mod date {
+  pub fn now_millisec() -> f64 {
+    js_sys::Date::now()
+  }
 }
 
 pub mod console {

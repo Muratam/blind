@@ -120,6 +120,8 @@ impl System for SampleSystem {
   - デバッグ用のが欲しくはなるかも
   - 結局ズーム操作はエミュレーションすることになるのでは
 - ctx 消したい(Singleton?)
+- 時間計測したい
+- CommandBuffer作りたい
 */
 
 impl SampleSystem {
@@ -141,15 +143,9 @@ impl SampleSystem {
     }
     // TODO: HTML
     {
-      let frame = core.frame();
       let html_layer = core.html_layer();
-      if frame > 1000 {
-        html_layer.set_text_content(None);
-      }
-      let frame = frame % 200;
-      let text = format!("{} ", frame);
-      let pre_text = html_layer.text_content().unwrap();
-      html_layer.set_text_content(Some(&format!("{}{}", &pre_text, &text)));
+      let text = format!("{} ms", core.processed_time());
+      html_layer.set_text_content(Some(&text));
     }
   }
 }

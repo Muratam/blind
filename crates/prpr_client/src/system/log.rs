@@ -1,4 +1,4 @@
-use crate::js;
+use super::*;
 #[allow(dead_code)]
 pub fn error<T: Into<wasm_bindgen::JsValue>>(value: T) {
   js::console::error(value);
