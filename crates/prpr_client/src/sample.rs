@@ -33,7 +33,7 @@ impl System for SampleSystem {
     let material = PbrMaterial::new(ctx);
     let shape = Shape::new_cube(ctx);
     let mut objects = Vec::new();
-    const COUNT: u32 = 8;
+    const COUNT: u32 = 10;
     for x in 0..COUNT {
       for y in 0..COUNT {
         for z in 0..COUNT {
@@ -122,8 +122,6 @@ impl System for SampleSystem {
   - デバッグ用のが欲しくはなるかも
   - 結局ズーム操作はエミュレーションすることになるのでは
 - ctx 消したい(Singleton?)
-- 時間計測したい
-- CommandBuffer作りたい
 */
 
 impl SampleSystem {

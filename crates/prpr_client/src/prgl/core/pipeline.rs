@@ -8,6 +8,7 @@ pub struct Pipeline {
   cull_mode: CullMode,
   primitive_topology: PrimitiveToporogy,
   shader: Option<Arc<Shader>>,
+  invisible_reasons: collections::BitSet64,
   descriptor: Descriptor,
 }
 
@@ -20,11 +21,15 @@ impl Pipeline {
       cull_mode: CullMode::Back,
       primitive_topology: PrimitiveToporogy::Triangles,
       shader: None,
+      invisible_reasons: collections::BitSet64::new(),
       descriptor: Descriptor::new(),
     }
   }
 
   pub fn draw(&self, cmd: &mut Command, outer_desc_ctx: &DescriptorContext) {
+    if self.invisible() {
+      return;
+    }
     if let Some(shader) = &self.shader {
       cmd.set_shader(shader);
       outer_desc_ctx.cons(&self.descriptor).bind(cmd);
@@ -41,6 +46,7 @@ impl Pipeline {
       return;
     }
   }
+
   // set resource
   pub fn set_shader(&mut self, shader: &Arc<Shader>) {
     self.shader = Some(Arc::clone(shader));
@@ -86,6 +92,12 @@ impl Pipeline {
   }
   pub fn set_draw_mode(&mut self, primitive_topology: PrimitiveToporogy) {
     self.primitive_topology = primitive_topology;
+  }
+  pub fn set_invisible(&mut self, reason: usize, invisible: bool) {
+    self.invisible_reasons.set(reason, invisible);
+  }
+  pub fn invisible(&self) -> bool {
+    self.invisible_reasons.any()
   }
 }
 
