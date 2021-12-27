@@ -1,9 +1,9 @@
 use super::*;
 
-struct FrameBufferSetupInfo {
+struct BufferSetupInfo {
   pub is_dirty: bool,
   pub viewport: Option<Rect<i32>>, // ターゲットなしならBuffer=None
-  pub use_default_framebuffer: bool,
+  pub use_default_buffer: bool,
 }
 
 pub struct RenderPass {
@@ -23,7 +23,8 @@ pub struct RenderPass {
   // stencil_target: Option<Arc<Texture>>,
   //
   raw_framebuffer: RawFrameBuffer,
-  framebuffer_setup_info: RwLock<FrameBufferSetupInfo>,
+  // raw_renderbuffer: RawRenderBuffer,
+  buffer_setup_info: RwLock<BufferSetupInfo>,
   descriptor: Descriptor,
 }
 impl RenderPass {
@@ -40,16 +41,17 @@ impl RenderPass {
       depth_target: None,
       //
       raw_framebuffer: RawFrameBuffer::new(ctx),
-      framebuffer_setup_info: RwLock::new(FrameBufferSetupInfo {
+      // raw_renderbuffer: RawRenderBuffer::new(ctx),
+      buffer_setup_info: RwLock::new(BufferSetupInfo {
         is_dirty: true,
         viewport: None,
-        use_default_framebuffer: false,
+        use_default_buffer: false,
       }),
       descriptor: Descriptor::new(),
     }
   }
   fn setup_framebuffer_impl(&self) {
-    let mut setup_info = self.framebuffer_setup_info.write().unwrap();
+    let mut setup_info = self.buffer_setup_info.write().unwrap();
     if !setup_info.is_dirty {
       return;
     }
@@ -91,8 +93,24 @@ impl RenderPass {
     if let Some(buffers) = JsValue::from_serde(color_attachment_indices.as_slice()).ok() {
       ctx.draw_buffers(&buffers);
     }
+    // let renderbuffer = self.raw_renderbuffer.raw_renderbuffer();
+    // ctx.bind_renderbuffer(gl::RENDERBUFFER, Some(renderbuffer));
+    // ctx.renderbuffer_storage(
+    //   gl::RENDERBUFFER,
+    //   gl::DEPTH_COMPONENT16,
+    //   max_width,
+    //   max_height,
+    // );
+    // ctx.framebuffer_renderbuffer(
+    //   gl::FRAMEBUFFER,
+    //   gl::DEPTH_ATTACHMENT,
+    //   gl::RENDERBUFFER,
+    //   Some(renderbuffer),
+    // );
+
     if SET_BIND_NONE_AFTER_WORK {
       ctx.bind_framebuffer(gl::FRAMEBUFFER, None);
+      // ctx.bind_renderbuffer(gl::RENDERBUFFER, None);
     }
 
     setup_info.is_dirty = false;
@@ -102,17 +120,21 @@ impl RenderPass {
       None
     }
   }
+
   fn bind_framebuffer_impl(&self) {
     let ctx = &self.ctx;
-    let info = &self.framebuffer_setup_info.read().unwrap();
+    let info = &self.buffer_setup_info.read().unwrap();
     if info.viewport.is_some() {
-      if info.use_default_framebuffer {
+      if info.use_default_buffer {
         log::error("[uses default framebuffer] && [has color target]");
       }
       let framebuffer = self.raw_framebuffer.raw_framebuffer();
       ctx.bind_framebuffer(gl::FRAMEBUFFER, Some(framebuffer));
-    } else if info.use_default_framebuffer {
+      // let renderbuffer = self.raw_renderbuffer.raw_renderbuffer();
+      // ctx.bind_renderbuffer(gl::RENDERBUFFER, Some(renderbuffer));
+    } else if info.use_default_buffer {
       ctx.bind_framebuffer(gl::FRAMEBUFFER, None);
+      // ctx.bind_renderbuffer(gl::RENDERBUFFER, None);
     } else {
       log::error("[not use default framebuffer] && [no color target]");
     }
@@ -139,11 +161,12 @@ impl RenderPass {
       ctx.clear(clear_flag);
     }
   }
+
   fn viewport_impl(&self) {
     if let Some(v) = &self.viewport {
       // 設定されているなら使用
       self.ctx.viewport(v.x, v.y, v.width, v.height);
-    } else if let Some(v) = &self.framebuffer_setup_info.read().unwrap().viewport {
+    } else if let Some(v) = &self.buffer_setup_info.read().unwrap().viewport {
       // 描画先があるならその最大サイズに
       self.ctx.viewport(v.x, v.y, v.width, v.height);
     } else {
@@ -174,9 +197,9 @@ impl RenderPass {
   pub fn set_viewport(&mut self, viewport: Option<&Rect<i32>>) {
     self.viewport = viewport.map(|v| v.clone());
   }
-  pub fn set_use_default_framebuffer(&mut self, use_default_framebuffer: bool) {
-    let mut info = self.framebuffer_setup_info.write().unwrap();
-    info.use_default_framebuffer = use_default_framebuffer;
+  pub fn set_use_default_buffer(&mut self, use_default_buffer: bool) {
+    let mut info = self.buffer_setup_info.write().unwrap();
+    info.use_default_buffer = use_default_buffer;
   }
   pub fn set_color_target_by_slot(&mut self, target: Option<&Arc<Texture>>, slot: i32) {
     if slot < 0 || slot >= MAX_OUTPUT_SLOT as i32 {
@@ -184,7 +207,7 @@ impl RenderPass {
       return;
     }
     self.color_targets[slot as usize] = target.map(|target| target.clone());
-    self.framebuffer_setup_info.write().unwrap().is_dirty = true;
+    self.buffer_setup_info.write().unwrap().is_dirty = true;
   }
   pub fn set_clear_color_by_slot(&mut self, value: Option<Vec4>, slot: i32) {
     if slot < 0 || slot >= MAX_OUTPUT_SLOT as i32 {
@@ -215,6 +238,9 @@ impl RenderPass {
     self
       .descriptor
       .add_texture_mapping(&(Arc::clone(mapping) as Arc<dyn TextureMappingTrait>));
+  }
+  pub fn add(&mut self, bindable: &dyn RenderPassBindable) {
+    bindable.bind_renderpass(self);
   }
 }
 

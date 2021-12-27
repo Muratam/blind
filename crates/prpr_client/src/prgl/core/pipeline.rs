@@ -34,7 +34,7 @@ impl Pipeline {
       cmd.set_shader(shader);
       outer_desc_ctx.cons(&self.descriptor).bind(cmd);
     } else {
-      log::error("No Shader Program");
+      // log::error("No Shader Program");
       return;
     }
     cmd.set_depth_func(self.depth_func);
@@ -90,6 +90,9 @@ impl Pipeline {
   pub fn set_draw_command(&mut self, command: DrawCommand) {
     self.draw_command = Some(command);
   }
+  pub fn set_depth_func(&mut self, depth_func: DepthFunc) {
+    self.depth_func = depth_func;
+  }
   pub fn set_draw_mode(&mut self, primitive_topology: PrimitiveToporogy) {
     self.primitive_topology = primitive_topology;
   }
@@ -98,6 +101,9 @@ impl Pipeline {
   }
   pub fn invisible(&self) -> bool {
     self.invisible_reasons.any()
+  }
+  pub fn add(&mut self, bindable: &dyn PipelineBindable) {
+    bindable.bind_pipeline(self);
   }
 }
 

@@ -53,7 +53,6 @@ impl<T: BufferAttribute> VertexBuffer<T> {
 }
 
 pub trait UniformBufferTrait {
-  // returns successed
   fn bind(&self, cmd: &mut Command);
 }
 pub struct UniformBuffer<T: BufferAttribute> {

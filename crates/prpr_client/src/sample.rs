@@ -21,10 +21,38 @@ fn casual_shader() -> ShaderTemplate {
   }
 }
 
+crate::shader_attr! {
+  mapping ToGrayScaleMapping {
+    src_texture: sampler2D
+  }
+}
+
+fn grayscale_shader() -> ShaderTemplate {
+  crate::shader_template! {
+    attrs: [ToGrayScaleMapping],
+    vs_attr: FullScreenVertex,
+    vs_code: {
+      in_uv = uv;
+      gl_Position = vec4(position, 0.5, 1.0);
+    },
+    fs_attr: { in_uv: vec2 },
+    fs_code: {
+      vec3 rgb = texture(src_texture, in_uv).rgb;
+      float g = (rgb.r + rgb.g + rgb.b) / 3.0;
+      out_color = vec4(g, g, g, 1.0);
+    }
+    out_attr: { out_color: vec4 }
+  }
+}
+
 pub struct SampleSystem {
-  surface: prgl::Surface,
-  camera: prgl::Camera,
+  // 3d
   objects: Vec<prgl::TransformObject>,
+  renderpass: prgl::RenderPass,
+  camera: prgl::Camera,
+  // post effect
+  grayscale_surface: prgl::Surface,
+  grayscale_pipeline: prgl::Pipeline,
 }
 impl System for SampleSystem {
   fn new(core: &Core) -> Self {
@@ -33,14 +61,14 @@ impl System for SampleSystem {
     let material = PbrMaterial::new(ctx);
     let shape = Shape::new_cube(ctx);
     let mut objects = Vec::new();
-    const COUNT: u32 = 10;
+    const COUNT: u32 = 4;
     for x in 0..COUNT {
       for y in 0..COUNT {
         for z in 0..COUNT {
           let mut object = TransformObject::new(ctx);
-          object.add(&shape);
-          object.add(&material);
-          object.add(&shader);
+          object.pipeline.add(&shape);
+          object.pipeline.add(&material);
+          object.pipeline.add(&shader);
           object.transform.write_lock().translate = Vec3::new(
             x as f32 - (COUNT as f32) * 0.5,
             y as f32 - (COUNT as f32) * 0.5,
@@ -51,35 +79,61 @@ impl System for SampleSystem {
         }
       }
     }
-    let mut surface = Surface::new(core.main_prgl());
     let camera = Camera::new(ctx);
-    surface.add(&camera); // screen ？
+    let mut renderpass = RenderPass::new(ctx);
+    let max_viewport = core.main_prgl().full_max_viewport();
+    renderpass.set_clear_color(Some(Vec4::new(1.0, 1.0, 1.0, 1.0)));
+    renderpass.add(&camera);
+    let src_texture = Arc::new(Texture::new_fill_one(
+      ctx,
+      &Texture2dDescriptor {
+        width: max_viewport.width as usize,
+        height: max_viewport.height as usize,
+        format: PixelFormat::R8G8B8A8,
+        mipmap: true,
+      },
+    ));
+    renderpass.set_color_target(Some(&src_texture));
+
+    let grayscale_surface = Surface::new(core.main_prgl());
+    let mut grayscale_pipeline = FullScreen::new_pipeline(ctx);
+    grayscale_pipeline.add(&MayShader::new(ctx, grayscale_shader()));
+    grayscale_pipeline.add(&Arc::new(TextureMapping::new(
+      ctx,
+      ToGrayScaleMapping { src_texture },
+    )));
+
     Self {
-      surface,
       objects,
       camera,
+      renderpass,
+      grayscale_pipeline,
+      grayscale_surface,
     }
   }
 
   fn update(&mut self, core: &Core) {
     let frame = core.frame();
-
     // update by user world
     let f = (frame as f32) / 100.0;
-    let c = f.sin() * 0.25 + 0.75;
-    self.surface.set_clear_color(Some(Vec4::new(c, c, c, 1.0)));
     self.camera.write_lock().camera_pos = Vec3::new(f.sin(), f.cos(), f.cos()) * 5.0;
-
-    // update by screen
-    self.surface.update(); // 消したい
-    self.camera.write_lock().aspect_ratio = self.surface.aspect_ratio(); // by screen
+    self.camera.write_lock().aspect_ratio = core.main_prgl().full_viewport().aspect_ratio();
+    self
+      .renderpass
+      .set_viewport(Some(&core.main_prgl().full_viewport()));
 
     // draw start
-    let desc_ctx = self.surface.bind();
-    let ctx = core.main_prgl().ctx();
-    let mut cmd = prgl::Command::new(ctx);
-    for object in &self.objects {
-      object.pipeline.draw(&mut cmd, &desc_ctx);
+    // TODO: use executer
+    let mut cmd = prgl::Command::new(core.main_prgl().ctx());
+    {
+      let desc_ctx = self.renderpass.bind();
+      for object in &self.objects {
+        object.pipeline.draw(&mut cmd, &desc_ctx);
+      }
+    }
+    {
+      let desc_ctx = self.grayscale_surface.bind();
+      self.grayscale_pipeline.draw(&mut cmd, &desc_ctx);
     }
 
     // the others
@@ -122,6 +176,7 @@ impl System for SampleSystem {
   - デバッグ用のが欲しくはなるかも
   - 結局ズーム操作はエミュレーションすることになるのでは
 - ctx 消したい(Singleton?)
+- pipeline.add で同じUniformBufferな時に気をつけたい(Camera)
 */
 
 impl SampleSystem {
