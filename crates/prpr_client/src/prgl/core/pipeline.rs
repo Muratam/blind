@@ -3,6 +3,7 @@ use super::*;
 pub struct Pipeline {
   ctx: ArcGlContext,
   // states
+  depth_func: DepthFunc,
   draw_command: Option<DrawCommand>,
   cull_mode: CullMode,
   primitive_topology: PrimitiveToporogy,
@@ -14,6 +15,7 @@ impl Pipeline {
   pub fn new(ctx: &ArcGlContext) -> Self {
     Self {
       ctx: ctx.clone(),
+      depth_func: DepthFunc::Less,
       draw_command: None,
       cull_mode: CullMode::Back,
       primitive_topology: PrimitiveToporogy::Triangles,
@@ -30,6 +32,7 @@ impl Pipeline {
       log::error("No Shader Program");
       return;
     }
+    self.depth_func.apply(&self.ctx);
     self.cull_mode.apply(&self.ctx);
     if let Some(draw_command) = &self.draw_command {
       draw_command.apply(&self.ctx, self.primitive_topology);

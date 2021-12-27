@@ -10,6 +10,29 @@ pub enum PrimitiveToporogy {
   TriangleFan = gl::TRIANGLE_FAN as isize,
   Triangles = gl::TRIANGLES as isize,
 }
+
+#[derive(Clone, Copy, PartialEq)]
+pub enum DepthFunc {
+  Never = gl::NEVER as isize,
+  Less = gl::LESS as isize,
+  Equal = gl::EQUAL as isize,
+  LEqual = gl::LEQUAL as isize,
+  Greater = gl::GREATER as isize,
+  NotEqual = gl::NOTEQUAL as isize,
+  GEqual = gl::GEQUAL as isize,
+  Always = gl::ALWAYS as isize,
+}
+impl DepthFunc {
+  pub fn apply(&self, ctx: &ArcGlContext) {
+    if *self == DepthFunc::Always {
+      ctx.disable(gl::DEPTH_TEST);
+    } else {
+      ctx.enable(gl::DEPTH_TEST);
+      ctx.depth_func(*self as u32);
+    }
+  }
+}
+
 pub enum DrawCommand {
   Draw { first: i32, count: i32 },
   // DrawInstanced {

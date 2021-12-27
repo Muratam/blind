@@ -1,42 +1,62 @@
 // hoge_client に逃がす前段階でのサンプル
 use super::*;
 use prgl;
-use std::sync::Arc;
+
+fn casual_shader() -> ShaderTemplate {
+  crate::shader_template! {
+    attrs: [
+      CameraAttribute, TransformAttribute, PbrAttribute,
+      PbrMapping
+    ],
+    vs_attr: ShapeVertex,
+    vs_code: {
+      in_color = vec4(position, 1.0);
+      gl_Position = view_proj_mat * model_mat * vec4(position, 1.0);
+    },
+    fs_attr: { in_color: vec4 },
+    fs_code: {
+      out_color = in_color + texture(normal_map, vec2(0.5, 0.5));
+    }
+    out_attr: { out_color: vec4 }
+  }
+}
+
 pub struct SampleSystem {
   surface: prgl::Surface,
   camera: prgl::Camera,
-  object: prgl::TransformObject,
+  objects: Vec<prgl::TransformObject>,
 }
-
 impl System for SampleSystem {
   fn new(core: &Core) -> Self {
     let ctx = core.main_prgl().ctx();
-    let template = crate::shader_template! {
-      attrs: [
-        CameraAttribute, TransformAttribute, PbrAttribute,
-        PbrMapping
-      ],
-      vs_attr: ShapeVertex,
-      vs_code: {
-        in_color = vec4(position, 1.0);
-        gl_Position = view_proj_mat * model_mat * vec4(position, 1.0);
-      },
-      fs_attr: { in_color: vec4 },
-      fs_code: {
-        out_color = in_color + texture(normal_map, vec2(0.5, 0.5));
+    let shader = MayShader::new(ctx, casual_shader());
+    let material = PbrMaterial::new(ctx);
+    let shape = Shape::new_cube(ctx);
+    let mut objects = Vec::new();
+    const COUNT: u32 = 8;
+    for x in 0..COUNT {
+      for y in 0..COUNT {
+        for z in 0..COUNT {
+          let mut object = TransformObject::new(ctx);
+          object.add(&shape);
+          object.add(&material);
+          object.add(&shader);
+          object.transform.write_lock().translate = Vec3::new(
+            x as f32 - (COUNT as f32) * 0.5,
+            y as f32 - (COUNT as f32) * 0.5,
+            z as f32 - (COUNT as f32) * 0.5,
+          );
+          object.transform.write_lock().scale = Vec3::ONE * 0.72;
+          objects.push(object);
+        }
       }
-      out_attr: { out_color: vec4 }
-    };
-    let mut object = TransformObject::new(ctx);
-    object.add(&Shape::new_cube(ctx));
-    object.add(&PbrMaterial::new(ctx));
-    object.add(&MayShader::new(ctx, template));
-    let mut surface = Surface::new(core.main_prgl()); // 自分で生成？
+    }
+    let mut surface = Surface::new(core.main_prgl());
     let camera = Camera::new(ctx);
     surface.add(&camera); // screen ？
     Self {
       surface,
-      object,
+      objects,
       camera,
     }
   }
@@ -45,24 +65,20 @@ impl System for SampleSystem {
     let frame = core.frame();
 
     // update by user world
-    let rad = (frame as f32) / 100.0;
-    let v = rad.sin() * 0.25 + 0.75;
-    let color = Vec4::new(v, v, v, 1.0);
-    self.surface.set_clear_color(Some(color));
-    self.camera.write_lock().camera_pos = Vec3::new(rad.sin(), rad.cos(), rad.cos()) * 5.0;
-    self.object.transform.write_lock().translate = Vec3::new(
-      (frame as f32).sin() * 0.01,
-      ((frame + 1) as f32).sin() * 0.01,
-      ((frame + 2) as f32).sin() * 0.01,
-    );
+    let f = (frame as f32) / 100.0;
+    let c = f.sin() * 0.25 + 0.75;
+    self.surface.set_clear_color(Some(Vec4::new(c, c, c, 1.0)));
+    self.camera.write_lock().camera_pos = Vec3::new(f.sin(), f.cos(), f.cos()) * 5.0;
 
     // update by screen
-    self.surface.update(core.main_prgl()); // 消したい
+    self.surface.update(); // 消したい
     self.camera.write_lock().aspect_ratio = self.surface.aspect_ratio(); // by screen
 
     // draw start
     let desc_ctx = self.surface.bind();
-    self.object.pipeline.draw(&desc_ctx);
+    for object in &self.objects {
+      object.pipeline.draw(&desc_ctx);
+    }
 
     // the others
     self.render_sample(core);

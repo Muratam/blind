@@ -5,8 +5,8 @@ pub struct Instance {
   ctx: ArcGlContext,
   max_width: i32,
   max_height: i32,
-  width: i32,
-  height: i32,
+  width: RwLock<i32>,
+  height: RwLock<i32>,
 }
 impl Instance {
   pub fn new(ctx: web_sys::WebGl2RenderingContext) -> Self {
@@ -16,8 +16,8 @@ impl Instance {
       ctx: Arc::new(ctx),
       max_width: screen.width().unwrap(),
       max_height: screen.height().unwrap(),
-      width: 1,
-      height: 1,
+      width: RwLock::new(1),
+      height: RwLock::new(1),
     }
   }
   pub fn flush(&self) {
@@ -34,16 +34,16 @@ impl Instance {
     self.max_height
   }
   pub fn width(&self) -> i32 {
-    self.width
+    *self.width.read().unwrap()
   }
   pub fn height(&self) -> i32 {
-    self.height
+    *self.height.read().unwrap()
   }
   pub fn full_viewport(&self) -> Rect<i32> {
-    Rect::new(0, 0, self.width, self.height)
+    Rect::new(0, 0, self.width(), self.height())
   }
-  pub fn update_size(&mut self, width: i32, height: i32) {
-    self.width = width;
-    self.height = height;
+  pub fn update_size(&self, width: i32, height: i32) {
+    *self.width.write().unwrap() = width;
+    *self.height.write().unwrap() = height;
   }
 }

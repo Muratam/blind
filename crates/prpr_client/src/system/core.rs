@@ -1,5 +1,6 @@
 use super::layers::Layers;
 use crate::prgl;
+use std::sync::*;
 
 pub struct Core {
   layers: Layers,
@@ -7,7 +8,7 @@ pub struct Core {
   // input
   // etc...
   frame: i64,
-  main_prgl: prgl::Instance,
+  main_prgl: Arc<prgl::Instance>,
 }
 
 impl Core {
@@ -16,7 +17,7 @@ impl Core {
     let main_prgl = prgl::Instance::new(layers.main_3d_context());
     Self {
       layers,
-      main_prgl,
+      main_prgl: Arc::new(main_prgl),
       frame: 0,
     }
   }
@@ -33,7 +34,7 @@ impl Core {
   pub fn frame(&self) -> i64 {
     self.frame
   }
-  pub fn main_prgl(&self) -> &prgl::Instance {
+  pub fn main_prgl(&self) -> &Arc<prgl::Instance> {
     &self.main_prgl
   }
   // depracated(もっとラップする)

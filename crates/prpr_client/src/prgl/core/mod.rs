@@ -4,7 +4,7 @@ pub use web_sys::WebGl2RenderingContext as gl;
 pub type ArcGlContext = Arc<web_sys::WebGl2RenderingContext>;
 pub const MAX_OUTPUT_SLOT: usize = 8;
 pub type IndexBufferType = u32;
-const SET_BIND_NONE_AFTER_WORK: bool = true;
+const SET_BIND_NONE_AFTER_WORK: bool = false;
 
 // raw not publish
 pub mod raw;
