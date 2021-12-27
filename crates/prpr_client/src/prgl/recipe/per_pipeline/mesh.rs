@@ -3,7 +3,6 @@ use super::*;
 crate::shader_attr! {
   struct FullScreenVertex {
     position: vec2,
-    uv: vec2,
   }
 }
 pub struct FullScreen {
@@ -18,19 +17,15 @@ impl FullScreen {
       vec![
         FullScreenVertex {
           position: Vec2::new(-1.0, -1.0),
-          uv: Vec2::new(0.0, 0.0),
         },
         FullScreenVertex {
           position: Vec2::new(1.0, -1.0),
-          uv: Vec2::new(1.0, 0.0),
         },
         FullScreenVertex {
           position: Vec2::new(-1.0, 1.0),
-          uv: Vec2::new(0.0, 1.0),
         },
         FullScreenVertex {
           position: Vec2::new(1.0, 1.0),
-          uv: Vec2::new(1.0, 1.0),
         },
       ],
     );

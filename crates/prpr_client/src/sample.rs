@@ -32,12 +32,12 @@ fn grayscale_shader() -> ShaderTemplate {
     attrs: [ToGrayScaleMapping],
     vs_attr: FullScreenVertex,
     vs_code: {
-      in_uv = uv;
       gl_Position = vec4(position, 0.5, 1.0);
     },
-    fs_attr: { in_uv: vec2 },
+    fs_attr: {},
     fs_code: {
-      vec3 rgb = texture(src_texture, in_uv).rgb;
+      ivec2 iuv = ivec2(gl_FragCoord.x, gl_FragCoord.y);
+      vec3 rgb = texelFetch(src_texture, iuv, 0).rgb;
       float g = (rgb.r + rgb.g + rgb.b) / 3.0;
       out_color = vec4(g, g, g, 1.0);
     }
@@ -83,8 +83,9 @@ impl System for SampleSystem {
     let mut renderpass = RenderPass::new(ctx);
     let max_viewport = core.main_prgl().full_max_viewport();
     renderpass.set_clear_color(Some(Vec4::new(1.0, 1.0, 1.0, 1.0)));
+    renderpass.set_clear_depth(Some(1.0));
     renderpass.add(&camera);
-    let src_texture = Arc::new(Texture::new_fill_one(
+    let src_texture = Arc::new(Texture::new_uninitialized(
       ctx,
       &Texture2dDescriptor {
         width: max_viewport.width as usize,
@@ -93,7 +94,17 @@ impl System for SampleSystem {
         mipmap: true,
       },
     ));
+    let depth_texture = Arc::new(Texture::new_uninitialized(
+      ctx,
+      &Texture2dDescriptor {
+        width: max_viewport.width as usize,
+        height: max_viewport.height as usize,
+        format: PixelFormat::Depth24,
+        mipmap: false,
+      },
+    ));
     renderpass.set_color_target(Some(&src_texture));
+    renderpass.set_depth_target(Some(&depth_texture));
 
     let grayscale_surface = Surface::new(core.main_prgl());
     let mut grayscale_pipeline = FullScreen::new_pipeline(ctx);
@@ -141,13 +152,23 @@ impl System for SampleSystem {
   }
 }
 /* TODO:
-- キーボード入力 / タッチ入力を受け取る
-  - https://rustwasm.github.io/docs/wasm-bindgen/examples/paint.html
-- RenderPassにPipelineを登録する形式にする
-  - ステートの変更関数呼び出しを減らしたい
 - fullscreenのテンプレートほしい
   - VAOは最後だけに設定できる方がいい (nil -> Vao?)
   - MRTしてポストプロセスをかけてみる
+- renderbuffer
+  - MSAA: https://ics.media/web3d-maniacs/webgl2_renderbufferstoragemultisample/
+  - mipmap がなぜかはいっている？
+- RenderPassにPipelineを登録する形式にする
+- 複数のカメラで描画したい
+  - 同じのを別カメラで２回やればOK
+  - Selection はカメラから？
+  - 指操作はカメラに紐付ける？
+  - デバッグ用のが欲しくはなるかも
+  - 結局ズーム操作はエミュレーションすることになるのでは
+- ctx 消したい(Singleton?)
+- pipeline.add で同じUniformBufferな時に気をつけたい(Camera)
+- キーボード入力 / タッチ入力を受け取る
+  - https://rustwasm.github.io/docs/wasm-bindgen/examples/paint.html
 - texture2darray, texture3d 対応する
   - texture として扱いたい？
     - https://ics.media/web3d-maniacs/webgl2_texture2darray/
@@ -161,22 +182,12 @@ impl System for SampleSystem {
   - https://inside.pixiv.blog/petamoriken/5853
   - 描画だけをメインスレッドにすればいいかも
   - https://rustwasm.github.io/wasm-bindgen/examples/wasm-in-web-worker.html
-- renderbuffer
-  - MSAA: https://ics.media/web3d-maniacs/webgl2_renderbufferstoragemultisample/
 - zoom-in/outの解像度耐えたい
   - pinch-in/out も
   - window.visualViewport
   - cssの方でscaleいじれば強引にいけそう
 - Async Computeしたい
   - tf
-- 複数のカメラで描画したい
-  - 同じのを別カメラで２回やればOK
-  - Selection はカメラから？
-  - 指操作はカメラに紐付ける？
-  - デバッグ用のが欲しくはなるかも
-  - 結局ズーム操作はエミュレーションすることになるのでは
-- ctx 消したい(Singleton?)
-- pipeline.add で同じUniformBufferな時に気をつけたい(Camera)
 */
 
 impl SampleSystem {

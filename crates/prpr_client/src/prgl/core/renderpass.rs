@@ -23,6 +23,7 @@ pub struct RenderPass {
   // stencil_target: Option<Arc<Texture>>,
   //
   raw_framebuffer: RawFrameBuffer,
+  // raw_framebuffer_for_renderbuffer: RawFrameBuffer,
   // raw_renderbuffer: RawRenderBuffer,
   buffer_setup_info: RwLock<BufferSetupInfo>,
   descriptor: Descriptor,
@@ -41,6 +42,10 @@ impl RenderPass {
       depth_target: None,
       //
       raw_framebuffer: RawFrameBuffer::new(ctx),
+      // https://github.com/WebGLSamples/WebGL2Samples/blob/master/samples/fbo_multisample.html
+      // MSAA では、RenderBuffer用のFrameBufferを作りそこに描画して、
+      // blitFrameBuffer で Resolve する
+      // raw_framebuffer_for_renderbuffer: RawFrameBuffer::new(ctx),
       // raw_renderbuffer: RawRenderBuffer::new(ctx),
       buffer_setup_info: RwLock::new(BufferSetupInfo {
         is_dirty: true,
@@ -95,22 +100,17 @@ impl RenderPass {
     }
     // let renderbuffer = self.raw_renderbuffer.raw_renderbuffer();
     // ctx.bind_renderbuffer(gl::RENDERBUFFER, Some(renderbuffer));
-    // ctx.renderbuffer_storage(
-    //   gl::RENDERBUFFER,
-    //   gl::DEPTH_COMPONENT16,
-    //   max_width,
-    //   max_height,
-    // );
+    // ctx.renderbuffer_storage_multisample(gl::RENDERBUFFER, 4, gl::RGBA8, max_width, max_height);
     // ctx.framebuffer_renderbuffer(
     //   gl::FRAMEBUFFER,
-    //   gl::DEPTH_ATTACHMENT,
+    //   gl::COLOR_ATTACHMENT0,
     //   gl::RENDERBUFFER,
     //   Some(renderbuffer),
     // );
 
     if SET_BIND_NONE_AFTER_WORK {
       ctx.bind_framebuffer(gl::FRAMEBUFFER, None);
-      // ctx.bind_renderbuffer(gl::RENDERBUFFER, None);
+      ctx.bind_renderbuffer(gl::RENDERBUFFER, None);
     }
 
     setup_info.is_dirty = false;
@@ -134,7 +134,7 @@ impl RenderPass {
       // ctx.bind_renderbuffer(gl::RENDERBUFFER, Some(renderbuffer));
     } else if info.use_default_buffer {
       ctx.bind_framebuffer(gl::FRAMEBUFFER, None);
-      // ctx.bind_renderbuffer(gl::RENDERBUFFER, None);
+      ctx.bind_renderbuffer(gl::RENDERBUFFER, None);
     } else {
       log::error("[not use default framebuffer] && [no color target]");
     }
@@ -145,6 +145,7 @@ impl RenderPass {
     let mut clear_flag = 0;
     for i in 0..MAX_OUTPUT_SLOT {
       if let Some(color) = self.clear_colors[i] {
+        // TODO: clearBufferfv
         ctx.clear_color(color.x, color.y, color.z, color.w);
         clear_flag |= gl::COLOR_BUFFER_BIT;
       }
@@ -200,6 +201,10 @@ impl RenderPass {
   pub fn set_use_default_buffer(&mut self, use_default_buffer: bool) {
     let mut info = self.buffer_setup_info.write().unwrap();
     info.use_default_buffer = use_default_buffer;
+  }
+  pub fn set_depth_target(&mut self, target: Option<&Arc<Texture>>) {
+    self.depth_target = target.map(|target| target.clone());
+    self.buffer_setup_info.write().unwrap().is_dirty = true;
   }
   pub fn set_color_target_by_slot(&mut self, target: Option<&Arc<Texture>>, slot: i32) {
     if slot < 0 || slot >= MAX_OUTPUT_SLOT as i32 {
