@@ -52,16 +52,16 @@ impl<T: BufferAttribute> VertexBuffer<T> {
   }
 }
 
+pub trait UniformBufferTrait {
+  // returns successed
+  fn bind(&self, shader: &Shader);
+}
 pub struct UniformBuffer<T: BufferAttribute> {
   ctx: ArcGlContext,
   raw_buffer: RawBuffer,
   data: RwLock<T>,
   name: &'static str,
   is_dirty: Mutex<bool>,
-}
-pub trait UniformBufferTrait {
-  // returns successed
-  fn bind(&self, shader: &Shader);
 }
 impl<T: BufferAttribute> UniformBuffer<T> {
   pub fn new(ctx: &ArcGlContext, data: T) -> Self {
@@ -87,6 +87,57 @@ impl<T: BufferAttribute> UniformBufferTrait for UniformBuffer<T> {
       let mut is_dirty_lock = self.is_dirty.lock().unwrap();
       if *is_dirty_lock {
         self.raw_buffer.write_untyped(0, self.read_lock().ub_data());
+        *is_dirty_lock = false;
+      }
+    }
+    if let Some(index) = shader.uniform_block_index(self.name) {
+      self.ctx.bind_buffer_base(
+        gl::UNIFORM_BUFFER,
+        index,
+        Some(self.raw_buffer.raw_buffer()),
+      );
+    }
+  }
+}
+pub trait RefInto<T> {
+  fn ref_into(&self) -> T;
+}
+pub struct IntoUniformBuffer<T: BufferAttribute, I: RefInto<T>> {
+  ctx: ArcGlContext,
+  raw_buffer: RawBuffer,
+  name: &'static str,
+  phantom_data: std::marker::PhantomData<T>,
+  into: RwLock<I>,
+  is_dirty: Mutex<bool>,
+}
+impl<T: BufferAttribute, I: RefInto<T>> IntoUniformBuffer<T, I> {
+  pub fn new(ctx: &ArcGlContext, into: I) -> Self {
+    let data = (&into).ref_into();
+    Self {
+      ctx: ctx.clone(),
+      name: data.name(),
+      raw_buffer: RawBuffer::new_untyped(ctx, data.ub_data(), BufferUsage::Uniform),
+      is_dirty: Mutex::new(true),
+      phantom_data: std::marker::PhantomData,
+      into: RwLock::new(into),
+    }
+  }
+  pub fn write_lock(&self) -> std::sync::RwLockWriteGuard<'_, I> {
+    *self.is_dirty.lock().unwrap() = true;
+    self.into.write().unwrap()
+  }
+  pub fn read_lock(&self) -> std::sync::RwLockReadGuard<'_, I> {
+    self.into.read().unwrap()
+  }
+}
+
+impl<T: BufferAttribute, I: RefInto<T>> UniformBufferTrait for IntoUniformBuffer<T, I> {
+  fn bind(&self, shader: &Shader) {
+    {
+      let mut is_dirty_lock = self.is_dirty.lock().unwrap();
+      if *is_dirty_lock {
+        let data: T = self.read_lock().ref_into();
+        self.raw_buffer.write_untyped(0, data.ub_data());
         *is_dirty_lock = false;
       }
     }

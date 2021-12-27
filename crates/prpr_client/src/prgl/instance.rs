@@ -1,5 +1,6 @@
 use super::*;
 use crate::html;
+
 pub struct Instance {
   ctx: ArcGlContext,
   max_width: i32,

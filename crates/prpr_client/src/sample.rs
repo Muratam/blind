@@ -12,7 +12,10 @@ impl System for SampleSystem {
   fn new(core: &Core) -> Self {
     let ctx = core.main_prgl().ctx();
     let template = crate::shader_template! {
-      attrs: [CameraAttribute, PbrMapping, TransformAttribute, PbrAttribute],
+      attrs: [
+        CameraAttribute, TransformAttribute, PbrAttribute,
+        PbrMapping
+      ],
       vs_attr: ShapeVertex,
       vs_code: {
         in_color = vec4(position, 1.0);
@@ -37,6 +40,7 @@ impl System for SampleSystem {
       camera,
     }
   }
+
   fn update(&mut self, core: &Core) {
     let frame = core.frame();
     let prgl = core.main_prgl();
@@ -47,11 +51,17 @@ impl System for SampleSystem {
     let color = Vec4::new(v, v, v, 1.0);
     self.surface.set_clear_color(Some(color));
     self.camera.camera_pos = Vec3::new(rad.sin(), rad.cos(), rad.cos()) * 5.0;
+    self.object.transform.translate = Vec3::new(
+      (frame as f32).sin() * 0.01,
+      ((frame + 1) as f32).sin() * 0.01,
+      ((frame + 2) as f32).sin() * 0.01,
+    );
 
     // notify update
     self.surface.update(prgl); // 消したい
     self.camera.aspect_ratio = prgl.aspect_ratio(); // by screen
     self.camera.update(); // 消したい
+    self.object.transform.update(); // 消したい
 
     // draw start
     let desc_ctx = self.surface.bind();
@@ -97,6 +107,7 @@ impl System for SampleSystem {
   - 指操作はカメラに紐付ける？
   - デバッグ用のが欲しくはなるかも
   - 結局ズーム操作はエミュレーションすることになるのでは
+- ctx 消したい(Singleton?)
 */
 
 impl SampleSystem {

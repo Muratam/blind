@@ -2,7 +2,7 @@ use super::*;
 
 pub struct TransformObject {
   pub pipeline: Pipeline, // TODO: not pub
-  transform: Transform,
+  pub transform: Transform,
 }
 impl TransformObject {
   pub fn new(ctx: &ArcGlContext) -> Self {
