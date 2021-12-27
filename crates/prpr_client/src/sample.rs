@@ -76,8 +76,10 @@ impl System for SampleSystem {
 
     // draw start
     let desc_ctx = self.surface.bind();
+    let ctx = core.main_prgl().ctx();
+    let mut cmd = prgl::Command::new(ctx);
     for object in &self.objects {
-      object.pipeline.draw(&desc_ctx);
+      object.pipeline.draw(&mut cmd, &desc_ctx);
     }
 
     // the others

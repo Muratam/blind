@@ -19,12 +19,14 @@ fn usage_to_store_type(usage: BufferUsage) -> u32 {
     BufferUsage::TransferDst => gl::STATIC_READ,
   }
 }
-
+use std::sync::atomic::{AtomicUsize, Ordering};
+static RAW_BUFFER_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
 pub struct RawBuffer {
   ctx: ArcGlContext,
   buffer: web_sys::WebGlBuffer,
   size: i32,
   usage: BufferUsage,
+  buffer_id: u64,
 }
 impl RawBuffer {
   pub fn new<T>(ctx: &ArcGlContext, data: &[T], usage: BufferUsage) -> Self {
@@ -49,11 +51,13 @@ impl RawBuffer {
     if SET_BIND_NONE_AFTER_WORK {
       ctx.bind_buffer(target, None);
     }
+    let buffer_id = RAW_BUFFER_ID_COUNTER.fetch_add(1, Ordering::SeqCst) as u64;
     Self {
       ctx: ctx.clone(),
       buffer,
       size,
       usage,
+      buffer_id,
     }
   }
   pub fn write<T>(&self, offset: usize, data: &[T]) {
@@ -86,6 +90,9 @@ impl RawBuffer {
   }
   pub fn raw_target(&self) -> u32 {
     self.usage as u32
+  }
+  pub fn buffer_id(&self) -> u64 {
+    self.buffer_id
   }
 }
 impl Drop for RawBuffer {

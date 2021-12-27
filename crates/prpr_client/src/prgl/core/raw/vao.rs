@@ -3,7 +3,11 @@ use super::*;
 pub struct RawVao {
   ctx: ArcGlContext,
   vao: web_sys::WebGlVertexArrayObject,
+  vao_id: u64,
 }
+use std::sync::atomic::{AtomicUsize, Ordering};
+static RAW_VAO_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
+
 impl RawVao {
   pub fn new(
     ctx: &ArcGlContext,
@@ -53,14 +57,19 @@ impl RawVao {
         ctx.bind_buffer(gl::ELEMENT_ARRAY_BUFFER, None);
       }
     }
+    let vao_id = RAW_VAO_ID_COUNTER.fetch_add(1, Ordering::SeqCst) as u64;
     Self {
       ctx: ctx.clone(),
       vao,
+      vao_id,
     }
   }
 
   pub fn raw_vao(&self) -> &web_sys::WebGlVertexArrayObject {
     &self.vao
+  }
+  pub fn vao_id(&self) -> u64 {
+    self.vao_id
   }
 }
 

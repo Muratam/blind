@@ -7,8 +7,7 @@ pub struct Vao<T: BufferAttribute> {
   shader_id_to_raw_vao: Mutex<HashMap<u64, RawVao>>,
 }
 pub trait VaoTrait {
-  // returns successed
-  fn bind(&self, shader: &Shader);
+  fn bind(&self, cmd: &mut Command);
 }
 impl<T: BufferAttribute> Vao<T> {
   pub fn new(ctx: &ArcGlContext, v_buffer: VertexBuffer<T>, i_buffer: IndexBuffer) -> Self {
@@ -43,21 +42,23 @@ impl<T: BufferAttribute> Vao<T> {
   // pub fn draw_instanced_command() -> DrawCommand {}
 }
 impl<T: BufferAttribute> VaoTrait for Vao<T> {
-  fn bind(&self, shader: &Shader) {
-    let id = shader.id();
-    let mut lock = self.shader_id_to_raw_vao.lock().unwrap();
-    if let Some(raw_vao) = lock.get(&id) {
-      self.ctx.bind_vertex_array(Some(raw_vao.raw_vao()));
-      return;
+  fn bind(&self, cmd: &mut Command) {
+    if let Some(shader) = cmd.current_shader() {
+      let id = shader.id();
+      let mut lock = self.shader_id_to_raw_vao.lock().unwrap();
+      if let Some(raw_vao) = lock.get(&id) {
+        cmd.set_vao(&raw_vao);
+        return;
+      }
+      let i_buffer = self.i_buffer.as_ref().map(|x| x.raw_buffer());
+      let raw_vao = RawVao::new(
+        &self.ctx,
+        shader.raw_program().raw_program(),
+        Some((self.v_buffer.template(), self.v_buffer.raw_buffer())),
+        i_buffer,
+      );
+      cmd.set_vao(&raw_vao);
+      lock.insert(id, raw_vao);
     }
-    let i_buffer = self.i_buffer.as_ref().map(|x| x.raw_buffer());
-    let raw_vao = RawVao::new(
-      &self.ctx,
-      shader.raw_program().raw_program(),
-      Some((self.v_buffer.template(), self.v_buffer.raw_buffer())),
-      i_buffer,
-    );
-    self.ctx.bind_vertex_array(Some(raw_vao.raw_vao()));
-    lock.insert(id, raw_vao);
   }
 }

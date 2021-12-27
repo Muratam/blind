@@ -31,3 +31,5 @@ mod state;
 pub use self::state::*;
 mod vao;
 pub use self::vao::*;
+pub mod command;
+pub use self::command::*;

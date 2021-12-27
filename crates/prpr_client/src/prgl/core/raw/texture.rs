@@ -182,11 +182,6 @@ impl RawTextureDescriptor {
     }
   }
 }
-pub struct RawTexture {
-  ctx: ArcGlContext,
-  raw_texture: web_sys::WebGlTexture,
-  desc: RawTextureDescriptor,
-}
 #[derive(PartialEq)]
 #[allow(non_camel_case_types)]
 pub enum TextureWriteType<'a> {
@@ -202,6 +197,14 @@ pub enum TextureWriteType<'a> {
   HtmlVideoElement(&'a web_sys::HtmlVideoElement),
 }
 
+use std::sync::atomic::{AtomicUsize, Ordering};
+static RAW_TEXTURE_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
+pub struct RawTexture {
+  ctx: ArcGlContext,
+  raw_texture: web_sys::WebGlTexture,
+  desc: RawTextureDescriptor,
+  texture_id: u64,
+}
 impl RawTexture {
   // pub fn new_cubemap() { target = TEXTURE_CUBE_MAP_??; }
   pub fn new<'a>(
@@ -262,9 +265,11 @@ impl RawTexture {
     if SET_BIND_NONE_AFTER_WORK {
       ctx.bind_texture(target, None);
     }
+    let texture_id = RAW_TEXTURE_ID_COUNTER.fetch_add(1, Ordering::SeqCst) as u64;
     Self {
       ctx: ctx.clone(),
       raw_texture,
+      texture_id,
       desc: RawTextureDescriptor::from_2d_descriptor(desc),
     }
   }
@@ -296,11 +301,19 @@ impl RawTexture {
   pub fn target(&self) -> u32 {
     self.desc.target
   }
+  pub fn bind(&self) {
+    let target = self.target();
+    self.ctx.bind_texture(target, Some(&self.raw_texture));
+  }
+
   pub fn channels(&self) -> usize {
     self.desc.format.to_simple_format().channels()
   }
   pub fn raw_texture(&self) -> &web_sys::WebGlTexture {
     &self.raw_texture
+  }
+  pub fn texture_id(&self) -> u64 {
+    self.texture_id
   }
   pub fn to_slot_enum(i: i32) -> u32 {
     match i {

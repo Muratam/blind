@@ -54,7 +54,7 @@ impl<T: BufferAttribute> VertexBuffer<T> {
 
 pub trait UniformBufferTrait {
   // returns successed
-  fn bind(&self, shader: &Shader);
+  fn bind(&self, cmd: &mut Command);
 }
 pub struct UniformBuffer<T: BufferAttribute> {
   ctx: ArcGlContext,
@@ -82,7 +82,7 @@ impl<T: BufferAttribute> UniformBuffer<T> {
   }
 }
 impl<T: BufferAttribute> UniformBufferTrait for UniformBuffer<T> {
-  fn bind(&self, shader: &Shader) {
+  fn bind(&self, cmd: &mut Command) {
     {
       let mut is_dirty_lock = self.is_dirty.lock().unwrap();
       if *is_dirty_lock {
@@ -90,12 +90,10 @@ impl<T: BufferAttribute> UniformBufferTrait for UniformBuffer<T> {
         *is_dirty_lock = false;
       }
     }
-    if let Some(index) = shader.uniform_block_index(self.name) {
-      self.ctx.bind_buffer_base(
-        gl::UNIFORM_BUFFER,
-        index,
-        Some(self.raw_buffer.raw_buffer()),
-      );
+    if let Some(shader) = cmd.current_shader() {
+      if let Some(index) = shader.uniform_block_index(self.name) {
+        cmd.set_ubo(&self.raw_buffer, index);
+      }
     }
   }
 }
@@ -132,7 +130,7 @@ impl<T: BufferAttribute, I: RefInto<T>> IntoUniformBuffer<T, I> {
 }
 
 impl<T: BufferAttribute, I: RefInto<T>> UniformBufferTrait for IntoUniformBuffer<T, I> {
-  fn bind(&self, shader: &Shader) {
+  fn bind(&self, cmd: &mut Command) {
     {
       let mut is_dirty_lock = self.is_dirty.lock().unwrap();
       if *is_dirty_lock {
@@ -141,12 +139,10 @@ impl<T: BufferAttribute, I: RefInto<T>> UniformBufferTrait for IntoUniformBuffer
         *is_dirty_lock = false;
       }
     }
-    if let Some(index) = shader.uniform_block_index(self.name) {
-      self.ctx.bind_buffer_base(
-        gl::UNIFORM_BUFFER,
-        index,
-        Some(self.raw_buffer.raw_buffer()),
-      );
+    if let Some(shader) = cmd.current_shader() {
+      if let Some(index) = shader.uniform_block_index(self.name) {
+        cmd.set_ubo(&self.raw_buffer, index);
+      }
     }
   }
 }

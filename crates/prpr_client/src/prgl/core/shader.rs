@@ -45,7 +45,7 @@ impl Shader {
     self.template.fs_code()
   }
   pub fn id(&self) -> u64 {
-    self.raw_program.raw_program_id()
+    self.raw_program.program_id()
   }
   pub fn use_program(&self) {
     self.raw_program.use_program();

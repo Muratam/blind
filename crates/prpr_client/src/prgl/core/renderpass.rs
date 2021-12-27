@@ -61,7 +61,7 @@ impl RenderPass {
     let mut max_height: i32 = 0;
     let mut bind_count: i32 = 0;
     let mut bind_impl = |attachment: u32, texture: &Arc<Texture>| {
-      texture.bind();
+      texture.raw_texture().bind();
       ctx.framebuffer_texture_2d(
         gl::FRAMEBUFFER,
         attachment,

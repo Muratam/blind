@@ -24,18 +24,18 @@ impl Pipeline {
     }
   }
 
-  pub fn draw(&self, outer_desc_ctx: &DescriptorContext) {
+  pub fn draw(&self, cmd: &mut Command, outer_desc_ctx: &DescriptorContext) {
     if let Some(shader) = &self.shader {
-      shader.use_program();
-      outer_desc_ctx.cons(&self.descriptor).bind(shader);
+      cmd.set_shader(shader);
+      outer_desc_ctx.cons(&self.descriptor).bind(cmd);
     } else {
       log::error("No Shader Program");
       return;
     }
-    self.depth_func.apply(&self.ctx);
-    self.cull_mode.apply(&self.ctx);
+    cmd.set_depth_func(self.depth_func);
+    cmd.set_cull_mode(self.cull_mode);
     if let Some(draw_command) = &self.draw_command {
-      draw_command.apply(&self.ctx, self.primitive_topology);
+      cmd.set_draw_command(draw_command, self.primitive_topology);
     } else {
       log::error("No Draw Command");
       return;

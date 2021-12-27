@@ -42,17 +42,17 @@ impl<'a, 'b> DescriptorContext<'a, 'b> {
       others: self,
     }
   }
-  pub fn bind(&self, shader: &Shader) {
+  pub fn bind(&self, cmd: &mut Command) {
     if let Self::Cons { prior, others } = self {
-      others.bind(shader);
+      others.bind(cmd);
       for u_buffer in &prior.u_buffers {
-        u_buffer.bind(shader);
+        u_buffer.bind(cmd);
       }
       for u_mapping in &prior.u_mappings {
-        u_mapping.bind(shader);
+        u_mapping.bind(cmd);
       }
       if let Some(vao) = &prior.vao {
-        vao.bind(shader);
+        vao.bind(cmd);
       }
     }
   }

@@ -100,14 +100,8 @@ impl Texture {
   ) -> Self {
     Self::new_impl(ctx, desc, TextureWriteType::HtmlVideoElement(data))
   }
-  pub fn bind(&self) {
-    let target = self.raw_texture.target();
-    self
-      .ctx
-      .bind_texture(target, Some(self.raw_texture.raw_texture()));
-  }
   pub fn apply_sampler(&mut self, sampler: &Sampler) {
-    self.bind();
+    self.raw_texture().bind();
     let target = self.raw_texture.target();
     sampler.apply(&self.ctx, target);
     if SET_BIND_NONE_AFTER_WORK {
@@ -154,8 +148,7 @@ pub struct TextureMapping<T: TextureMappingAttribute> {
   mapping: RwLock<T>,
 }
 pub trait TextureMappingTrait {
-  // returns successed
-  fn bind(&self, shader: &Shader);
+  fn bind(&self, cmd: &mut Command);
 }
 impl<T: TextureMappingAttribute> TextureMapping<T> {
   pub fn new(ctx: &ArcGlContext, mapping: T) -> Self {
@@ -174,16 +167,17 @@ impl<T: TextureMappingAttribute> TextureMapping<T> {
 }
 
 impl<T: TextureMappingAttribute> TextureMappingTrait for TextureMapping<T> {
-  fn bind(&self, shader: &Shader) {
-    let lock = self.mapping.read().unwrap();
-    let values = lock.values();
-    for i in 0..self.keys.len() {
-      if let Some((location, index)) = shader.uniform_texture_location(self.keys[i]) {
-        match &values[i] {
-          ShaderSamplerType::sampler2D(texture) => {
-            self.ctx.active_texture(RawTexture::to_slot_enum(*index));
-            texture.bind();
-            self.ctx.uniform1i(Some(location), *index);
+  fn bind(&self, cmd: &mut Command) {
+    if let Some(shader) = cmd.current_shader() {
+      let shader = shader.clone();
+      let lock = self.mapping.read().unwrap();
+      let values = lock.values();
+      for i in 0..self.keys.len() {
+        if let Some(utl) = shader.uniform_texture_location(self.keys[i]) {
+          match &values[i] {
+            ShaderSamplerType::sampler2D(texture) => {
+              cmd.set_uniform_texture(texture.raw_texture(), &utl);
+            }
           }
         }
       }

@@ -127,7 +127,7 @@ impl RawShaderProgram {
   pub fn raw_program(&self) -> &web_sys::WebGlProgram {
     &self.program
   }
-  pub fn raw_program_id(&self) -> u64 {
+  pub fn program_id(&self) -> u64 {
     self.program_id
   }
 }
