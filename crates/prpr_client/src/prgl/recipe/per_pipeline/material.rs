@@ -36,7 +36,7 @@ impl PbrMaterial {
   }
 }
 impl PipelineBindable for PbrMaterial {
-  fn bind(&self, pipeline: &mut Pipeline) {
+  fn bind_pipeline(&self, pipeline: &mut Pipeline) {
     pipeline.add_texture_mapping(&self.mapping);
     pipeline.add_uniform_buffer(&self.ubo);
   }

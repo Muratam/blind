@@ -44,7 +44,7 @@ impl Shape {
   }
 }
 impl PipelineBindable for Shape {
-  fn bind(&self, pipeline: &mut Pipeline) {
+  fn bind_pipeline(&self, pipeline: &mut Pipeline) {
     pipeline.set_draw_vao(&self.vao);
   }
 }

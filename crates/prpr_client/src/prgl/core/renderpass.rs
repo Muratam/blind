@@ -193,13 +193,20 @@ impl RenderPass {
     }
     self.clear_colors[slot as usize] = value;
   }
+  pub fn add_uniform_buffer_trait(&mut self, buffer: &Arc<dyn UniformBufferTrait>) {
+    self.descriptor.add_uniform_buffer(&buffer.clone());
+  }
   pub fn add_uniform_buffer<T: BufferAttribute + 'static>(
     &mut self,
     buffer: &Arc<UniformBuffer<T>>,
   ) {
-    self
-      .descriptor
-      .add_uniform_buffer(&(Arc::clone(buffer) as Arc<dyn UniformBufferTrait>));
+    self.add_uniform_buffer_trait(&(buffer.clone() as Arc<dyn UniformBufferTrait>));
+  }
+  pub fn add_into_uniform_buffer<T: BufferAttribute + 'static, I: RefInto<T> + 'static>(
+    &mut self,
+    buffer: &Arc<IntoUniformBuffer<T, I>>,
+  ) {
+    self.add_uniform_buffer_trait(&(buffer.clone() as Arc<dyn UniformBufferTrait>));
   }
   pub fn add_texture_mapping<T: TextureMappingAttribute + 'static>(
     &mut self,
@@ -212,5 +219,5 @@ impl RenderPass {
 }
 
 pub trait RenderPassBindable {
-  fn bind(&self, renderpass: &mut RenderPass);
+  fn bind_renderpass(&self, renderpass: &mut RenderPass);
 }

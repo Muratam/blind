@@ -18,7 +18,7 @@ impl Surface {
       .set_viewport(Some(&instance.full_viewport()));
   }
   pub fn add(&mut self, bindable: &dyn RenderPassBindable) {
-    bindable.bind(&mut self.render_pass);
+    bindable.bind_renderpass(&mut self.render_pass);
   }
   pub fn bind(&self) -> DescriptorContext {
     self.render_pass.bind()

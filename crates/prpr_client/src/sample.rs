@@ -50,18 +50,16 @@ impl System for SampleSystem {
     let v = rad.sin() * 0.25 + 0.75;
     let color = Vec4::new(v, v, v, 1.0);
     self.surface.set_clear_color(Some(color));
-    self.camera.camera_pos = Vec3::new(rad.sin(), rad.cos(), rad.cos()) * 5.0;
-    self.object.transform.translate = Vec3::new(
+    self.camera.write_lock().camera_pos = Vec3::new(rad.sin(), rad.cos(), rad.cos()) * 5.0;
+    self.object.transform.write_lock().translate = Vec3::new(
       (frame as f32).sin() * 0.01,
       ((frame + 1) as f32).sin() * 0.01,
       ((frame + 2) as f32).sin() * 0.01,
     );
 
-    // notify update
+    // update by screen
     self.surface.update(prgl); // 消したい
-    self.camera.aspect_ratio = prgl.aspect_ratio(); // by screen
-    self.camera.update(); // 消したい
-    self.object.transform.update(); // 消したい
+    self.camera.write_lock().aspect_ratio = prgl.aspect_ratio(); // by screen
 
     // draw start
     let desc_ctx = self.surface.bind();

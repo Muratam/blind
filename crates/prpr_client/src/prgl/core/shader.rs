@@ -85,7 +85,7 @@ impl std::fmt::Display for MayShader {
   }
 }
 impl PipelineBindable for MayShader {
-  fn bind(&self, pipeline: &mut Pipeline) {
+  fn bind_pipeline(&self, pipeline: &mut Pipeline) {
     if let Some(shader) = &self.shader {
       pipeline.set_shader(shader);
     }

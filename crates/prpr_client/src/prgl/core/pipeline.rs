@@ -51,13 +51,20 @@ impl Pipeline {
     self.set_vao(vao);
     self.set_draw_command(vao.draw_command());
   }
+  pub fn add_uniform_buffer_trait(&mut self, buffer: &Arc<dyn UniformBufferTrait>) {
+    self.descriptor.add_uniform_buffer(&buffer.clone());
+  }
   pub fn add_uniform_buffer<T: BufferAttribute + 'static>(
     &mut self,
     buffer: &Arc<UniformBuffer<T>>,
   ) {
-    self
-      .descriptor
-      .add_uniform_buffer(&(Arc::clone(buffer) as Arc<dyn UniformBufferTrait>));
+    self.add_uniform_buffer_trait(&(buffer.clone() as Arc<dyn UniformBufferTrait>));
+  }
+  pub fn add_into_uniform_buffer<T: BufferAttribute + 'static, I: RefInto<T> + 'static>(
+    &mut self,
+    buffer: &Arc<IntoUniformBuffer<T, I>>,
+  ) {
+    self.add_uniform_buffer_trait(&(buffer.clone() as Arc<dyn UniformBufferTrait>));
   }
   pub fn add_texture_mapping<T: TextureMappingAttribute + 'static>(
     &mut self,
@@ -80,5 +87,5 @@ impl Pipeline {
 }
 
 pub trait PipelineBindable {
-  fn bind(&self, pipeline: &mut Pipeline);
+  fn bind_pipeline(&self, pipeline: &mut Pipeline);
 }
