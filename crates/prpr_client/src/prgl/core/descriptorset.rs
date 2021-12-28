@@ -27,24 +27,28 @@ impl Descriptor {
     self.u_mappings.push(Arc::clone(mapping));
   }
 }
-pub enum DescriptorContext<'a, 'b> {
+pub enum DescriptorContext {
   Cons {
-    prior: &'a Descriptor,
-    others: &'b DescriptorContext<'a, 'b>,
+    prior: Arc<RwLock<Descriptor>>,
+    others: Arc<Self>,
   },
   Nil,
 }
 
-impl<'a, 'b> DescriptorContext<'a, 'b> {
-  pub fn cons(&'a self, prior: &'b Descriptor) -> DescriptorContext<'a, 'b> {
-    Self::Cons {
-      prior,
-      others: self,
-    }
+impl DescriptorContext {
+  pub fn nil() -> Arc<Self> {
+    Arc::new(Self::Nil)
+  }
+  pub fn cons(others: &Arc<Self>, prior: &Arc<RwLock<Descriptor>>) -> Arc<Self> {
+    Arc::new(Self::Cons {
+      prior: prior.clone(),
+      others: others.clone(),
+    })
   }
   pub fn bind(&self, cmd: &mut Command) {
     if let Self::Cons { prior, others } = self {
       others.bind(cmd);
+      let prior = prior.read().unwrap();
       for u_buffer in &prior.u_buffers {
         u_buffer.bind(cmd);
       }

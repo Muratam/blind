@@ -8,7 +8,7 @@ pub struct Pipeline {
   primitive_topology: PrimitiveToporogy,
   shader: Option<Arc<Shader>>,
   invisible_reasons: collections::BitSet64,
-  descriptor: Descriptor,
+  descriptor: Arc<RwLock<Descriptor>>,
 }
 
 impl Pipeline {
@@ -20,17 +20,17 @@ impl Pipeline {
       primitive_topology: PrimitiveToporogy::Triangles,
       shader: None,
       invisible_reasons: collections::BitSet64::new(),
-      descriptor: Descriptor::new(),
+      descriptor: Arc::new(RwLock::new(Descriptor::new())),
     }
   }
 
-  pub fn draw(&self, cmd: &mut Command, outer_desc_ctx: &DescriptorContext) {
+  pub fn draw(&self, cmd: &mut Command, outer_ctx: &Arc<DescriptorContext>) {
     if self.invisible() {
       return;
     }
     if let Some(shader) = &self.shader {
       cmd.set_shader(shader);
-      outer_desc_ctx.cons(&self.descriptor).bind(cmd);
+      DescriptorContext::cons(outer_ctx, &self.descriptor).bind(cmd);
     } else {
       // log::error("No Shader Program");
       return;
@@ -50,16 +50,16 @@ impl Pipeline {
     self.shader = Some(Arc::clone(shader));
   }
   pub fn set_vao<T: BufferAttribute + 'static>(&mut self, vao: &Arc<Vao<T>>) {
-    self
-      .descriptor
-      .set_vao(&(Arc::clone(vao) as Arc<dyn VaoTrait>));
+    let mut descriptor = self.descriptor.write().unwrap();
+    descriptor.set_vao(&(Arc::clone(vao) as Arc<dyn VaoTrait>));
   }
   pub fn set_draw_vao<T: BufferAttribute + 'static>(&mut self, vao: &Arc<Vao<T>>) {
     self.set_vao(vao);
     self.set_draw_command(vao.draw_command());
   }
   pub fn add_uniform_buffer_trait(&mut self, buffer: &Arc<dyn UniformBufferTrait>) {
-    self.descriptor.add_uniform_buffer(&buffer.clone());
+    let mut descriptor = self.descriptor.write().unwrap();
+    descriptor.add_uniform_buffer(&buffer.clone());
   }
   pub fn add_uniform_buffer<T: BufferAttribute + 'static>(
     &mut self,
@@ -77,9 +77,8 @@ impl Pipeline {
     &mut self,
     mapping: &Arc<TextureMapping<T>>,
   ) {
-    self
-      .descriptor
-      .add_texture_mapping(&(Arc::clone(mapping) as Arc<dyn TextureMappingTrait>));
+    let mut descriptor = self.descriptor.write().unwrap();
+    descriptor.add_texture_mapping(&(Arc::clone(mapping) as Arc<dyn TextureMappingTrait>));
   }
   pub fn set_cull_mode(&mut self, mode: CullMode) {
     self.cull_mode = mode;

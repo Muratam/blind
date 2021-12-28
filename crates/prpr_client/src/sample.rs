@@ -2,72 +2,33 @@
 use super::*;
 use prgl;
 
-fn casual_shader() -> ShaderTemplate {
-  crate::shader_template! {
-    attrs: [
-      CameraAttribute, TransformAttribute, PbrAttribute,
-      PbrMapping
-    ],
-    vs_attr: ShapeVertex,
-    vs_code: {
-      gl_Position = view_proj_mat * model_mat * vec4(position, 1.0);
-      in_position = position;
-    },
-    fs_attr: { in_position: vec3 },
-    fs_code: {
-      out_color = vec4(texture(normal_map, vec2(0.5, 0.5)).rgb + in_position, 1.0);
-    }
-    out_attr: { out_color: vec4 }
-  }
-}
-
-crate::shader_attr! {
-  mapping ToGrayScaleMapping {
-    src_color: sampler2D,
-  }
-}
-
-fn grayscale_shader() -> ShaderTemplate {
-  crate::shader_template! {
-    attrs: [ToGrayScaleMapping],
-    vs_attr: FullScreenVertex,
-    vs_code: {
-      gl_Position = vec4(position, 0.5, 1.0);
-    },
-    fs_attr: {},
-    fs_code: {
-      ivec2 iuv = ivec2(gl_FragCoord.x, gl_FragCoord.y);
-      vec4 base = texelFetch(src_color, iuv, 0).rgba;
-      vec3 rgb = base.rgb;
-      if (base.a < 0.5) {
-        for (int len = 1; len <= 5; len += 1) {
-          for (int dx = -1; dx <= 1; dx+=1) {
-            for (int dy = -1; dy <= 1; dy+=1) {
-              if (texelFetch(src_color, iuv + ivec2(dx, dy) * len, 0).a > 0.5) {
-                rgb = vec3(0.0, 0.0, 0.0);
-              }
-            }
-          }
-        }
-      }
-      out_color = vec4(rgb, 1.0);
-    }
-    out_attr: { out_color: vec4 }
-  }
-}
-
-pub struct SampleSystem {
-  // 3d
+struct CasualScene {
   objects: Vec<prgl::TransformObject>,
   renderpass: prgl::RenderPass,
   camera: prgl::Camera,
-  // post effect
-  surface: prgl::Surface,
-  posteffect_pipeline: prgl::Pipeline,
+  out_color: Arc<Texture>,
 }
-impl System for SampleSystem {
-  fn new(core: &Core) -> Self {
-    let shader = MayShader::new(casual_shader());
+impl CasualScene {
+  pub fn shader() -> ShaderTemplate {
+    crate::shader_template! {
+      attrs: [
+        CameraAttribute, TransformAttribute, PbrAttribute,
+        PbrMapping
+      ],
+      vs_attr: ShapeVertex,
+      vs_code: {
+        gl_Position = view_proj_mat * model_mat * vec4(position, 1.0);
+        in_position = position;
+      },
+      fs_attr: { in_position: vec3 },
+      fs_code: {
+        out_color = vec4(texture(normal_map, vec2(0.5, 0.5)).rgb + in_position, 1.0);
+      }
+      out_attr: { out_color: vec4 }
+    }
+  }
+  pub fn new() -> Self {
+    let shader = MayShader::new(CasualScene::shader());
     let material = PbrMaterial::new();
     let shape = Shape::new_cube();
     let mut objects = Vec::new();
@@ -95,7 +56,7 @@ impl System for SampleSystem {
     renderpass.set_clear_color(Some(Vec4::new(1.0, 1.0, 1.0, 0.0)));
     renderpass.set_clear_depth(Some(1.0));
     renderpass.add(&camera);
-    let src_color = Arc::new(Texture::new_uninitialized(&Texture2dDescriptor {
+    let out_color = Arc::new(Texture::new_uninitialized(&Texture2dDescriptor {
       width: max_viewport.width as usize,
       height: max_viewport.height as usize,
       format: PixelFormat::R8G8B8A8,
@@ -107,29 +68,17 @@ impl System for SampleSystem {
       format: PixelFormat::Depth24,
       mipmap: false,
     }));
-    renderpass.set_color_target(Some(&src_color));
+    renderpass.set_color_target(Some(&out_color));
     renderpass.set_depth_target(Some(&src_depth));
-
-    let mut surface = Surface::new();
-    surface.set_clear_color(Some(Vec4::ZERO));
-    let mut posteffect_pipeline = FullScreen::new_pipeline();
-    posteffect_pipeline.add(&MayShader::new(grayscale_shader()));
-    posteffect_pipeline.add(&Arc::new(TextureMapping::new(ToGrayScaleMapping {
-      src_color,
-    })));
-
     Self {
       objects,
-      camera,
       renderpass,
-      posteffect_pipeline,
-      surface,
+      camera,
+      out_color,
     }
   }
-
-  fn update(&mut self, core: &Core) {
+  pub fn update(&mut self, core: &Core) {
     let frame = core.frame();
-    // update by user world
     let f = (frame as f32) / 100.0;
     self.camera.write_lock().camera_pos = Vec3::new(f.sin(), f.cos(), f.cos()) * 5.0;
     self.camera.write_lock().aspect_ratio = Instance::full_viewport().aspect_ratio();
@@ -139,19 +88,93 @@ impl System for SampleSystem {
     for object in &mut self.objects {
       object.transform.write_lock().rotation *= Quat::from_rotation_y(3.1415 * 0.01);
     }
-    // draw start
-    // TODO: use executer
+  }
+  pub fn draw(&mut self) {
     let mut cmd = prgl::Command::new();
-    {
-      let desc_ctx = self.renderpass.bind();
-      for object in &self.objects {
-        object.pipeline.draw(&mut cmd, &desc_ctx);
+    let outer_ctx = DescriptorContext::nil();
+    let outer_ctx = self.renderpass.bind(&outer_ctx);
+    for object in &self.objects {
+      object.pipeline.draw(&mut cmd, &outer_ctx);
+    }
+  }
+}
+
+crate::shader_attr! {
+  mapping CasualPostEffectMapping {
+    src_color: sampler2D,
+  }
+}
+struct CasualPostEffect {
+  surface: prgl::Surface,
+  pipeline: prgl::Pipeline,
+}
+impl CasualPostEffect {
+  pub fn shader() -> ShaderTemplate {
+    crate::shader_template! {
+      attrs: [CasualPostEffectMapping],
+      vs_attr: FullScreenVertex,
+      vs_code: {
+        gl_Position = vec4(position, 0.5, 1.0);
+      },
+      fs_attr: {},
+      fs_code: {
+        ivec2 iuv = ivec2(gl_FragCoord.x, gl_FragCoord.y);
+        vec4 base = texelFetch(src_color, iuv, 0).rgba;
+        vec3 rgb = base.rgb;
+        if (base.a < 0.5) {
+          for (int len = 1; len <= 5; len += 1) {
+            for (int dx = -1; dx <= 1; dx+=1) {
+              for (int dy = -1; dy <= 1; dy+=1) {
+                if (texelFetch(src_color, iuv + ivec2(dx, dy) * len, 0).a > 0.5) {
+                  rgb = vec3(0.0, 0.0, 0.0);
+                }
+              }
+            }
+          }
+        }
+        out_color = vec4(rgb, 1.0);
       }
+      out_attr: { out_color: vec4 }
     }
-    {
-      let desc_ctx = self.surface.bind();
-      self.posteffect_pipeline.draw(&mut cmd, &desc_ctx);
-    }
+  }
+  pub fn new(src_color: Arc<Texture>) -> Self {
+    let mut surface = Surface::new();
+    surface.set_clear_color(Some(Vec4::ZERO));
+    let mut pipeline = FullScreen::new_pipeline();
+    pipeline.add(&MayShader::new(CasualPostEffect::shader()));
+    pipeline.add(&Arc::new(TextureMapping::new(CasualPostEffectMapping {
+      src_color,
+    })));
+    Self { surface, pipeline }
+  }
+  pub fn update(&mut self, core: &Core) {
+    // Surface auto update
+  }
+  pub fn draw(&mut self) {
+    let mut cmd = prgl::Command::new();
+    let outer_ctx = DescriptorContext::nil();
+    let outer_ctx = self.surface.bind(&outer_ctx);
+    self.pipeline.draw(&mut cmd, &outer_ctx);
+  }
+}
+
+pub struct SampleSystem {
+  scene: CasualScene,
+  posteffect: CasualPostEffect,
+}
+impl System for SampleSystem {
+  fn new(core: &Core) -> Self {
+    let scene = CasualScene::new();
+    let posteffect = CasualPostEffect::new(scene.out_color.clone());
+    Self { scene, posteffect }
+  }
+
+  fn update(&mut self, core: &Core) {
+    self.scene.update(core);
+    self.posteffect.update(core);
+    // TODO: use executer
+    self.scene.draw();
+    self.posteffect.draw();
 
     // the others
     self.render_sample(core);

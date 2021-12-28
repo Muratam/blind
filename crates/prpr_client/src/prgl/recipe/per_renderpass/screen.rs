@@ -23,10 +23,10 @@ impl Surface {
   pub fn add(&mut self, bindable: &dyn RenderPassBindable) {
     bindable.bind_renderpass(&mut self.render_pass);
   }
-  pub fn bind(&mut self) -> DescriptorContext {
+  pub fn bind(&mut self, outer_ctx: &Arc<DescriptorContext>) -> Arc<DescriptorContext> {
     self.viewport = Instance::full_viewport();
     self.render_pass.set_viewport(Some(&self.viewport));
-    self.render_pass.bind()
+    self.render_pass.bind(outer_ctx)
   }
 }
 

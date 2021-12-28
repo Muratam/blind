@@ -25,7 +25,7 @@ pub struct RenderPass {
   // raw_framebuffer_for_renderbuffer: RawFrameBuffer,
   // raw_renderbuffer: RawRenderBuffer,
   buffer_setup_info: RwLock<BufferSetupInfo>,
-  descriptor: Descriptor,
+  descriptor: Arc<RwLock<Descriptor>>,
 }
 impl RenderPass {
   pub fn new() -> Self {
@@ -50,7 +50,7 @@ impl RenderPass {
         viewport: None,
         use_default_buffer: false,
       }),
-      descriptor: Descriptor::new(),
+      descriptor: Arc::new(RwLock::new(Descriptor::new())),
     }
   }
   fn setup_framebuffer_impl(&self) {
@@ -174,12 +174,12 @@ impl RenderPass {
     }
   }
 
-  pub fn bind(&self) -> DescriptorContext {
+  pub fn bind(&self, outer_ctx: &Arc<DescriptorContext>) -> Arc<DescriptorContext> {
     self.setup_framebuffer_impl();
     self.bind_framebuffer_impl();
     self.viewport_impl();
     self.clear_impl();
-    DescriptorContext::Nil.cons(&self.descriptor)
+    DescriptorContext::cons(outer_ctx, &self.descriptor)
   }
 
   pub fn set_color_target(&mut self, target: Option<&Arc<Texture>>) {
@@ -221,7 +221,8 @@ impl RenderPass {
     self.clear_colors[slot as usize] = value;
   }
   pub fn add_uniform_buffer_trait(&mut self, buffer: &Arc<dyn UniformBufferTrait>) {
-    self.descriptor.add_uniform_buffer(&buffer.clone());
+    let mut descriptor = self.descriptor.write().unwrap();
+    descriptor.add_uniform_buffer(&buffer.clone());
   }
   pub fn add_uniform_buffer<T: BufferAttribute + 'static>(
     &mut self,
@@ -239,9 +240,8 @@ impl RenderPass {
     &mut self,
     mapping: &Arc<TextureMapping<T>>,
   ) {
-    self
-      .descriptor
-      .add_texture_mapping(&(Arc::clone(mapping) as Arc<dyn TextureMappingTrait>));
+    let mut descriptor = self.descriptor.write().unwrap();
+    descriptor.add_texture_mapping(&(Arc::clone(mapping) as Arc<dyn TextureMappingTrait>));
   }
   pub fn add(&mut self, bindable: &dyn RenderPassBindable) {
     bindable.bind_renderpass(self);
