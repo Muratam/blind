@@ -26,8 +26,9 @@ pub enum DrawCommand {
   // },
 }
 impl DrawCommand {
-  pub fn apply(&self, ctx: &ArcGlContext, topology: PrimitiveToporogy) {
+  pub fn apply(&self, topology: PrimitiveToporogy) {
     let topology = topology as u32;
+    let ctx = Instance::ctx();
     match self {
       DrawCommand::Draw { first, count } => {
         ctx.draw_arrays(topology, *first, *count);
@@ -48,7 +49,8 @@ pub enum CullMode {
   All = gl::FRONT_AND_BACK as isize,
 }
 impl CullMode {
-  pub fn apply(&self, ctx: &ArcGlContext) {
+  pub fn apply(&self) {
+    let ctx = Instance::ctx();
     if *self == CullMode::None {
       ctx.disable(gl::CULL_FACE);
     } else {
@@ -70,7 +72,8 @@ pub enum DepthFunc {
   Always = gl::ALWAYS as isize,
 }
 impl DepthFunc {
-  pub fn apply(&self, ctx: &ArcGlContext) {
+  pub fn apply(&self) {
+    let ctx = Instance::ctx();
     if *self == DepthFunc::Always {
       ctx.disable(gl::DEPTH_TEST);
     } else {

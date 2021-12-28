@@ -218,18 +218,14 @@ pub enum TextureWriteType<'a> {
 use std::sync::atomic::{AtomicUsize, Ordering};
 static RAW_TEXTURE_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
 pub struct RawTexture {
-  ctx: ArcGlContext,
   raw_texture: web_sys::WebGlTexture,
   desc: RawTextureDescriptor,
   texture_id: u64,
 }
 impl RawTexture {
   // pub fn new_cubemap() { target = TEXTURE_CUBE_MAP_??; }
-  pub fn new<'a>(
-    ctx: &ArcGlContext,
-    desc: &RawTexture2dDescriptor,
-    write_type: TextureWriteType<'a>,
-  ) -> Self {
+  pub fn new<'a>(desc: &RawTexture2dDescriptor, write_type: TextureWriteType<'a>) -> Self {
+    let ctx = Instance::ctx();
     let raw_texture = ctx.create_texture().expect("failed to create texture");
     let target = gl::TEXTURE_2D;
     let level = 0;
@@ -285,7 +281,6 @@ impl RawTexture {
     }
     let texture_id = RAW_TEXTURE_ID_COUNTER.fetch_add(1, Ordering::SeqCst) as u64;
     Self {
-      ctx: ctx.clone(),
       raw_texture,
       texture_id,
       desc: RawTextureDescriptor::from_2d_descriptor(desc),
@@ -320,8 +315,9 @@ impl RawTexture {
     self.desc.target
   }
   pub fn bind(&self) {
+    let ctx = Instance::ctx();
     let target = self.target();
-    self.ctx.bind_texture(target, Some(&self.raw_texture));
+    ctx.bind_texture(target, Some(&self.raw_texture));
   }
 
   pub fn channels(&self) -> usize {
@@ -376,6 +372,7 @@ impl RawTexture {
 }
 impl Drop for RawTexture {
   fn drop(&mut self) {
-    self.ctx.delete_texture(Some(&self.raw_texture));
+    let ctx = Instance::ctx();
+    ctx.delete_texture(Some(&self.raw_texture));
   }
 }

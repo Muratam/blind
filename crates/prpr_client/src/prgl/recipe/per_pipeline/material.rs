@@ -14,24 +14,18 @@ pub struct PbrMaterial {
   mapping: Arc<TextureMapping<PbrMapping>>,
 }
 impl PbrMaterial {
-  pub fn new(ctx: &ArcGlContext) -> Self {
-    let default_normal_map = Arc::new(Texture::new_rgba_map(ctx, 4, 4, |_, _| {
+  pub fn new() -> Self {
+    let default_normal_map = Arc::new(Texture::new_rgba_map(4, 4, |_, _| {
       Vec4::new(0.0, 0.0, 1.0, 0.0)
     }));
     Self {
-      ubo: Arc::new(UniformBuffer::new(
-        ctx,
-        PbrAttribute {
-          albedo_color: Vec3::ONE,
-          roughness: 0.0,
-        },
-      )),
-      mapping: Arc::new(TextureMapping::new(
-        ctx,
-        PbrMapping {
-          normal_map: default_normal_map,
-        },
-      )),
+      ubo: Arc::new(UniformBuffer::new(PbrAttribute {
+        albedo_color: Vec3::ONE,
+        roughness: 0.0,
+      })),
+      mapping: Arc::new(TextureMapping::new(PbrMapping {
+        normal_map: default_normal_map,
+      })),
     }
   }
 }

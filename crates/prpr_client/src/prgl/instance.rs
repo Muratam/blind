@@ -1,52 +1,61 @@
 use super::*;
 use crate::html;
 
+// WARN: HTML操作系は多分別スレッドから実行できない
+use once_cell::sync::OnceCell;
+static INSTANCE: OnceCell<Instance> = OnceCell::new();
+unsafe impl Send for Instance {}
+unsafe impl Sync for Instance {}
+
 pub struct Instance {
-  ctx: ArcGlContext,
+  ctx: web_sys::WebGl2RenderingContext,
   max_width: i32,
   max_height: i32,
   width: RwLock<i32>,
   height: RwLock<i32>,
 }
 impl Instance {
-  pub fn new(ctx: web_sys::WebGl2RenderingContext) -> Self {
+  pub fn get() -> &'static Self {
+    INSTANCE.get().expect("prgl::Instance is not initialized")
+  }
+  pub fn ctx() -> &'static web_sys::WebGl2RenderingContext {
+    &Self::get().ctx
+  }
+  pub fn set(ctx: web_sys::WebGl2RenderingContext) {
     // 一度生成したら固定
     let screen = html::screen();
-    Self {
-      ctx: Arc::new(ctx),
+    let instance = Self {
+      ctx,
       max_width: screen.width().unwrap(),
       max_height: screen.height().unwrap(),
       width: RwLock::new(1),
       height: RwLock::new(1),
-    }
+    };
+    INSTANCE.set(instance).ok();
   }
-  pub fn flush(&self) {
-    let ctx = &self.ctx;
-    ctx.flush();
+  pub fn flush() {
+    Self::ctx().flush();
   }
-  pub fn ctx(&self) -> &ArcGlContext {
-    &self.ctx
+  pub fn max_width() -> i32 {
+    Self::get().max_width
   }
-  pub fn max_width(&self) -> i32 {
-    self.max_width
+  pub fn max_height() -> i32 {
+    Self::get().max_height
   }
-  pub fn max_height(&self) -> i32 {
-    self.max_height
+  pub fn width() -> i32 {
+    *Self::get().width.read().unwrap()
   }
-  pub fn width(&self) -> i32 {
-    *self.width.read().unwrap()
+  pub fn height() -> i32 {
+    *Self::get().height.read().unwrap()
   }
-  pub fn height(&self) -> i32 {
-    *self.height.read().unwrap()
+  pub fn full_viewport() -> Rect<i32> {
+    Rect::new(0, 0, Self::width(), Self::height())
   }
-  pub fn full_viewport(&self) -> Rect<i32> {
-    Rect::new(0, 0, self.width(), self.height())
+  pub fn full_max_viewport() -> Rect<i32> {
+    Rect::new(0, 0, Self::max_width(), Self::max_height())
   }
-  pub fn full_max_viewport(&self) -> Rect<i32> {
-    Rect::new(0, 0, self.max_width(), self.max_height())
-  }
-  pub fn update_size(&self, width: i32, height: i32) {
-    *self.width.write().unwrap() = width;
-    *self.height.write().unwrap() = height;
+  pub fn update_size(width: i32, height: i32) {
+    *Self::get().width.write().unwrap() = width;
+    *Self::get().height.write().unwrap() = height;
   }
 }

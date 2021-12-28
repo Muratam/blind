@@ -7,7 +7,6 @@ struct BufferSetupInfo {
 }
 
 pub struct RenderPass {
-  ctx: ArcGlContext,
   clear_colors: [Option<Vec4>; MAX_OUTPUT_SLOT],
   clear_depth: Option<f32>,
   clear_stencil: Option<i32>,
@@ -29,9 +28,8 @@ pub struct RenderPass {
   descriptor: Descriptor,
 }
 impl RenderPass {
-  pub fn new(ctx: &ArcGlContext) -> Self {
+  pub fn new() -> Self {
     Self {
-      ctx: ctx.clone(),
       clear_colors: [None; MAX_OUTPUT_SLOT],
       clear_depth: None,
       clear_stencil: None,
@@ -41,7 +39,7 @@ impl RenderPass {
       color_targets: vec![None; MAX_OUTPUT_SLOT],
       depth_target: None,
       //
-      raw_framebuffer: RawFrameBuffer::new(ctx),
+      raw_framebuffer: RawFrameBuffer::new(),
       // https://github.com/WebGLSamples/WebGL2Samples/blob/master/samples/fbo_multisample.html
       // MSAA では、RenderBuffer用のFrameBufferを作りそこに描画して、
       // blitFrameBuffer で Resolve する
@@ -60,7 +58,7 @@ impl RenderPass {
     if !setup_info.is_dirty {
       return;
     }
-    let ctx = &self.ctx;
+    let ctx = Instance::ctx();
     let framebuffer = self.raw_framebuffer.raw_framebuffer();
     ctx.bind_framebuffer(gl::FRAMEBUFFER, Some(framebuffer));
     let mut color_attachment_indices = Vec::new();
@@ -122,7 +120,7 @@ impl RenderPass {
   }
 
   fn bind_framebuffer_impl(&self) {
-    let ctx = &self.ctx;
+    let ctx = Instance::ctx();
     let info = &self.buffer_setup_info.read().unwrap();
     if info.viewport.is_some() {
       if info.use_default_buffer {
@@ -141,7 +139,7 @@ impl RenderPass {
   }
 
   fn clear_impl(&self) {
-    let ctx = &self.ctx;
+    let ctx = Instance::ctx();
     let mut clear_flag = 0;
     for i in 0..MAX_OUTPUT_SLOT {
       if let Some(color) = self.clear_colors[i] {
@@ -164,12 +162,13 @@ impl RenderPass {
   }
 
   fn viewport_impl(&self) {
+    let ctx = Instance::ctx();
     if let Some(v) = &self.viewport {
       // 設定されているなら使用
-      self.ctx.viewport(v.x, v.y, v.width, v.height);
+      ctx.viewport(v.x, v.y, v.width, v.height);
     } else if let Some(v) = &self.buffer_setup_info.read().unwrap().viewport {
       // 描画先があるならその最大サイズに
-      self.ctx.viewport(v.x, v.y, v.width, v.height);
+      ctx.viewport(v.x, v.y, v.width, v.height);
     } else {
       log::error("no renderpass viewport size (unstable)");
     }

@@ -4,7 +4,6 @@ const MAX_UNIFORM_BUFFER_BINDINGS: usize = 64;
 const MAX_UNIFORM_TEXTURE_BINDINGS: usize = 64;
 
 pub struct Command {
-  ctx: ArcGlContext,
   depth_func: Option<DepthFunc>,
   cull_mode: Option<CullMode>,
   shader: Option<Arc<Shader>>,
@@ -15,9 +14,8 @@ pub struct Command {
 }
 
 impl Command {
-  pub fn new(ctx: &ArcGlContext) -> Self {
+  pub fn new() -> Self {
     Self {
-      ctx: ctx.clone(),
       depth_func: None,
       cull_mode: None,
       shader: None,
@@ -32,7 +30,7 @@ impl Command {
         return;
       }
     }
-    v.apply(&self.ctx);
+    v.apply();
     self.depth_func = Some(v);
   }
   pub fn set_cull_mode(&mut self, v: CullMode) {
@@ -41,11 +39,11 @@ impl Command {
         return;
       }
     }
-    v.apply(&self.ctx);
+    v.apply();
     self.cull_mode = Some(v);
   }
   pub fn set_draw_command(&mut self, v: &DrawCommand, t: PrimitiveToporogy) {
-    v.apply(&self.ctx, t);
+    v.apply(t);
   }
   pub fn set_shader(&mut self, v: &Arc<Shader>) {
     if let Some(pre) = &self.shader {
@@ -65,7 +63,8 @@ impl Command {
         return;
       }
     }
-    self.ctx.bind_vertex_array(Some(vao.raw_vao()));
+    let ctx = Instance::ctx();
+    ctx.bind_vertex_array(Some(vao.raw_vao()));
     self.vao = Some(vao.vao_id());
   }
   pub fn set_ubo(&mut self, ubo: &RawBuffer, index: u32) {
@@ -77,9 +76,8 @@ impl Command {
         return;
       }
     }
-    self
-      .ctx
-      .bind_buffer_base(gl::UNIFORM_BUFFER, index, Some(ubo.raw_buffer()));
+    let ctx = Instance::ctx();
+    ctx.bind_buffer_base(gl::UNIFORM_BUFFER, index, Some(ubo.raw_buffer()));
     self.uniform_buffers[index as usize] = Some(ubo.buffer_id());
   }
   pub fn set_uniform_texture(&mut self, texture: &RawTexture, utl: &UniformTextureLocation) {
@@ -88,18 +86,17 @@ impl Command {
     if index >= self.uniform_textures.len() {
       log::error("texture binding index exceeded");
     }
+    let ctx = Instance::ctx();
     if let Some(pre) = self.uniform_textures[index] {
       if pre == texture.texture_id() {
         return;
       }
     } else {
-      self
-        .ctx
-        .active_texture(RawTexture::to_slot_enum(index as i32));
+      ctx.active_texture(RawTexture::to_slot_enum(index as i32));
     }
     texture.bind();
     // NOTE: location := WebGlUniformLocation は怪しいかも
-    self.ctx.uniform1i(Some(location), index as i32);
+    ctx.uniform1i(Some(location), index as i32);
     self.uniform_textures[index as usize] = Some(texture.texture_id());
   }
 }

@@ -1,18 +1,12 @@
 use super::*;
 
 pub struct Texture {
-  ctx: ArcGlContext,
   raw_texture: RawTexture,
 }
 pub type Texture2dDescriptor = RawTexture2dDescriptor;
 pub type PixelFormat = RawPixelFormat;
 impl Texture {
-  pub fn new_rgba_map<F: Fn(f32, f32) -> Vec4>(
-    ctx: &ArcGlContext,
-    width: usize,
-    height: usize,
-    color_fn: F,
-  ) -> Self {
+  pub fn new_rgba_map<F: Fn(f32, f32) -> Vec4>(width: usize, height: usize, color_fn: F) -> Self {
     let size = width * height * 4;
     let mut data: Vec<u8> = vec![0; size];
     fn clamp(x: f32) -> u8 {
@@ -40,7 +34,6 @@ impl Texture {
       }
     }
     Self::new_bytes(
-      ctx,
       &Texture2dDescriptor {
         width,
         height,
@@ -50,62 +43,52 @@ impl Texture {
       data.as_slice(),
     )
   }
-  pub fn new_bytes(ctx: &ArcGlContext, desc: &Texture2dDescriptor, data: &[u8]) -> Self {
-    Self::new_impl(ctx, desc, TextureWriteType::u8(data))
+  pub fn new_bytes(desc: &Texture2dDescriptor, data: &[u8]) -> Self {
+    Self::new_impl(desc, TextureWriteType::u8(data))
   }
-  pub fn new_floats(ctx: &ArcGlContext, desc: &Texture2dDescriptor, data: &[f32]) -> Self {
-    Self::new_impl(ctx, desc, TextureWriteType::f32(data))
+  pub fn new_floats(desc: &Texture2dDescriptor, data: &[f32]) -> Self {
+    Self::new_impl(desc, TextureWriteType::f32(data))
   }
-  pub fn new_uninitialized(ctx: &ArcGlContext, desc: &Texture2dDescriptor) -> Self {
-    Self::new_impl(ctx, desc, TextureWriteType::Uninitialized)
+  pub fn new_uninitialized(desc: &Texture2dDescriptor) -> Self {
+    Self::new_impl(desc, TextureWriteType::Uninitialized)
   }
-  pub fn new_fill_zero(ctx: &ArcGlContext, desc: &Texture2dDescriptor) -> Self {
-    Self::new_impl(ctx, desc, TextureWriteType::Zero)
+  pub fn new_fill_zero(desc: &Texture2dDescriptor) -> Self {
+    Self::new_impl(desc, TextureWriteType::Zero)
   }
-  pub fn new_fill_one(ctx: &ArcGlContext, desc: &Texture2dDescriptor) -> Self {
-    Self::new_impl(ctx, desc, TextureWriteType::One)
+  pub fn new_fill_one(desc: &Texture2dDescriptor) -> Self {
+    Self::new_impl(desc, TextureWriteType::One)
   }
-  pub fn new_image_bitmap(
-    ctx: &ArcGlContext,
-    desc: &Texture2dDescriptor,
-    data: &web_sys::ImageBitmap,
-  ) -> Self {
-    Self::new_impl(ctx, desc, TextureWriteType::ImageBitmap(data))
+  pub fn new_image_bitmap(desc: &Texture2dDescriptor, data: &web_sys::ImageBitmap) -> Self {
+    Self::new_impl(desc, TextureWriteType::ImageBitmap(data))
   }
-  pub fn new_image_data(
-    ctx: &ArcGlContext,
-    desc: &Texture2dDescriptor,
-    data: &web_sys::ImageData,
-  ) -> Self {
-    Self::new_impl(ctx, desc, TextureWriteType::ImageData(data))
+  pub fn new_image_data(desc: &Texture2dDescriptor, data: &web_sys::ImageData) -> Self {
+    Self::new_impl(desc, TextureWriteType::ImageData(data))
   }
   pub fn new_html_image_element(
-    ctx: &ArcGlContext,
     desc: &Texture2dDescriptor,
     data: &web_sys::HtmlImageElement,
   ) -> Self {
-    Self::new_impl(ctx, desc, TextureWriteType::HtmlImageElement(data))
+    Self::new_impl(desc, TextureWriteType::HtmlImageElement(data))
   }
   pub fn new_html_canvas_element(
-    ctx: &ArcGlContext,
     desc: &Texture2dDescriptor,
     data: &web_sys::HtmlCanvasElement,
   ) -> Self {
-    Self::new_impl(ctx, desc, TextureWriteType::HtmlCanvasElement(data))
+    Self::new_impl(desc, TextureWriteType::HtmlCanvasElement(data))
   }
   pub fn new_html_video_element(
-    ctx: &ArcGlContext,
     desc: &Texture2dDescriptor,
     data: &web_sys::HtmlVideoElement,
   ) -> Self {
-    Self::new_impl(ctx, desc, TextureWriteType::HtmlVideoElement(data))
+    Self::new_impl(desc, TextureWriteType::HtmlVideoElement(data))
   }
   pub fn apply_sampler(&mut self, sampler: &Sampler) {
     self.raw_texture().bind();
     let target = self.raw_texture.target();
-    sampler.apply(&self.ctx, target);
+    sampler.apply(target);
     if SET_BIND_NONE_AFTER_WORK {
-      self.ctx.bind_texture(target, None);
+      let ctx = Instance::ctx();
+      ctx.bind_texture(target, None);
     }
   }
   pub fn width(&self) -> usize {
@@ -129,21 +112,15 @@ impl Texture {
   pub fn raw_texture(&self) -> &RawTexture {
     &self.raw_texture
   }
-  fn new_impl<'a>(
-    ctx: &ArcGlContext,
-    desc: &Texture2dDescriptor,
-    write_type: TextureWriteType<'a>,
-  ) -> Self {
+  fn new_impl<'a>(desc: &Texture2dDescriptor, write_type: TextureWriteType<'a>) -> Self {
     Self {
-      ctx: ctx.clone(),
-      raw_texture: RawTexture::new(ctx, desc, write_type),
+      raw_texture: RawTexture::new(desc, write_type),
     }
   }
 }
 
 // ShaderTemplateで生成したmappingを引数に取ってバインドに使う
 pub struct TextureMapping<T: TextureMappingAttribute> {
-  ctx: ArcGlContext,
   keys: Vec<&'static str>,
   mapping: RwLock<T>,
 }
@@ -151,9 +128,8 @@ pub trait TextureMappingTrait {
   fn bind(&self, cmd: &mut Command);
 }
 impl<T: TextureMappingAttribute> TextureMapping<T> {
-  pub fn new(ctx: &ArcGlContext, mapping: T) -> Self {
+  pub fn new(mapping: T) -> Self {
     Self {
-      ctx: ctx.clone(),
       keys: mapping.keys(),
       mapping: RwLock::new(mapping),
     }

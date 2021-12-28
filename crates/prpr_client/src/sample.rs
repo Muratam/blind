@@ -67,16 +67,15 @@ pub struct SampleSystem {
 }
 impl System for SampleSystem {
   fn new(core: &Core) -> Self {
-    let ctx = core.main_prgl().ctx();
-    let shader = MayShader::new(ctx, casual_shader());
-    let material = PbrMaterial::new(ctx);
-    let shape = Shape::new_cube(ctx);
+    let shader = MayShader::new(casual_shader());
+    let material = PbrMaterial::new();
+    let shape = Shape::new_cube();
     let mut objects = Vec::new();
     const COUNT: u32 = 4;
     for x in 0..COUNT {
       for y in 0..COUNT {
         for z in 0..COUNT {
-          let mut object = TransformObject::new(ctx);
+          let mut object = TransformObject::new();
           object.pipeline.add(&shape);
           object.pipeline.add(&material);
           object.pipeline.add(&shader);
@@ -90,41 +89,34 @@ impl System for SampleSystem {
         }
       }
     }
-    let camera = Camera::new(ctx);
-    let mut renderpass = RenderPass::new(ctx);
-    let max_viewport = core.main_prgl().full_max_viewport();
+    let camera = Camera::new();
+    let mut renderpass = RenderPass::new();
+    let max_viewport = Instance::full_max_viewport();
     renderpass.set_clear_color(Some(Vec4::new(1.0, 1.0, 1.0, 0.0)));
     renderpass.set_clear_depth(Some(1.0));
     renderpass.add(&camera);
-    let src_color = Arc::new(Texture::new_uninitialized(
-      ctx,
-      &Texture2dDescriptor {
-        width: max_viewport.width as usize,
-        height: max_viewport.height as usize,
-        format: PixelFormat::R8G8B8A8,
-        mipmap: true,
-      },
-    ));
-    let src_depth = Arc::new(Texture::new_uninitialized(
-      ctx,
-      &Texture2dDescriptor {
-        width: max_viewport.width as usize,
-        height: max_viewport.height as usize,
-        format: PixelFormat::Depth24,
-        mipmap: false,
-      },
-    ));
+    let src_color = Arc::new(Texture::new_uninitialized(&Texture2dDescriptor {
+      width: max_viewport.width as usize,
+      height: max_viewport.height as usize,
+      format: PixelFormat::R8G8B8A8,
+      mipmap: true,
+    }));
+    let src_depth = Arc::new(Texture::new_uninitialized(&Texture2dDescriptor {
+      width: max_viewport.width as usize,
+      height: max_viewport.height as usize,
+      format: PixelFormat::Depth24,
+      mipmap: false,
+    }));
     renderpass.set_color_target(Some(&src_color));
     renderpass.set_depth_target(Some(&src_depth));
 
-    let mut surface = Surface::new(core.main_prgl());
+    let mut surface = Surface::new();
     surface.set_clear_color(Some(Vec4::ZERO));
-    let mut posteffect_pipeline = FullScreen::new_pipeline(ctx);
-    posteffect_pipeline.add(&MayShader::new(ctx, grayscale_shader()));
-    posteffect_pipeline.add(&Arc::new(TextureMapping::new(
-      ctx,
-      ToGrayScaleMapping { src_color },
-    )));
+    let mut posteffect_pipeline = FullScreen::new_pipeline();
+    posteffect_pipeline.add(&MayShader::new(grayscale_shader()));
+    posteffect_pipeline.add(&Arc::new(TextureMapping::new(ToGrayScaleMapping {
+      src_color,
+    })));
 
     Self {
       objects,
@@ -140,14 +132,16 @@ impl System for SampleSystem {
     // update by user world
     let f = (frame as f32) / 100.0;
     self.camera.write_lock().camera_pos = Vec3::new(f.sin(), f.cos(), f.cos()) * 5.0;
-    self.camera.write_lock().aspect_ratio = core.main_prgl().full_viewport().aspect_ratio();
+    self.camera.write_lock().aspect_ratio = Instance::full_viewport().aspect_ratio();
     self
       .renderpass
-      .set_viewport(Some(&core.main_prgl().full_viewport()));
-
+      .set_viewport(Some(&Instance::full_viewport()));
+    for object in &mut self.objects {
+      object.transform.write_lock().rotation *= Quat::from_rotation_y(3.1415 * 0.01);
+    }
     // draw start
     // TODO: use executer
-    let mut cmd = prgl::Command::new(core.main_prgl().ctx());
+    let mut cmd = prgl::Command::new();
     {
       let desc_ctx = self.renderpass.bind();
       for object in &self.objects {
@@ -174,7 +168,6 @@ impl System for SampleSystem {
   - 指操作はカメラに紐付ける？
   - デバッグ用のが欲しくはなるかも
   - 結局ズーム操作はエミュレーションすることになるのでは
-- ctx 消したい(Singleton?)
 - pipeline.add で同じUniformBufferな時に気をつけたい(Camera)
 - キーボード入力 / タッチ入力を受け取る
   - https://rustwasm.github.io/docs/wasm-bindgen/examples/paint.html

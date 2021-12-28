@@ -22,28 +22,28 @@ fn usage_to_store_type(usage: BufferUsage) -> u32 {
 use std::sync::atomic::{AtomicUsize, Ordering};
 static RAW_BUFFER_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
 pub struct RawBuffer {
-  ctx: ArcGlContext,
   buffer: web_sys::WebGlBuffer,
   size: i32,
   usage: BufferUsage,
   buffer_id: u64,
 }
 impl RawBuffer {
-  pub fn new<T>(ctx: &ArcGlContext, data: &[T], usage: BufferUsage) -> Self {
-    let result = Self::new_uninitialized::<T>(ctx, data.len(), usage);
+  pub fn new<T>(data: &[T], usage: BufferUsage) -> Self {
+    let result = Self::new_uninitialized::<T>(data.len(), usage);
     result.write(0, data);
     result
   }
-  pub fn new_untyped(ctx: &ArcGlContext, data: &[u8], usage: BufferUsage) -> Self {
-    let result = Self::new_uninitialized::<u8>(ctx, data.len(), usage);
+  pub fn new_untyped(data: &[u8], usage: BufferUsage) -> Self {
+    let result = Self::new_uninitialized::<u8>(data.len(), usage);
     result.write_untyped(0, data);
     result
   }
-  pub fn new_uninitialized<T>(ctx: &ArcGlContext, count: usize, usage: BufferUsage) -> Self {
+  pub fn new_uninitialized<T>(count: usize, usage: BufferUsage) -> Self {
     let u8_size = std::mem::size_of::<T>() * count;
-    Self::new_uninitialized_untyped(ctx, u8_size as i32, usage)
+    Self::new_uninitialized_untyped(u8_size as i32, usage)
   }
-  pub fn new_uninitialized_untyped(ctx: &ArcGlContext, size: i32, usage: BufferUsage) -> Self {
+  pub fn new_uninitialized_untyped(size: i32, usage: BufferUsage) -> Self {
+    let ctx = Instance::ctx();
     let buffer = ctx.create_buffer().expect("failed to craete buffer");
     let target = usage as u32;
     ctx.bind_buffer(target, Some(&buffer));
@@ -53,7 +53,6 @@ impl RawBuffer {
     }
     let buffer_id = RAW_BUFFER_ID_COUNTER.fetch_add(1, Ordering::SeqCst) as u64;
     Self {
-      ctx: ctx.clone(),
       buffer,
       size,
       usage,
@@ -77,12 +76,11 @@ impl RawBuffer {
       return;
     }
     let target = self.usage as u32;
-    self.ctx.bind_buffer(target, Some(&self.buffer));
-    self
-      .ctx
-      .buffer_sub_data_with_i32_and_u8_array(target, offset, data);
+    let ctx = Instance::ctx();
+    ctx.bind_buffer(target, Some(&self.buffer));
+    ctx.buffer_sub_data_with_i32_and_u8_array(target, offset, data);
     if SET_BIND_NONE_AFTER_WORK {
-      self.ctx.bind_buffer(target, None);
+      ctx.bind_buffer(target, None);
     }
   }
   pub fn raw_buffer(&self) -> &web_sys::WebGlBuffer {
@@ -97,6 +95,7 @@ impl RawBuffer {
 }
 impl Drop for RawBuffer {
   fn drop(&mut self) {
-    self.ctx.delete_buffer(Some(&self.buffer));
+    let ctx = Instance::ctx();
+    ctx.delete_buffer(Some(&self.buffer));
   }
 }

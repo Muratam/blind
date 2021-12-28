@@ -8,9 +8,9 @@ pub struct IndexBuffer {
   data: Vec<IndexBufferType>,
 }
 impl IndexBuffer {
-  pub fn new(ctx: &ArcGlContext, data: Vec<IndexBufferType>) -> Self {
+  pub fn new(data: Vec<IndexBufferType>) -> Self {
     Self {
-      raw_buffer: RawBuffer::new(ctx, data.as_slice(), BufferUsage::Index),
+      raw_buffer: RawBuffer::new(data.as_slice(), BufferUsage::Index),
       data,
     }
   }
@@ -29,14 +29,14 @@ pub struct VertexBuffer<T: BufferAttribute> {
 }
 
 impl<T: BufferAttribute> VertexBuffer<T> {
-  pub fn new(ctx: &ArcGlContext, data: Vec<T>) -> Self {
+  pub fn new(data: Vec<T>) -> Self {
     let template = if data.len() > 0 {
       data[0].vs_in_template()
     } else {
       Default::default()
     };
     Self {
-      raw_buffer: RawBuffer::new(ctx, data.as_slice(), BufferUsage::Vertex),
+      raw_buffer: RawBuffer::new(data.as_slice(), BufferUsage::Vertex),
       template,
       data,
     }
@@ -56,18 +56,16 @@ pub trait UniformBufferTrait {
   fn bind(&self, cmd: &mut Command);
 }
 pub struct UniformBuffer<T: BufferAttribute> {
-  ctx: ArcGlContext,
   raw_buffer: RawBuffer,
   data: RwLock<T>,
   name: &'static str,
   is_dirty: Mutex<bool>,
 }
 impl<T: BufferAttribute> UniformBuffer<T> {
-  pub fn new(ctx: &ArcGlContext, data: T) -> Self {
+  pub fn new(data: T) -> Self {
     Self {
-      ctx: ctx.clone(),
       name: data.name(),
-      raw_buffer: RawBuffer::new_untyped(ctx, data.ub_data(), BufferUsage::Uniform),
+      raw_buffer: RawBuffer::new_untyped(data.ub_data(), BufferUsage::Uniform),
       is_dirty: Mutex::new(false),
       data: RwLock::new(data),
     }
@@ -100,7 +98,6 @@ pub trait RefInto<T> {
   fn ref_into(&self) -> T;
 }
 pub struct IntoUniformBuffer<T: BufferAttribute, I: RefInto<T>> {
-  ctx: ArcGlContext,
   raw_buffer: RawBuffer,
   name: &'static str,
   phantom_data: std::marker::PhantomData<T>,
@@ -108,12 +105,11 @@ pub struct IntoUniformBuffer<T: BufferAttribute, I: RefInto<T>> {
   is_dirty: Mutex<bool>,
 }
 impl<T: BufferAttribute, I: RefInto<T>> IntoUniformBuffer<T, I> {
-  pub fn new(ctx: &ArcGlContext, into: I) -> Self {
+  pub fn new(into: I) -> Self {
     let data = (&into).ref_into();
     Self {
-      ctx: ctx.clone(),
       name: data.name(),
-      raw_buffer: RawBuffer::new_untyped(ctx, data.ub_data(), BufferUsage::Uniform),
+      raw_buffer: RawBuffer::new_untyped(data.ub_data(), BufferUsage::Uniform),
       is_dirty: Mutex::new(true),
       phantom_data: std::marker::PhantomData,
       into: RwLock::new(into),

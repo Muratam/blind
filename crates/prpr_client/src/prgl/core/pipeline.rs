@@ -1,7 +1,6 @@
 use super::*;
 
 pub struct Pipeline {
-  ctx: ArcGlContext,
   // states
   depth_func: DepthFunc,
   draw_command: Option<DrawCommand>,
@@ -13,9 +12,8 @@ pub struct Pipeline {
 }
 
 impl Pipeline {
-  pub fn new(ctx: &ArcGlContext) -> Self {
+  pub fn new() -> Self {
     Self {
-      ctx: ctx.clone(),
       depth_func: DepthFunc::Less,
       draw_command: None,
       cull_mode: CullMode::Back,

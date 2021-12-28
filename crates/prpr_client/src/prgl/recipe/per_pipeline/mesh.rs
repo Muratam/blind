@@ -9,35 +9,32 @@ pub struct FullScreen {
   vao: Arc<Vao<FullScreenVertex>>,
 }
 impl FullScreen {
-  pub fn new(ctx: &ArcGlContext) -> Self {
+  pub fn new() -> Self {
     // バインディングなしでも行けるがそんなに変わらないので
-    let i_buffer = IndexBuffer::new(ctx, vec![0, 1, 2, 2, 1, 3]);
-    let v_buffer = VertexBuffer::new(
-      ctx,
-      vec![
-        FullScreenVertex {
-          position: Vec2::new(-1.0, -1.0),
-        },
-        FullScreenVertex {
-          position: Vec2::new(1.0, -1.0),
-        },
-        FullScreenVertex {
-          position: Vec2::new(-1.0, 1.0),
-        },
-        FullScreenVertex {
-          position: Vec2::new(1.0, 1.0),
-        },
-      ],
-    );
+    let i_buffer = IndexBuffer::new(vec![0, 1, 2, 2, 1, 3]);
+    let v_buffer = VertexBuffer::new(vec![
+      FullScreenVertex {
+        position: Vec2::new(-1.0, -1.0),
+      },
+      FullScreenVertex {
+        position: Vec2::new(1.0, -1.0),
+      },
+      FullScreenVertex {
+        position: Vec2::new(-1.0, 1.0),
+      },
+      FullScreenVertex {
+        position: Vec2::new(1.0, 1.0),
+      },
+    ]);
     Self {
-      vao: Arc::new(Vao::new(ctx, v_buffer, i_buffer)),
+      vao: Arc::new(Vao::new(v_buffer, i_buffer)),
     }
   }
-  pub fn new_pipeline(ctx: &ArcGlContext) -> Pipeline {
-    let mut pipeline = Pipeline::new(ctx);
+  pub fn new_pipeline() -> Pipeline {
+    let mut pipeline = Pipeline::new();
     pipeline.set_depth_func(DepthFunc::Always);
     pipeline.set_cull_mode(CullMode::None);
-    pipeline.add(&Self::new(ctx));
+    pipeline.add(&Self::new());
     pipeline
   }
 }
@@ -59,7 +56,7 @@ pub struct Shape {
   vao: Arc<Vao<ShapeVertex>>,
 }
 impl Shape {
-  pub fn new_cube(ctx: &ArcGlContext) -> Self {
+  pub fn new_cube() -> Self {
     let mut v_data: Vec<ShapeVertex> = Vec::new();
     for x in [-0.5, 0.5] {
       for y in [-0.5, 0.5] {
@@ -83,10 +80,10 @@ impl Shape {
       2, 8, 14, 14, 8, 20, //
       5, 17, 11, 17, 23, 11, //
     ];
-    let i_buffer = IndexBuffer::new(ctx, i_data);
-    let v_buffer = VertexBuffer::new(ctx, v_data);
+    let i_buffer = IndexBuffer::new(i_data);
+    let v_buffer = VertexBuffer::new(v_data);
     Self {
-      vao: Arc::new(Vao::new(ctx, v_buffer, i_buffer)),
+      vao: Arc::new(Vao::new(v_buffer, i_buffer)),
     }
   }
 }

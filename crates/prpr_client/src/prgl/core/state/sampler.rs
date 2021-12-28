@@ -38,7 +38,8 @@ impl Default for Sampler {
 }
 
 impl Sampler {
-  pub fn apply(&self, ctx: &ArcGlContext, target: u32) {
+  pub fn apply(&self, target: u32) {
+    let ctx = Instance::ctx();
     ctx.tex_parameteri(target, gl::TEXTURE_MAG_FILTER, self.mag_filter as i32);
     ctx.tex_parameteri(target, gl::TEXTURE_MIN_FILTER, self.min_filter as i32);
     ctx.tex_parameteri(target, gl::TEXTURE_WRAP_S, self.wrap_mode_s as i32);

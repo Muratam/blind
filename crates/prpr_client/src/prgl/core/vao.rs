@@ -1,7 +1,6 @@
 use super::*;
 use std::collections::HashMap;
 pub struct Vao<T: BufferAttribute> {
-  ctx: ArcGlContext,
   v_buffer: VertexBuffer<T>,
   i_buffer: Option<IndexBuffer>,
   shader_id_to_raw_vao: Mutex<HashMap<u64, RawVao>>,
@@ -10,17 +9,15 @@ pub trait VaoTrait {
   fn bind(&self, cmd: &mut Command);
 }
 impl<T: BufferAttribute> Vao<T> {
-  pub fn new(ctx: &ArcGlContext, v_buffer: VertexBuffer<T>, i_buffer: IndexBuffer) -> Self {
+  pub fn new(v_buffer: VertexBuffer<T>, i_buffer: IndexBuffer) -> Self {
     Self {
-      ctx: ctx.clone(),
       v_buffer,
       i_buffer: Some(i_buffer),
       shader_id_to_raw_vao: Mutex::new(HashMap::new()),
     }
   }
-  pub fn new_without_index_buffer(ctx: &ArcGlContext, v_buffer: VertexBuffer<T>) -> Self {
+  pub fn new_without_index_buffer(v_buffer: VertexBuffer<T>) -> Self {
     Self {
-      ctx: ctx.clone(),
       v_buffer,
       i_buffer: None,
       shader_id_to_raw_vao: Mutex::new(HashMap::new()),
@@ -52,7 +49,6 @@ impl<T: BufferAttribute> VaoTrait for Vao<T> {
       }
       let i_buffer = self.i_buffer.as_ref().map(|x| x.raw_buffer());
       let raw_vao = RawVao::new(
-        &self.ctx,
         shader.raw_program().raw_program(),
         Some((self.v_buffer.template(), self.v_buffer.raw_buffer())),
         i_buffer,

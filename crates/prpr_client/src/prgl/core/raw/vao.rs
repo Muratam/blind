@@ -1,7 +1,6 @@
 use super::*;
 
 pub struct RawVao {
-  ctx: ArcGlContext,
   vao: web_sys::WebGlVertexArrayObject,
   vao_id: u64,
 }
@@ -10,11 +9,11 @@ static RAW_VAO_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
 impl RawVao {
   pub fn new(
-    ctx: &ArcGlContext,
     program: &web_sys::WebGlProgram,
     vs_in_template_buffer: Option<(&VsInTemplate, &RawBuffer)>,
     i_buffer: Option<&RawBuffer>,
   ) -> Self {
+    let ctx = Instance::ctx();
     let vao = ctx.create_vertex_array().expect("failed to create vao");
     ctx.bind_vertex_array(Some(&vao));
     if let Some(vs_in_template_buffer) = vs_in_template_buffer {
@@ -58,11 +57,7 @@ impl RawVao {
       }
     }
     let vao_id = RAW_VAO_ID_COUNTER.fetch_add(1, Ordering::SeqCst) as u64;
-    Self {
-      ctx: ctx.clone(),
-      vao,
-      vao_id,
-    }
+    Self { vao, vao_id }
   }
 
   pub fn raw_vao(&self) -> &web_sys::WebGlVertexArrayObject {
@@ -75,6 +70,7 @@ impl RawVao {
 
 impl Drop for RawVao {
   fn drop(&mut self) {
-    self.ctx.delete_vertex_array(Some(&self.vao));
+    let ctx = Instance::ctx();
+    ctx.delete_vertex_array(Some(&self.vao));
   }
 }

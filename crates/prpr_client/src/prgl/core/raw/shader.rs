@@ -7,16 +7,16 @@ pub enum ShaderType {
 }
 
 pub struct RawShader {
-  ctx: ArcGlContext,
   shader: web_sys::WebGlShader,
   shader_type: ShaderType,
 }
 impl RawShader {
-  pub fn new(ctx: &ArcGlContext, code: &str, shader_type: ShaderType) -> Option<Self> {
+  pub fn new(code: &str, shader_type: ShaderType) -> Option<Self> {
     let create_flag = match &shader_type {
       ShaderType::VertexShader => gl::VERTEX_SHADER,
       ShaderType::FragmentShader => gl::FRAGMENT_SHADER,
     };
+    let ctx = Instance::ctx();
     let shader = ctx
       .create_shader(create_flag)
       .expect("failed to create shader");
@@ -34,7 +34,6 @@ impl RawShader {
       return None;
     }
     return Some(Self {
-      ctx: ctx.clone(),
       shader,
       shader_type,
     });
@@ -42,14 +41,14 @@ impl RawShader {
 }
 impl Drop for RawShader {
   fn drop(&mut self) {
-    self.ctx.delete_shader(Some(&self.shader));
+    let ctx = Instance::ctx();
+    ctx.delete_shader(Some(&self.shader));
   }
 }
 
 use std::sync::atomic::{AtomicUsize, Ordering};
 static RAW_SHADER_PROGRAM_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
 pub struct RawShaderProgram {
-  ctx: ArcGlContext,
   program: web_sys::WebGlProgram,
   program_id: u64,
 }
@@ -58,23 +57,18 @@ pub struct RawShaderProgramContents {
   pub fragment_shader: Option<RawShader>,
 }
 impl RawShaderProgram {
-  pub fn new(ctx: &ArcGlContext, template: &ShaderTemplate) -> Option<Self> {
+  pub fn new(template: &ShaderTemplate) -> Option<Self> {
     let vs_code = template.vs_code();
     let fs_code = template.fs_code();
-    let vertex_shader = RawShader::new(ctx, vs_code.as_str(), ShaderType::VertexShader);
-    let fragment_shader = RawShader::new(ctx, fs_code.as_str(), ShaderType::FragmentShader);
-    Self::new_from_raw_shaders(
-      ctx,
-      &RawShaderProgramContents {
-        vertex_shader,
-        fragment_shader,
-      },
-    )
+    let vertex_shader = RawShader::new(vs_code.as_str(), ShaderType::VertexShader);
+    let fragment_shader = RawShader::new(fs_code.as_str(), ShaderType::FragmentShader);
+    Self::new_from_raw_shaders(&RawShaderProgramContents {
+      vertex_shader,
+      fragment_shader,
+    })
   }
-  pub fn new_from_raw_shaders(
-    ctx: &ArcGlContext,
-    shaders: &RawShaderProgramContents,
-  ) -> Option<Self> {
+  pub fn new_from_raw_shaders(shaders: &RawShaderProgramContents) -> Option<Self> {
+    let ctx = Instance::ctx();
     let program = ctx
       .create_program()
       .expect("failed to create shader program");
@@ -116,13 +110,13 @@ impl RawShaderProgram {
     }
     let program_id = RAW_SHADER_PROGRAM_ID_COUNTER.fetch_add(1, Ordering::SeqCst) as u64;
     return Some(Self {
-      ctx: ctx.clone(),
       program,
       program_id,
     });
   }
   pub fn use_program(&self) {
-    self.ctx.use_program(Some(&self.program));
+    let ctx = Instance::ctx();
+    ctx.use_program(Some(&self.program));
   }
   pub fn raw_program(&self) -> &web_sys::WebGlProgram {
     &self.program
@@ -133,6 +127,7 @@ impl RawShaderProgram {
 }
 impl Drop for RawShaderProgram {
   fn drop(&mut self) {
-    self.ctx.delete_program(Some(&self.program));
+    let ctx = Instance::ctx();
+    ctx.delete_program(Some(&self.program));
   }
 }

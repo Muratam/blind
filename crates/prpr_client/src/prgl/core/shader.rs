@@ -2,7 +2,6 @@ use super::*;
 
 use std::collections::HashMap;
 pub struct Shader {
-  ctx: ArcGlContext,
   template: ShaderTemplate,
   uniform_block_indices: HashMap<String, u32>,
   uniform_texture_locations: HashMap<String, UniformTextureLocation>,
@@ -10,8 +9,9 @@ pub struct Shader {
 }
 
 impl Shader {
-  pub fn new(ctx: &ArcGlContext, template: ShaderTemplate) -> Option<Self> {
-    if let Some(raw_program) = RawShaderProgram::new(ctx, &template) {
+  pub fn new(template: ShaderTemplate) -> Option<Self> {
+    if let Some(raw_program) = RawShaderProgram::new(&template) {
+      let ctx = Instance::ctx();
       let mut uniform_block_indices: HashMap<String, u32> = HashMap::new();
       for name in template.uniform_blocks() {
         let u_index = ctx.get_uniform_block_index(raw_program.raw_program(), name);
@@ -30,7 +30,6 @@ impl Shader {
       Some(Self {
         uniform_block_indices,
         uniform_texture_locations,
-        ctx: ctx.clone(),
         template,
         raw_program,
       })
@@ -70,8 +69,8 @@ pub struct MayShader {
   shader: Option<Arc<Shader>>,
 }
 impl MayShader {
-  pub fn new(ctx: &ArcGlContext, template: ShaderTemplate) -> Self {
-    let shader = Shader::new(ctx, template).map(|x| Arc::new(x));
+  pub fn new(template: ShaderTemplate) -> Self {
+    let shader = Shader::new(template).map(|x| Arc::new(x));
     Self { shader }
   }
 }

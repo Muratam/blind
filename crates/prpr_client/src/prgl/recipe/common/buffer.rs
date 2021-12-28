@@ -4,9 +4,9 @@ pub struct UniformBufferTemplate<T: BufferAttribute + Default> {
   data: Arc<UniformBuffer<T>>,
 }
 impl<T: BufferAttribute + Default> UniformBufferTemplate<T> {
-  pub fn new(ctx: &ArcGlContext) -> Self {
+  pub fn new() -> Self {
     Self {
-      data: Arc::new(UniformBuffer::new(ctx, Default::default())),
+      data: Arc::new(UniformBuffer::new(Default::default())),
     }
   }
   pub fn write_lock(&self) -> std::sync::RwLockWriteGuard<'_, T> {
@@ -31,9 +31,9 @@ pub struct IntoUniformBufferTemplate<T: BufferAttribute, I: RefInto<T> + Default
   data: Arc<IntoUniformBuffer<T, I>>,
 }
 impl<T: BufferAttribute, I: RefInto<T> + Default> IntoUniformBufferTemplate<T, I> {
-  pub fn new(ctx: &ArcGlContext) -> Self {
+  pub fn new() -> Self {
     Self {
-      data: Arc::new(IntoUniformBuffer::new(ctx, Default::default())),
+      data: Arc::new(IntoUniformBuffer::new(Default::default())),
     }
   }
   pub fn write_lock(&self) -> std::sync::RwLockWriteGuard<'_, I> {
