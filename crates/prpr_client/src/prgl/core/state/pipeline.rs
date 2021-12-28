@@ -79,13 +79,3 @@ impl DepthFunc {
     }
   }
 }
-
-// BlendState
-// ColorState
-// CullState
-// DepthState
-// CoverageState
-// PolygonOffsetState
-// StencilState
-// Scissor
-// Viewport
