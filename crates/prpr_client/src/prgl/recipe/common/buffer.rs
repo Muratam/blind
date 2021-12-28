@@ -9,10 +9,10 @@ impl<T: BufferAttribute + Default> UniformBufferTemplate<T> {
       data: Arc::new(UniformBuffer::new(Default::default())),
     }
   }
-  pub fn write_lock(&self) -> std::sync::RwLockWriteGuard<'_, T> {
+  pub fn write_lock(&self) -> RwLockWriteGuard<'_, T> {
     self.data.write_lock()
   }
-  pub fn read_lock(&self) -> std::sync::RwLockReadGuard<'_, T> {
+  pub fn read_lock(&self) -> RwLockReadGuard<'_, T> {
     self.data.read_lock()
   }
 }
@@ -36,10 +36,10 @@ impl<T: BufferAttribute, I: RefInto<T> + Default> IntoUniformBufferTemplate<T, I
       data: Arc::new(IntoUniformBuffer::new(Default::default())),
     }
   }
-  pub fn write_lock(&self) -> std::sync::RwLockWriteGuard<'_, I> {
+  pub fn write_lock(&self) -> RwLockWriteGuard<'_, I> {
     self.data.write_lock()
   }
-  pub fn read_lock(&self) -> std::sync::RwLockReadGuard<'_, I> {
+  pub fn read_lock(&self) -> RwLockReadGuard<'_, I> {
     self.data.read_lock()
   }
 }

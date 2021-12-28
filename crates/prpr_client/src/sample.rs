@@ -66,8 +66,8 @@ impl CasualScene {
       out_color,
     }
   }
-  pub fn update(&mut self, core: &Core) {
-    let frame = core.frame();
+  pub fn update(&mut self) {
+    let frame = Time::frame();
     let f = (frame as f32) / 100.0;
     self.camera.write_lock().camera_pos = Vec3::new(f.sin(), f.cos(), f.cos()) * 5.0;
     for object in &mut self.objects {
@@ -171,7 +171,7 @@ impl System for SampleSystem {
 
   fn update(&mut self, core: &Core) {
     // ok: parallel
-    self.scene.update(core);
+    self.scene.update();
     self.posteffect.update();
 
     // TODO: use executer
@@ -190,6 +190,7 @@ impl System for SampleSystem {
   - MSAA: https://ics.media/web3d-maniacs/webgl2_renderbufferstoragemultisample/
   - mipmap がなぜかはいっている？
 - RenderPassにPipelineを登録する形式にする
+- ShaderTemplate -> void main()
 - 複数のカメラで描画したい
   - 同じのを別カメラで２回やればOK
   - Selection はカメラから？
@@ -240,7 +241,7 @@ impl SampleSystem {
     // TODO: HTML
     {
       let html_layer = core.html_layer();
-      let text = format!("{} ms", core.processed_time());
+      let text = format!("{} ms", Time::processed_milli_sec());
       html_layer.set_text_content(Some(&text));
     }
   }

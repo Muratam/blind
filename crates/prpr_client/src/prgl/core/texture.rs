@@ -134,10 +134,10 @@ impl<T: TextureMappingAttribute> TextureMapping<T> {
       mapping: RwLock::new(mapping),
     }
   }
-  pub fn write_lock(&self) -> std::sync::RwLockWriteGuard<'_, T> {
+  pub fn write_lock(&self) -> RwLockWriteGuard<'_, T> {
     self.mapping.write().unwrap()
   }
-  pub fn read_lock(&self) -> std::sync::RwLockReadGuard<'_, T> {
+  pub fn read_lock(&self) -> RwLockReadGuard<'_, T> {
     self.mapping.read().unwrap()
   }
 }

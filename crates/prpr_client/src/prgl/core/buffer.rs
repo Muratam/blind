@@ -70,11 +70,11 @@ impl<T: BufferAttribute> UniformBuffer<T> {
       data: RwLock::new(data),
     }
   }
-  pub fn write_lock(&self) -> std::sync::RwLockWriteGuard<'_, T> {
+  pub fn write_lock(&self) -> RwLockWriteGuard<'_, T> {
     *self.is_dirty.lock().unwrap() = true;
     self.data.write().unwrap()
   }
-  pub fn read_lock(&self) -> std::sync::RwLockReadGuard<'_, T> {
+  pub fn read_lock(&self) -> RwLockReadGuard<'_, T> {
     self.data.read().unwrap()
   }
 }
@@ -115,11 +115,11 @@ impl<T: BufferAttribute, I: RefInto<T>> IntoUniformBuffer<T, I> {
       into: RwLock::new(into),
     }
   }
-  pub fn write_lock(&self) -> std::sync::RwLockWriteGuard<'_, I> {
+  pub fn write_lock(&self) -> RwLockWriteGuard<'_, I> {
     *self.is_dirty.lock().unwrap() = true;
     self.into.write().unwrap()
   }
-  pub fn read_lock(&self) -> std::sync::RwLockReadGuard<'_, I> {
+  pub fn read_lock(&self) -> RwLockReadGuard<'_, I> {
     self.into.read().unwrap()
   }
 }
