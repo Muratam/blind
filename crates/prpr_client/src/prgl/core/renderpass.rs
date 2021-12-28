@@ -6,11 +6,12 @@ struct BufferSetupInfo {
   pub use_default_buffer: bool,
 }
 
+use std::sync::atomic::{AtomicUsize, Ordering};
+static ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
 pub struct RenderPass {
   clear_colors: [Option<Vec4>; MAX_OUTPUT_SLOT],
   clear_depth: Option<f32>,
   clear_stencil: Option<i32>,
-  // raw_renderbuffer: RawRenderBuffer,
   //
   // None => TargetのMax
   viewport: Option<Rect<i32>>,
@@ -26,6 +27,8 @@ pub struct RenderPass {
   // raw_renderbuffer: RawRenderBuffer,
   buffer_setup_info: RwLock<BufferSetupInfo>,
   descriptor: Arc<RwLock<Descriptor>>,
+  executer: PipelineExecuter,
+  renderpass_id: u64,
 }
 impl RenderPass {
   pub fn new() -> Self {
@@ -51,6 +54,8 @@ impl RenderPass {
         use_default_buffer: false,
       }),
       descriptor: Arc::new(RwLock::new(Descriptor::new())),
+      executer: PipelineExecuter::new(),
+      renderpass_id: ID_COUNTER.fetch_add(1, Ordering::SeqCst) as u64,
     }
   }
   fn setup_framebuffer_impl(&self) {
@@ -174,12 +179,13 @@ impl RenderPass {
     }
   }
 
-  pub fn bind(&self, outer_ctx: &Arc<DescriptorContext>) -> Arc<DescriptorContext> {
+  pub fn draw(&mut self, cmd: &mut Command, outer_ctx: &Arc<DescriptorContext>) {
     self.setup_framebuffer_impl();
     self.bind_framebuffer_impl();
     self.viewport_impl();
     self.clear_impl();
-    DescriptorContext::cons(outer_ctx, &self.descriptor)
+    let outer_ctx = DescriptorContext::cons(outer_ctx, &self.descriptor);
+    self.executer.execute_draw(cmd, &outer_ctx);
   }
 
   pub fn set_color_target(&mut self, target: Option<&Arc<Texture>>) {
@@ -245,6 +251,21 @@ impl RenderPass {
   }
   pub fn add(&mut self, bindable: &dyn RenderPassBindable) {
     bindable.bind_renderpass(self);
+  }
+  pub fn own_pipeline(&mut self, pipeline: Pipeline) {
+    self.executer.own(pipeline, 0);
+  }
+  pub fn own_pipeline_with_priority(&mut self, pipeline: Pipeline, priority: usize) {
+    self.executer.own(pipeline, priority);
+  }
+  pub fn add_pipeline(&mut self, pipeline: &Arc<RwLock<Pipeline>>) {
+    self.executer.add(pipeline, 0);
+  }
+  pub fn add_pipeline_with_priority(&mut self, pipeline: &Arc<RwLock<Pipeline>>, priority: usize) {
+    self.executer.add(pipeline, priority);
+  }
+  pub fn renderpass_id(&self) -> u64 {
+    self.renderpass_id
   }
 }
 

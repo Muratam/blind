@@ -5,7 +5,7 @@ pub struct RawVao {
   vao_id: u64,
 }
 use std::sync::atomic::{AtomicUsize, Ordering};
-static RAW_VAO_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
+static ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
 impl RawVao {
   pub fn new(
@@ -56,8 +56,10 @@ impl RawVao {
         ctx.bind_buffer(gl::ELEMENT_ARRAY_BUFFER, None);
       }
     }
-    let vao_id = RAW_VAO_ID_COUNTER.fetch_add(1, Ordering::SeqCst) as u64;
-    Self { vao, vao_id }
+    Self {
+      vao,
+      vao_id: ID_COUNTER.fetch_add(1, Ordering::SeqCst) as u64,
+    }
   }
 
   pub fn raw_vao(&self) -> &web_sys::WebGlVertexArrayObject {

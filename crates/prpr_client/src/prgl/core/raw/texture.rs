@@ -216,7 +216,7 @@ pub enum TextureWriteType<'a> {
 }
 
 use std::sync::atomic::{AtomicUsize, Ordering};
-static RAW_TEXTURE_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
+static ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
 pub struct RawTexture {
   raw_texture: web_sys::WebGlTexture,
   desc: RawTextureDescriptor,
@@ -279,10 +279,9 @@ impl RawTexture {
     if SET_BIND_NONE_AFTER_WORK {
       ctx.bind_texture(target, None);
     }
-    let texture_id = RAW_TEXTURE_ID_COUNTER.fetch_add(1, Ordering::SeqCst) as u64;
     Self {
       raw_texture,
-      texture_id,
+      texture_id: ID_COUNTER.fetch_add(1, Ordering::SeqCst) as u64,
       desc: RawTextureDescriptor::from_2d_descriptor(desc),
     }
   }

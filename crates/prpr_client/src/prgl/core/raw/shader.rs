@@ -47,7 +47,7 @@ impl Drop for RawShader {
 }
 
 use std::sync::atomic::{AtomicUsize, Ordering};
-static RAW_SHADER_PROGRAM_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
+static ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
 pub struct RawShaderProgram {
   program: web_sys::WebGlProgram,
   program_id: u64,
@@ -108,10 +108,9 @@ impl RawShaderProgram {
       }
       return None;
     }
-    let program_id = RAW_SHADER_PROGRAM_ID_COUNTER.fetch_add(1, Ordering::SeqCst) as u64;
     return Some(Self {
       program,
-      program_id,
+      program_id: ID_COUNTER.fetch_add(1, Ordering::SeqCst) as u64,
     });
   }
   pub fn use_program(&self) {

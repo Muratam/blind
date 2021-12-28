@@ -7,7 +7,6 @@ crate::shader_attr! {
 }
 pub struct Surface {
   renderpass: RenderPass,
-  pipeline: Pipeline,
 }
 // NOTE: 利便性のために最後のキャンバス出力をコピーで済ますもの
 // 最後ダイレクトに書いたほうが無駄な工程が減る
@@ -31,16 +30,14 @@ impl Surface {
     pipeline.add(&Arc::new(TextureMapping::new(SurfaceMapping {
       src_color: src_color.clone(),
     })));
-    Self {
-      renderpass,
-      pipeline,
-    }
+    renderpass.own_pipeline(pipeline);
+    Self { renderpass }
   }
-  pub fn draw(&mut self, cmd: &mut Command) {
+  pub fn update(&mut self) {
     let viewport = prgl::Instance::viewport();
     self.renderpass.set_viewport(Some(&viewport));
-    let outer_ctx = DescriptorContext::nil();
-    let outer_ctx = self.renderpass.bind(&outer_ctx);
-    self.pipeline.draw(cmd, &outer_ctx);
+  }
+  pub fn draw(&mut self, cmd: &mut Command) {
+    self.renderpass.draw(cmd, &DescriptorContext::nil());
   }
 }

@@ -20,7 +20,7 @@ fn usage_to_store_type(usage: BufferUsage) -> u32 {
   }
 }
 use std::sync::atomic::{AtomicUsize, Ordering};
-static RAW_BUFFER_ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
+static ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
 pub struct RawBuffer {
   buffer: web_sys::WebGlBuffer,
   size: i32,
@@ -51,12 +51,11 @@ impl RawBuffer {
     if SET_BIND_NONE_AFTER_WORK {
       ctx.bind_buffer(target, None);
     }
-    let buffer_id = RAW_BUFFER_ID_COUNTER.fetch_add(1, Ordering::SeqCst) as u64;
     Self {
       buffer,
       size,
       usage,
-      buffer_id,
+      buffer_id: ID_COUNTER.fetch_add(1, Ordering::SeqCst) as u64,
     }
   }
   pub fn write<T>(&self, offset: usize, data: &[T]) {

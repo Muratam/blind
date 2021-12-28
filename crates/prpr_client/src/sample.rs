@@ -28,28 +28,7 @@ impl CasualScene {
     }
   }
   pub fn new() -> Self {
-    let shader = MayShader::new(CasualScene::shader());
-    let material = PbrMaterial::new();
-    let shape = Shape::new_cube();
-    let mut objects = Vec::new();
-    const COUNT: u32 = 4;
-    for x in 0..COUNT {
-      for y in 0..COUNT {
-        for z in 0..COUNT {
-          let mut object = TransformObject::new();
-          object.pipeline.add(&shape);
-          object.pipeline.add(&material);
-          object.pipeline.add(&shader);
-          object.transform.write_lock().translate = Vec3::new(
-            x as f32 - (COUNT as f32) * 0.5,
-            y as f32 - (COUNT as f32) * 0.5,
-            z as f32 - (COUNT as f32) * 0.5,
-          );
-          object.transform.write_lock().scale = Vec3::ONE * 0.72;
-          objects.push(object);
-        }
-      }
-    }
+    // renderpass
     let camera = Camera::new();
     let mut renderpass = RenderPass::new();
     renderpass.set_clear_color(Some(Vec4::new(1.0, 1.0, 1.0, 0.0)));
@@ -59,6 +38,33 @@ impl CasualScene {
     renderpass.set_color_target(Some(&out_color));
     let src_depth = TextureRecipe::new_fullscreen_depth();
     renderpass.set_depth_target(Some(&src_depth));
+    // objects
+    let shader = MayShader::new(CasualScene::shader());
+    let material = PbrMaterial::new();
+    let shape = Shape::new_cube();
+    let mut objects = Vec::new();
+    const COUNT: u32 = 4;
+    for x in 0..COUNT {
+      for y in 0..COUNT {
+        for z in 0..COUNT {
+          let object = TransformObject::new();
+          {
+            let mut pipeline = object.pipeline.write().unwrap();
+            pipeline.add(&shape);
+            pipeline.add(&material);
+            pipeline.add(&shader);
+          }
+          object.transform.write_lock().translate = Vec3::new(
+            x as f32 - (COUNT as f32) * 0.5,
+            y as f32 - (COUNT as f32) * 0.5,
+            z as f32 - (COUNT as f32) * 0.5,
+          );
+          object.transform.write_lock().scale = Vec3::ONE * 0.72;
+          renderpass.add_pipeline(&object.pipeline);
+          objects.push(object);
+        }
+      }
+    }
     Self {
       objects,
       renderpass,
@@ -79,11 +85,7 @@ impl CasualScene {
     self.renderpass.set_viewport(Some(&viewport));
   }
   pub fn draw(&mut self, cmd: &mut Command) {
-    let outer_ctx = DescriptorContext::nil();
-    let outer_ctx = self.renderpass.bind(&outer_ctx);
-    for object in &self.objects {
-      object.pipeline.draw(cmd, &outer_ctx);
-    }
+    self.renderpass.draw(cmd, &DescriptorContext::nil());
   }
 }
 
@@ -94,7 +96,6 @@ crate::shader_attr! {
 }
 struct CasualPostEffect {
   renderpass: prgl::RenderPass,
-  pipeline: prgl::Pipeline,
   out_color: Arc<Texture>,
 }
 impl CasualPostEffect {
@@ -135,9 +136,9 @@ impl CasualPostEffect {
     })));
     let out_color = TextureRecipe::new_fullscreen(PixelFormat::R8G8B8A8);
     renderpass.set_color_target(Some(&out_color));
+    renderpass.own_pipeline(pipeline);
     Self {
       renderpass,
-      pipeline,
       out_color,
     }
   }
@@ -147,8 +148,7 @@ impl CasualPostEffect {
   }
   pub fn draw(&mut self, cmd: &mut Command) {
     let outer_ctx = DescriptorContext::nil();
-    let outer_ctx = self.renderpass.bind(&outer_ctx);
-    self.pipeline.draw(cmd, &outer_ctx);
+    self.renderpass.draw(cmd, &outer_ctx);
   }
 }
 
@@ -173,6 +173,7 @@ impl System for SampleSystem {
     // ok: parallel
     self.scene.update();
     self.posteffect.update();
+    self.surface.update();
 
     // TODO: use executer
     // x: parallel
