@@ -184,3 +184,9 @@ impl<T: TextureMappingAttribute> TextureMappingTrait for TextureMapping<T> {
     }
   }
 }
+
+impl<T: TextureMappingAttribute + 'static> PipelineBindable for Arc<TextureMapping<T>> {
+  fn bind_pipeline(&self, pipeline: &mut Pipeline) {
+    pipeline.add_texture_mapping(&self);
+  }
+}

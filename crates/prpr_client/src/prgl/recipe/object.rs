@@ -1,7 +1,7 @@
 use super::*;
 
 pub struct TransformObject {
-  pub pipeline: Pipeline, // TODO: not pub
+  pub pipeline: Pipeline,
   pub transform: Transform,
 }
 impl TransformObject {
@@ -13,8 +13,5 @@ impl TransformObject {
       pipeline,
       transform,
     }
-  }
-  pub fn add(&mut self, bindable: &dyn PipelineBindable) {
-    bindable.bind_pipeline(&mut self.pipeline);
   }
 }

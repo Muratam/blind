@@ -1,6 +1,53 @@
 use super::*;
 
 crate::shader_attr! {
+  struct FullScreenVertex {
+    position: vec2,
+  }
+}
+pub struct FullScreen {
+  vao: Arc<Vao<FullScreenVertex>>,
+}
+impl FullScreen {
+  pub fn new(ctx: &ArcGlContext) -> Self {
+    // バインディングなしでも行けるがそんなに変わらないので
+    let i_buffer = IndexBuffer::new(ctx, vec![0, 1, 2, 2, 1, 3]);
+    let v_buffer = VertexBuffer::new(
+      ctx,
+      vec![
+        FullScreenVertex {
+          position: Vec2::new(-1.0, -1.0),
+        },
+        FullScreenVertex {
+          position: Vec2::new(1.0, -1.0),
+        },
+        FullScreenVertex {
+          position: Vec2::new(-1.0, 1.0),
+        },
+        FullScreenVertex {
+          position: Vec2::new(1.0, 1.0),
+        },
+      ],
+    );
+    Self {
+      vao: Arc::new(Vao::new(ctx, v_buffer, i_buffer)),
+    }
+  }
+  pub fn new_pipeline(ctx: &ArcGlContext) -> Pipeline {
+    let mut pipeline = Pipeline::new(ctx);
+    pipeline.set_depth_func(DepthFunc::Always);
+    pipeline.set_cull_mode(CullMode::None);
+    pipeline.add(&Self::new(ctx));
+    pipeline
+  }
+}
+impl PipelineBindable for FullScreen {
+  fn bind_pipeline(&self, pipeline: &mut Pipeline) {
+    pipeline.set_draw_vao(&self.vao);
+  }
+}
+
+crate::shader_attr! {
   struct ShapeVertex {
     position: vec3,
     normal: vec3,

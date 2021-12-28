@@ -42,6 +42,9 @@ impl Instance {
   pub fn full_viewport(&self) -> Rect<i32> {
     Rect::new(0, 0, self.width(), self.height())
   }
+  pub fn full_max_viewport(&self) -> Rect<i32> {
+    Rect::new(0, 0, self.max_width(), self.max_height())
+  }
   pub fn update_size(&self, width: i32, height: i32) {
     *self.width.write().unwrap() = width;
     *self.height.write().unwrap() = height;

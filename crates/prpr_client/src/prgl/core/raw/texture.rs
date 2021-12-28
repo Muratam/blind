@@ -7,6 +7,8 @@ pub enum RawPixelFormatSimple {
   Rg = gl::RG as isize,
   Rgb = gl::RGB as isize,
   Rgba = gl::RGBA as isize,
+  Depth = gl::DEPTH_COMPONENT as isize,
+  DepthStencil = gl::DEPTH_STENCIL as isize,
 }
 impl RawPixelFormatSimple {
   pub fn channels(&self) -> usize {
@@ -15,6 +17,8 @@ impl RawPixelFormatSimple {
       Self::Rg => 2,
       Self::Rgb => 3,
       Self::Rgba => 4,
+      Self::Depth => 1,
+      Self::DepthStencil => 2,
     }
   }
 }
@@ -23,6 +27,7 @@ impl RawPixelFormatSimple {
 #[allow(non_camel_case_types)]
 pub enum PixelType {
   u8 = gl::UNSIGNED_BYTE as isize,
+  u32 = gl::UNSIGNED_INT as isize,
   f32 = gl::FLOAT as isize,
 }
 // = internalFormat
@@ -54,6 +59,10 @@ pub enum RawPixelFormat {
   R32G32F = gl::RG32F as isize,
   R32G32B32F = gl::RGB32F as isize,
   R32G32B32A32F = gl::RGBA32F as isize,
+  // depth
+  Depth24 = gl::DEPTH_COMPONENT24 as isize,
+  Depth32F = gl::DEPTH_COMPONENT32F as isize,
+  Depth24Stencil8 = gl::DEPTH24_STENCIL8 as isize,
 }
 impl RawPixelFormat {
   // bit per pixel
@@ -86,6 +95,9 @@ impl RawPixelFormat {
       Self::R4G4B4A4 => 2,
       Self::R5G5B5A1 => 2,
       Self::R10G10B10A2 => 4,
+      Self::Depth24 => 3,
+      Self::Depth32F => 4,
+      Self::Depth24Stencil8 => 4,
     }
   }
   pub fn to_simple_format(&self) -> RawPixelFormatSimple {
@@ -117,6 +129,9 @@ impl RawPixelFormat {
       Self::R4G4B4A4 => RawPixelFormatSimple::Rgba,
       Self::R5G5B5A1 => RawPixelFormatSimple::Rgba, // non-u
       Self::R10G10B10A2 => RawPixelFormatSimple::Rgba, // non-u
+      Self::Depth24 => RawPixelFormatSimple::Depth,
+      Self::Depth32F => RawPixelFormatSimple::Depth,
+      Self::Depth24Stencil8 => RawPixelFormatSimple::DepthStencil,
     }
   }
   pub fn to_writable_uniform_type(&self) -> PixelType {
@@ -146,10 +161,13 @@ impl RawPixelFormat {
       // f32(-)
       Self::R11G11B10F => PixelType::f32, // may UNSIGNED_INT_10F_11F_11F_REV
       // u8 ?
-      Self::R8Snorm => PixelType::u8,       // not specified
-      Self::R8G8Snorm => PixelType::u8,     // not specified
-      Self::R8G8B8Snorm => PixelType::u8,   // not specified
-      Self::R8G8B8A8Snorm => PixelType::u8, // not specified
+      Self::R8Snorm => PixelType::u8,         // not specified
+      Self::R8G8Snorm => PixelType::u8,       // not specified
+      Self::R8G8B8Snorm => PixelType::u8,     // not specified
+      Self::R8G8B8A8Snorm => PixelType::u8,   // not specified
+      Self::Depth24 => PixelType::u32,        // not specified
+      Self::Depth32F => PixelType::f32,       // not specified
+      Self::Depth24Stencil8 => PixelType::u8, // not specified
     }
   }
 }
