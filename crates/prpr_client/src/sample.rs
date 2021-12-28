@@ -52,23 +52,12 @@ impl CasualScene {
     }
     let camera = Camera::new();
     let mut renderpass = RenderPass::new();
-    let max_viewport = prgl::Instance::max_viewport();
     renderpass.set_clear_color(Some(Vec4::new(1.0, 1.0, 1.0, 0.0)));
     renderpass.set_clear_depth(Some(1.0));
     renderpass.add(&camera);
-    let out_color = Arc::new(Texture::new_uninitialized(&Texture2dDescriptor {
-      width: max_viewport.width as usize,
-      height: max_viewport.height as usize,
-      format: PixelFormat::R8G8B8A8,
-      mipmap: true,
-    }));
-    let src_depth = Arc::new(Texture::new_uninitialized(&Texture2dDescriptor {
-      width: max_viewport.width as usize,
-      height: max_viewport.height as usize,
-      format: PixelFormat::Depth24,
-      mipmap: false,
-    }));
+    let out_color = TextureRecipe::new_fullscreen(PixelFormat::R8G8B8A8);
     renderpass.set_color_target(Some(&out_color));
+    let src_depth = TextureRecipe::new_fullscreen_depth();
     renderpass.set_depth_target(Some(&src_depth));
     Self {
       objects,
@@ -81,20 +70,19 @@ impl CasualScene {
     let frame = core.frame();
     let f = (frame as f32) / 100.0;
     self.camera.write_lock().camera_pos = Vec3::new(f.sin(), f.cos(), f.cos()) * 5.0;
-    self.camera.write_lock().aspect_ratio = prgl::Instance::viewport().aspect_ratio();
-    self
-      .renderpass
-      .set_viewport(Some(&prgl::Instance::viewport()));
     for object in &mut self.objects {
       object.transform.write_lock().rotation *= Quat::from_rotation_y(3.1415 * 0.01);
     }
+    // adjust viewport
+    let viewport = prgl::Instance::viewport();
+    self.camera.write_lock().aspect_ratio = viewport.aspect_ratio();
+    self.renderpass.set_viewport(Some(&viewport));
   }
-  pub fn draw(&mut self) {
-    let mut cmd = prgl::Command::new();
+  pub fn draw(&mut self, cmd: &mut Command) {
     let outer_ctx = DescriptorContext::nil();
     let outer_ctx = self.renderpass.bind(&outer_ctx);
     for object in &self.objects {
-      object.pipeline.draw(&mut cmd, &outer_ctx);
+      object.pipeline.draw(cmd, &outer_ctx);
     }
   }
 }
@@ -105,8 +93,9 @@ crate::shader_attr! {
   }
 }
 struct CasualPostEffect {
-  surface: prgl::Surface,
+  renderpass: prgl::RenderPass,
   pipeline: prgl::Pipeline,
+  out_color: Arc<Texture>,
 }
 impl CasualPostEffect {
   pub fn shader() -> ShaderTemplate {
@@ -137,44 +126,60 @@ impl CasualPostEffect {
       out_attr: { out_color: vec4 }
     }
   }
-  pub fn new(src_color: Arc<Texture>) -> Self {
-    let mut surface = Surface::new();
-    surface.set_clear_color(Some(Vec4::ZERO));
+  pub fn new(src_color: &Arc<Texture>) -> Self {
+    let mut renderpass = RenderPass::new();
     let mut pipeline = FullScreen::new_pipeline();
     pipeline.add(&MayShader::new(CasualPostEffect::shader()));
     pipeline.add(&Arc::new(TextureMapping::new(CasualPostEffectMapping {
-      src_color,
+      src_color: src_color.clone(),
     })));
-    Self { surface, pipeline }
+    let out_color = TextureRecipe::new_fullscreen(PixelFormat::R8G8B8A8);
+    renderpass.set_color_target(Some(&out_color));
+    Self {
+      renderpass,
+      pipeline,
+      out_color,
+    }
   }
-  pub fn update(&mut self, core: &Core) {
-    // Surface auto update
+  pub fn update(&mut self) {
+    let viewport = prgl::Instance::viewport();
+    self.renderpass.set_viewport(Some(&viewport));
   }
-  pub fn draw(&mut self) {
-    let mut cmd = prgl::Command::new();
+  pub fn draw(&mut self, cmd: &mut Command) {
     let outer_ctx = DescriptorContext::nil();
-    let outer_ctx = self.surface.bind(&outer_ctx);
-    self.pipeline.draw(&mut cmd, &outer_ctx);
+    let outer_ctx = self.renderpass.bind(&outer_ctx);
+    self.pipeline.draw(cmd, &outer_ctx);
   }
 }
 
 pub struct SampleSystem {
   scene: CasualScene,
   posteffect: CasualPostEffect,
+  surface: Surface,
 }
 impl System for SampleSystem {
   fn new(core: &Core) -> Self {
     let scene = CasualScene::new();
-    let posteffect = CasualPostEffect::new(scene.out_color.clone());
-    Self { scene, posteffect }
+    let posteffect = CasualPostEffect::new(&scene.out_color);
+    let surface = Surface::new(&posteffect.out_color);
+    Self {
+      scene,
+      posteffect,
+      surface,
+    }
   }
 
   fn update(&mut self, core: &Core) {
+    // ok: parallel
     self.scene.update(core);
-    self.posteffect.update(core);
+    self.posteffect.update();
+
     // TODO: use executer
-    self.scene.draw();
-    self.posteffect.draw();
+    // x: parallel
+    let mut cmd = prgl::Command::new();
+    self.scene.draw(&mut cmd);
+    self.posteffect.draw(&mut cmd);
+    self.surface.draw(&mut cmd);
 
     // the others
     self.render_sample(core);
