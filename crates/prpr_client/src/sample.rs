@@ -10,12 +10,12 @@ fn casual_shader() -> ShaderTemplate {
     ],
     vs_attr: ShapeVertex,
     vs_code: {
-      in_color = vec4(position, 1.0);
       gl_Position = view_proj_mat * model_mat * vec4(position, 1.0);
+      in_position = position;
     },
-    fs_attr: { in_color: vec4 },
+    fs_attr: { in_position: vec3 },
     fs_code: {
-      out_color = in_color + texture(normal_map, vec2(0.5, 0.5));
+      out_color = vec4(texture(normal_map, vec2(0.5, 0.5)).rgb + in_position, 1.0);
     }
     out_attr: { out_color: vec4 }
   }
@@ -23,7 +23,7 @@ fn casual_shader() -> ShaderTemplate {
 
 crate::shader_attr! {
   mapping ToGrayScaleMapping {
-    src_texture: sampler2D
+    src_color: sampler2D,
   }
 }
 
@@ -37,9 +37,20 @@ fn grayscale_shader() -> ShaderTemplate {
     fs_attr: {},
     fs_code: {
       ivec2 iuv = ivec2(gl_FragCoord.x, gl_FragCoord.y);
-      vec3 rgb = texelFetch(src_texture, iuv, 0).rgb;
-      float g = (rgb.r + rgb.g + rgb.b) / 3.0;
-      out_color = vec4(g, g, g, 1.0);
+      vec4 base = texelFetch(src_color, iuv, 0).rgba;
+      vec3 rgb = base.rgb;
+      if (base.a < 0.5) {
+        for (int len = 1; len <= 5; len += 1) {
+          for (int dx = -1; dx <= 1; dx+=1) {
+            for (int dy = -1; dy <= 1; dy+=1) {
+              if (texelFetch(src_color, iuv + ivec2(dx, dy) * len, 0).a > 0.5) {
+                rgb = vec3(0.0, 0.0, 0.0);
+              }
+            }
+          }
+        }
+      }
+      out_color = vec4(rgb, 1.0);
     }
     out_attr: { out_color: vec4 }
   }
@@ -51,8 +62,8 @@ pub struct SampleSystem {
   renderpass: prgl::RenderPass,
   camera: prgl::Camera,
   // post effect
-  grayscale_surface: prgl::Surface,
-  grayscale_pipeline: prgl::Pipeline,
+  surface: prgl::Surface,
+  posteffect_pipeline: prgl::Pipeline,
 }
 impl System for SampleSystem {
   fn new(core: &Core) -> Self {
@@ -82,10 +93,10 @@ impl System for SampleSystem {
     let camera = Camera::new(ctx);
     let mut renderpass = RenderPass::new(ctx);
     let max_viewport = core.main_prgl().full_max_viewport();
-    renderpass.set_clear_color(Some(Vec4::new(1.0, 1.0, 1.0, 1.0)));
+    renderpass.set_clear_color(Some(Vec4::new(1.0, 1.0, 1.0, 0.0)));
     renderpass.set_clear_depth(Some(1.0));
     renderpass.add(&camera);
-    let src_texture = Arc::new(Texture::new_uninitialized(
+    let src_color = Arc::new(Texture::new_uninitialized(
       ctx,
       &Texture2dDescriptor {
         width: max_viewport.width as usize,
@@ -94,7 +105,7 @@ impl System for SampleSystem {
         mipmap: true,
       },
     ));
-    let depth_texture = Arc::new(Texture::new_uninitialized(
+    let src_depth = Arc::new(Texture::new_uninitialized(
       ctx,
       &Texture2dDescriptor {
         width: max_viewport.width as usize,
@@ -103,23 +114,24 @@ impl System for SampleSystem {
         mipmap: false,
       },
     ));
-    renderpass.set_color_target(Some(&src_texture));
-    renderpass.set_depth_target(Some(&depth_texture));
+    renderpass.set_color_target(Some(&src_color));
+    renderpass.set_depth_target(Some(&src_depth));
 
-    let grayscale_surface = Surface::new(core.main_prgl());
-    let mut grayscale_pipeline = FullScreen::new_pipeline(ctx);
-    grayscale_pipeline.add(&MayShader::new(ctx, grayscale_shader()));
-    grayscale_pipeline.add(&Arc::new(TextureMapping::new(
+    let mut surface = Surface::new(core.main_prgl());
+    surface.set_clear_color(Some(Vec4::ZERO));
+    let mut posteffect_pipeline = FullScreen::new_pipeline(ctx);
+    posteffect_pipeline.add(&MayShader::new(ctx, grayscale_shader()));
+    posteffect_pipeline.add(&Arc::new(TextureMapping::new(
       ctx,
-      ToGrayScaleMapping { src_texture },
+      ToGrayScaleMapping { src_color },
     )));
 
     Self {
       objects,
       camera,
       renderpass,
-      grayscale_pipeline,
-      grayscale_surface,
+      posteffect_pipeline,
+      surface,
     }
   }
 
@@ -143,8 +155,8 @@ impl System for SampleSystem {
       }
     }
     {
-      let desc_ctx = self.grayscale_surface.bind();
-      self.grayscale_pipeline.draw(&mut cmd, &desc_ctx);
+      let desc_ctx = self.surface.bind();
+      self.posteffect_pipeline.draw(&mut cmd, &desc_ctx);
     }
 
     // the others
@@ -152,9 +164,6 @@ impl System for SampleSystem {
   }
 }
 /* TODO:
-- fullscreenのテンプレートほしい
-  - VAOは最後だけに設定できる方がいい (nil -> Vao?)
-  - MRTしてポストプロセスをかけてみる
 - renderbuffer
   - MSAA: https://ics.media/web3d-maniacs/webgl2_renderbufferstoragemultisample/
   - mipmap がなぜかはいっている？
@@ -192,19 +201,13 @@ impl System for SampleSystem {
 
 impl SampleSystem {
   fn render_sample(&mut self, core: &Core) {
-    // TODO: 2D
-    {
+    if false {
+      // 多分使用することはない
       let ctx = core.main_2d_context();
-      // note use: `?;` for Result
       use std::f64::consts::PI;
       ctx.begin_path();
       ctx.arc(75.0, 75.0, 50.0, 0.0, PI * 2.0).ok();
       ctx.move_to(110.0, 75.0);
-      ctx.arc(75.0, 75.0, 35.0, 0.0, PI).ok();
-      ctx.move_to(65.0, 65.0);
-      ctx.arc(60.0, 65.0, 5.0, 0.0, PI * 2.0).ok();
-      ctx.move_to(95.0, 65.0);
-      ctx.arc(90.0, 65.0, 5.0, 0.0, PI * 2.0).ok();
       ctx.stroke();
     }
     // TODO: HTML
