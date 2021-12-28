@@ -2,7 +2,7 @@ use super::*;
 
 struct PipelineExecuteInfo {
   pipeline: Weak<RwLock<Pipeline>>,
-  priority: usize, // asc
+  order: usize, // asc
 }
 pub struct PipelineExecuter {
   pipelines: Vec<Arc<PipelineExecuteInfo>>,
@@ -18,21 +18,21 @@ impl PipelineExecuter {
       owneds: Vec::new(),
     }
   }
-  pub fn add(&mut self, pipeline: &Arc<RwLock<Pipeline>>, priority: usize) {
+  pub fn add(&mut self, pipeline: &Arc<RwLock<Pipeline>>, order: usize) {
     self.pipelines.push(Arc::new(PipelineExecuteInfo {
       pipeline: Arc::downgrade(pipeline),
-      priority,
+      order,
     }));
     self.need_sort = true;
   }
-  pub fn own(&mut self, pipeline: Pipeline, priority: usize) {
+  pub fn own(&mut self, pipeline: Pipeline, order: usize) {
     let pipeline = Arc::new(RwLock::new(pipeline));
     self.owneds.push(pipeline.clone());
-    self.add(&pipeline, priority);
+    self.add(&pipeline, order);
   }
-  pub fn execute_draw(&mut self, cmd: &mut Command, outer_ctx: &Arc<DescriptorContext>) {
+  pub fn execute(&mut self, cmd: &mut Command, outer_ctx: &Arc<DescriptorContext>) {
     if self.need_sort {
-      self.pipelines.sort_by(|a, b| a.priority.cmp(&b.priority));
+      self.pipelines.sort_by(|a, b| a.order.cmp(&b.order));
       self.need_sort = false;
     }
     self.pipelines.retain(|p| {

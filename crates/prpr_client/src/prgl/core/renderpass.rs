@@ -185,7 +185,7 @@ impl RenderPass {
     self.viewport_impl();
     self.clear_impl();
     let outer_ctx = DescriptorContext::cons(outer_ctx, &self.descriptor);
-    self.executer.execute_draw(cmd, &outer_ctx);
+    self.executer.execute(cmd, &outer_ctx);
   }
 
   pub fn set_color_target(&mut self, target: Option<&Arc<Texture>>) {

@@ -48,12 +48,9 @@ impl CasualScene {
       for y in 0..COUNT {
         for z in 0..COUNT {
           let object = TransformObject::new();
-          {
-            let mut pipeline = object.pipeline.write().unwrap();
-            pipeline.add(&shape);
-            pipeline.add(&material);
-            pipeline.add(&shader);
-          }
+          object.add(&shape);
+          object.add(&material);
+          object.add(&shader);
           object.transform.write_lock().translate = Vec3::new(
             x as f32 - (COUNT as f32) * 0.5,
             y as f32 - (COUNT as f32) * 0.5,
@@ -147,8 +144,7 @@ impl CasualPostEffect {
     self.renderpass.set_viewport(Some(&viewport));
   }
   pub fn draw(&mut self, cmd: &mut Command) {
-    let outer_ctx = DescriptorContext::nil();
-    self.renderpass.draw(cmd, &outer_ctx);
+    self.renderpass.draw(cmd, &DescriptorContext::nil());
   }
 }
 
@@ -190,7 +186,6 @@ impl System for SampleSystem {
 - renderbuffer
   - MSAA: https://ics.media/web3d-maniacs/webgl2_renderbufferstoragemultisample/
   - mipmap がなぜかはいっている？
-- RenderPassにPipelineを登録する形式にする
 - ShaderTemplate -> void main()
 - 複数のカメラで描画したい
   - 同じのを別カメラで２回やればOK

@@ -14,4 +14,7 @@ impl TransformObject {
       transform,
     }
   }
+  pub fn add(&self, bindable: &dyn PipelineBindable) {
+    self.pipeline.write().unwrap().add(bindable);
+  }
 }
