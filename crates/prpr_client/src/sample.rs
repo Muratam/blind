@@ -52,7 +52,7 @@ impl CasualScene {
     }
     let camera = Camera::new();
     let mut renderpass = RenderPass::new();
-    let max_viewport = Instance::full_max_viewport();
+    let max_viewport = prgl::Instance::max_viewport();
     renderpass.set_clear_color(Some(Vec4::new(1.0, 1.0, 1.0, 0.0)));
     renderpass.set_clear_depth(Some(1.0));
     renderpass.add(&camera);
@@ -81,10 +81,10 @@ impl CasualScene {
     let frame = core.frame();
     let f = (frame as f32) / 100.0;
     self.camera.write_lock().camera_pos = Vec3::new(f.sin(), f.cos(), f.cos()) * 5.0;
-    self.camera.write_lock().aspect_ratio = Instance::full_viewport().aspect_ratio();
+    self.camera.write_lock().aspect_ratio = prgl::Instance::viewport().aspect_ratio();
     self
       .renderpass
-      .set_viewport(Some(&Instance::full_viewport()));
+      .set_viewport(Some(&prgl::Instance::viewport()));
     for object in &mut self.objects {
       object.transform.write_lock().rotation *= Quat::from_rotation_y(3.1415 * 0.01);
     }

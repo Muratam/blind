@@ -48,10 +48,10 @@ impl Instance {
   pub fn height() -> i32 {
     *Self::get().height.read().unwrap()
   }
-  pub fn full_viewport() -> Rect<i32> {
+  pub fn viewport() -> Rect<i32> {
     Rect::new(0, 0, Self::width(), Self::height())
   }
-  pub fn full_max_viewport() -> Rect<i32> {
+  pub fn max_viewport() -> Rect<i32> {
     Rect::new(0, 0, Self::max_width(), Self::max_height())
   }
   pub fn update_size(width: i32, height: i32) {
