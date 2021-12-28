@@ -1,14 +1,30 @@
 use super::*;
 
-// pub struct Executer {
-//   ctx: ArcGlContext,
-// }
+struct RenderPassExecuteInfo {
+  pass: Weak<RwLock<RenderPass>>,
+  priority: i32,
+}
 
-// impl Executer {
-//   pub fn new(ctx: &ArcGlContext) -> Self {
-//     Self { ctx: ctx.clone() }
-//   }
-//   pub fn execute(&self) {
-//     let mut cmd = prgl::Command::new(&self.ctx);
-//   }
-// }
+pub struct Executer {
+  passes: Vec<RenderPassExecuteInfo>,
+  is_dirty: bool,
+}
+
+impl Executer {
+  pub fn new() -> Self {
+    Self {
+      passes: Vec::new(),
+      is_dirty: false,
+    }
+  }
+  pub fn add(&mut self, pass: &Arc<RwLock<RenderPass>>, priority: i32) {
+    self.passes.push(RenderPassExecuteInfo {
+      pass: Arc::downgrade(pass),
+      priority,
+    });
+    self.is_dirty = true;
+  }
+  pub fn execute(&mut self) {
+    let mut cmd = Command::new();
+  }
+}

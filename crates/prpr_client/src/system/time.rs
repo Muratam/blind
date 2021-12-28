@@ -7,14 +7,14 @@ pub struct TimeGlobal {
   processed_milli_sec: f64,
 }
 impl TimeGlobal {
-  pub fn read() -> RwLockReadGuard<'static, Self> {
+  pub fn read_lock() -> RwLockReadGuard<'static, Self> {
     TIME_GLOBAL_INSTANCE
       .get()
       .expect("time global not initialized")
       .read()
       .unwrap()
   }
-  pub fn write() -> RwLockWriteGuard<'static, Self> {
+  pub fn write_lock() -> RwLockWriteGuard<'static, Self> {
     TIME_GLOBAL_INSTANCE
       .get()
       .expect("time global not initialized")
@@ -41,9 +41,9 @@ impl TimeGlobal {
 pub struct Time {}
 impl Time {
   pub fn frame() -> i64 {
-    TimeGlobal::read().frame
+    TimeGlobal::read_lock().frame
   }
   pub fn processed_milli_sec() -> f64 {
-    TimeGlobal::read().processed_milli_sec
+    TimeGlobal::read_lock().processed_milli_sec
   }
 }

@@ -18,10 +18,10 @@ impl Core {
   pub fn pre_update(&mut self) {
     self.layers.adjust_screen_size();
     prgl::Instance::update_size(self.layers.width(), self.layers.height());
-    TimeGlobal::write().pre_update();
+    TimeGlobal::write_lock().pre_update();
   }
   pub fn post_update(&mut self) {
-    TimeGlobal::write().post_update();
+    TimeGlobal::write_lock().post_update();
     prgl::Instance::flush();
   }
   // depracated(もっとラップする)
