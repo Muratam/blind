@@ -29,7 +29,7 @@ impl Descriptor {
 }
 pub enum DescriptorContext {
   Cons {
-    prior: Arc<RwLock<Descriptor>>,
+    prior: Reader<Descriptor>,
     others: Arc<Self>,
   },
   Nil,
@@ -39,16 +39,16 @@ impl DescriptorContext {
   pub fn nil() -> Arc<Self> {
     Arc::new(Self::Nil)
   }
-  pub fn cons(others: &Arc<Self>, prior: &Arc<RwLock<Descriptor>>) -> Arc<Self> {
+  pub fn cons(others: &Arc<Self>, prior: &dyn ReaderClonable<Descriptor>) -> Arc<Self> {
     Arc::new(Self::Cons {
-      prior: prior.clone(),
+      prior: prior.clone_reader(),
       others: others.clone(),
     })
   }
   pub fn bind(&self, cmd: &mut Command) {
     if let Self::Cons { prior, others } = self {
       others.bind(cmd);
-      let prior = prior.read().unwrap();
+      let prior = prior.read();
       for u_buffer in &prior.u_buffers {
         u_buffer.bind(cmd);
       }

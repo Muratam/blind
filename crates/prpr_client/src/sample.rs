@@ -4,7 +4,7 @@ use prgl;
 
 struct CasualScene {
   objects: Vec<prgl::TransformObject>,
-  renderpass: Arc<RwLock<prgl::RenderPass>>,
+  renderpass: Owner<prgl::RenderPass>,
   camera: prgl::Camera,
   out_color: Arc<Texture>,
 }
@@ -51,10 +51,10 @@ impl CasualScene {
     for x in 0..COUNT {
       for y in 0..COUNT {
         for z in 0..COUNT {
-          let object = TransformObject::new();
-          object.add(&shape);
-          object.add(&material);
-          object.add(&shader);
+          let mut object = TransformObject::new();
+          object.pipeline.write().add(&shape);
+          object.pipeline.write().add(&material);
+          object.pipeline.write().add(&shader);
           object.transform.write_lock().translate = Vec3::new(
             x as f32 - (COUNT as f32) * 0.5,
             y as f32 - (COUNT as f32) * 0.5,
@@ -66,7 +66,7 @@ impl CasualScene {
         }
       }
     }
-    let renderpass = Arc::new(RwLock::new(renderpass));
+    let renderpass = Owner::new(renderpass);
     RenderPassExecuter::global_write_lock().add(&renderpass, CasualRenderPassOrder::Scene as usize);
     Self {
       objects,
@@ -85,11 +85,7 @@ impl CasualScene {
     // adjust viewport
     let viewport = prgl::Instance::viewport();
     self.camera.write_lock().aspect_ratio = viewport.aspect_ratio();
-    self
-      .renderpass
-      .write()
-      .unwrap()
-      .set_viewport(Some(&viewport));
+    self.renderpass.write().set_viewport(Some(&viewport));
   }
 }
 
@@ -99,7 +95,7 @@ crate::shader_attr! {
   }
 }
 struct CasualPostEffect {
-  renderpass: Arc<RwLock<prgl::RenderPass>>,
+  renderpass: Owner<prgl::RenderPass>,
   out_color: Arc<Texture>,
 }
 impl CasualPostEffect {
@@ -141,7 +137,7 @@ impl CasualPostEffect {
     let out_color = TextureRecipe::new_fullscreen(PixelFormat::R8G8B8A8);
     renderpass.set_color_target(Some(&out_color));
     renderpass.own_pipeline(pipeline);
-    let renderpass = Arc::new(RwLock::new(renderpass));
+    let renderpass = Owner::new(renderpass);
     RenderPassExecuter::global_write_lock()
       .add(&renderpass, CasualRenderPassOrder::PostEffect as usize);
     Self {
@@ -151,11 +147,7 @@ impl CasualPostEffect {
   }
   pub fn update(&mut self) {
     let viewport = prgl::Instance::viewport();
-    self
-      .renderpass
-      .write()
-      .unwrap()
-      .set_viewport(Some(&viewport));
+    self.renderpass.write().set_viewport(Some(&viewport));
   }
 }
 
@@ -166,6 +158,21 @@ pub struct SampleScene {
 }
 impl SampleScene {
   pub fn new() -> Self {
+    {
+      let mut x = Owner::new(1);
+      *x.write() = 10;
+      *x.write() = 20;
+      {
+        let r = x.read();
+        let r2 = x.read();
+        let n = *r + *r2;
+      }
+      let mut w = x.write();
+      *w = 10;
+      // let mut w2 = x.write();
+      // *w = 40;
+    }
+
     let scene = CasualScene::new();
     let posteffect = CasualPostEffect::new(&scene.out_color);
     let surface = Surface::new(&posteffect.out_color);
@@ -199,6 +206,10 @@ impl System for SampleSystem {
   }
 }
 /* TODO:
+- Ownerパターンに変えたい場所を変える
+  - Arc<RwLock<>>
+  - Arc<>
+  - write_lock()
 - renderbuffer
   - MSAA: https://ics.media/web3d-maniacs/webgl2_renderbufferstoragemultisample/
   - mipmap がなぜかはいっている？

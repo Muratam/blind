@@ -1,7 +1,7 @@
 use super::*;
 
 pub struct TransformObject {
-  pub pipeline: Arc<RwLock<Pipeline>>,
+  pub pipeline: Owner<Pipeline>,
   pub transform: Transform,
 }
 impl TransformObject {
@@ -10,11 +10,8 @@ impl TransformObject {
     let transform = Transform::new();
     transform.bind_pipeline(&mut pipeline);
     Self {
-      pipeline: Arc::new(RwLock::new(pipeline)),
+      pipeline: Owner::new(pipeline),
       transform,
     }
-  }
-  pub fn add(&self, bindable: &dyn PipelineBindable) {
-    self.pipeline.write().unwrap().add(bindable);
   }
 }

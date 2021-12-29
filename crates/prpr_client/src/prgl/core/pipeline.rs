@@ -8,7 +8,7 @@ pub struct Pipeline {
   primitive_topology: PrimitiveToporogy,
   shader: Option<Arc<Shader>>,
   invisible_reasons: collections::BitSet64,
-  descriptor: Arc<RwLock<Descriptor>>,
+  descriptor: Owner<Descriptor>,
 }
 
 impl Pipeline {
@@ -20,7 +20,7 @@ impl Pipeline {
       primitive_topology: PrimitiveToporogy::Triangles,
       shader: None,
       invisible_reasons: collections::BitSet64::new(),
-      descriptor: Arc::new(RwLock::new(Descriptor::new())),
+      descriptor: Owner::new(Descriptor::new()),
     }
   }
 
@@ -50,7 +50,7 @@ impl Pipeline {
     self.shader = Some(Arc::clone(shader));
   }
   pub fn set_vao<T: BufferAttribute + 'static>(&mut self, vao: &Arc<Vao<T>>) {
-    let mut descriptor = self.descriptor.write().unwrap();
+    let mut descriptor = self.descriptor.write();
     descriptor.set_vao(&(Arc::clone(vao) as Arc<dyn VaoTrait>));
   }
   pub fn set_draw_vao<T: BufferAttribute + 'static>(&mut self, vao: &Arc<Vao<T>>) {
@@ -58,7 +58,7 @@ impl Pipeline {
     self.set_draw_command(vao.draw_command());
   }
   pub fn add_uniform_buffer_trait(&mut self, buffer: &Arc<dyn UniformBufferTrait>) {
-    let mut descriptor = self.descriptor.write().unwrap();
+    let mut descriptor = self.descriptor.write();
     descriptor.add_uniform_buffer(&buffer.clone());
   }
   pub fn add_uniform_buffer<T: BufferAttribute + 'static>(
@@ -77,7 +77,7 @@ impl Pipeline {
     &mut self,
     mapping: &Arc<TextureMapping<T>>,
   ) {
-    let mut descriptor = self.descriptor.write().unwrap();
+    let mut descriptor = self.descriptor.write();
     descriptor.add_texture_mapping(&(Arc::clone(mapping) as Arc<dyn TextureMappingTrait>));
   }
   pub fn set_cull_mode(&mut self, mode: CullMode) {

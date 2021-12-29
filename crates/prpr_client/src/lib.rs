@@ -1,4 +1,4 @@
-// use prpr::*;
+use prpr::*;
 
 // for entry_point
 pub use wasm_bindgen::prelude::wasm_bindgen as entry_point;

@@ -6,7 +6,7 @@ crate::shader_attr! {
   }
 }
 pub struct Surface {
-  renderpass: Arc<RwLock<prgl::RenderPass>>,
+  renderpass: Owner<prgl::RenderPass>,
 }
 // NOTE: 利便性のために最後のキャンバス出力をコピーで済ますもの
 // 最後ダイレクトに書いたほうが無駄な工程が減る
@@ -30,7 +30,7 @@ impl Surface {
       src_color: src_color.clone(),
     })));
     renderpass.own_pipeline(pipeline);
-    let renderpass = Arc::new(RwLock::new(renderpass));
+    let renderpass = Owner::new(renderpass);
     RenderPassExecuter::global_write_lock().add(&renderpass, usize::MAX);
     Self { renderpass }
   }
@@ -38,10 +38,7 @@ impl Surface {
 
 impl Updater for Surface {
   fn update(&mut self) {
-    self
-      .renderpass
-      .write()
-      .unwrap()
-      .set_viewport(Some(&prgl::Instance::viewport()));
+    let viewport = prgl::Instance::viewport();
+    self.renderpass.write().set_viewport(Some(&viewport));
   }
 }

@@ -1,12 +1,12 @@
 use super::*;
 
 struct PipelineExecuteInfo {
-  pipeline: Weak<RwLock<Pipeline>>,
+  pipeline: WeakReader<Pipeline>,
   order: usize, // asc
 }
 pub struct PipelineExecuter {
-  pipelines: Vec<Arc<PipelineExecuteInfo>>,
-  owns: Vec<Arc<RwLock<Pipeline>>>,
+  pipelines: Vec<PipelineExecuteInfo>,
+  owns: Vec<Owner<Pipeline>>,
   need_sort: bool,
 }
 
@@ -18,17 +18,17 @@ impl PipelineExecuter {
       owns: Vec::new(),
     }
   }
-  pub fn add(&mut self, pipeline: &Arc<RwLock<Pipeline>>, order: usize) {
-    self.pipelines.push(Arc::new(PipelineExecuteInfo {
-      pipeline: Arc::downgrade(pipeline),
+  pub fn add(&mut self, pipeline: &dyn ReaderClonable<Pipeline>, order: usize) {
+    self.pipelines.push(PipelineExecuteInfo {
+      pipeline: pipeline.clone_weak_reader(),
       order,
-    }));
+    });
     self.need_sort = true;
   }
   pub fn own(&mut self, pipeline: Pipeline, order: usize) {
-    let pipeline = Arc::new(RwLock::new(pipeline));
-    self.owns.push(pipeline.clone());
+    let pipeline = Owner::new(pipeline);
     self.add(&pipeline, order);
+    self.owns.push(pipeline);
   }
   pub fn execute(&mut self, cmd: &mut Command, outer_ctx: &Arc<DescriptorContext>) {
     if self.need_sort {
@@ -36,8 +36,8 @@ impl PipelineExecuter {
       self.need_sort = false;
     }
     self.pipelines.retain(|p| {
-      if let Some(pipeline) = p.pipeline.upgrade() {
-        pipeline.read().unwrap().draw(cmd, outer_ctx);
+      if let Some(pipeline) = p.pipeline.try_read() {
+        pipeline.read().draw(cmd, outer_ctx);
         return true;
       } else {
         return false;
@@ -53,12 +53,12 @@ unsafe impl Send for RenderPassExecuter {}
 unsafe impl Sync for RenderPassExecuter {}
 
 struct RenderPassExecuteInfo {
-  pass: Weak<RwLock<RenderPass>>,
+  pass: WeakReader<RenderPass>,
   order: usize, // asc
 }
 pub struct RenderPassExecuter {
-  passes: Vec<Arc<RenderPassExecuteInfo>>,
-  owns: Vec<Arc<RwLock<RenderPass>>>,
+  passes: Vec<RenderPassExecuteInfo>,
+  owns: Vec<Owner<RenderPass>>,
   need_sort: bool,
 }
 impl RenderPassExecuter {
@@ -87,17 +87,17 @@ impl RenderPassExecuter {
       need_sort: false,
     }
   }
-  pub fn add(&mut self, pass: &Arc<RwLock<RenderPass>>, order: usize) {
-    self.passes.push(Arc::new(RenderPassExecuteInfo {
-      pass: Arc::downgrade(pass),
+  pub fn add(&mut self, pass: &dyn ReaderClonable<RenderPass>, order: usize) {
+    self.passes.push(RenderPassExecuteInfo {
+      pass: pass.clone_weak_reader(),
       order,
-    }));
+    });
     self.need_sort = true;
   }
   pub fn own(&mut self, pass: RenderPass, order: usize) {
-    let pass = Arc::new(RwLock::new(pass));
-    self.owns.push(pass.clone());
+    let pass = Owner::new(pass);
     self.add(&pass, order);
+    self.owns.push(pass);
   }
   pub fn execute(&mut self) {
     if self.need_sort {
@@ -106,11 +106,8 @@ impl RenderPassExecuter {
     }
     let mut cmd = prgl::Command::new();
     self.passes.retain(|p| {
-      if let Some(pass) = p.pass.upgrade() {
-        pass
-          .write()
-          .unwrap()
-          .draw(&mut cmd, &DescriptorContext::nil());
+      if let Some(pass) = p.pass.try_read() {
+        pass.read().draw(&mut cmd, &DescriptorContext::nil());
         return true;
       } else {
         return false;

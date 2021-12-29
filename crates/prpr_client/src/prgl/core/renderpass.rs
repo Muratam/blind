@@ -27,8 +27,8 @@ pub struct RenderPass {
   // raw_renderbuffer: RawRenderBuffer,
   buffer_setup_info: RwLock<BufferSetupInfo>,
   disabled_reasons: collections::BitSet64,
-  descriptor: Arc<RwLock<Descriptor>>,
-  executer: PipelineExecuter,
+  descriptor: Owner<Descriptor>,
+  executer: Mutex<PipelineExecuter>,
   renderpass_id: u64,
 }
 impl RenderPass {
@@ -55,8 +55,8 @@ impl RenderPass {
         use_default_buffer: false,
       }),
       disabled_reasons: collections::BitSet64::new(),
-      descriptor: Arc::new(RwLock::new(Descriptor::new())),
-      executer: PipelineExecuter::new(),
+      descriptor: Owner::new(Descriptor::new()),
+      executer: Mutex::new(PipelineExecuter::new()),
       renderpass_id: ID_COUNTER.fetch_add(1, Ordering::SeqCst) as u64,
     }
   }
@@ -181,7 +181,7 @@ impl RenderPass {
     }
   }
 
-  pub fn draw(&mut self, cmd: &mut Command, outer_ctx: &Arc<DescriptorContext>) {
+  pub fn draw(&self, cmd: &mut Command, outer_ctx: &Arc<DescriptorContext>) {
     if self.disabled() {
       return;
     }
@@ -190,7 +190,7 @@ impl RenderPass {
     self.viewport_impl();
     self.clear_impl();
     let outer_ctx = DescriptorContext::cons(outer_ctx, &self.descriptor);
-    self.executer.execute(cmd, &outer_ctx);
+    self.executer.lock().unwrap().execute(cmd, &outer_ctx);
   }
 
   pub fn set_color_target(&mut self, target: Option<&Arc<Texture>>) {
@@ -232,7 +232,7 @@ impl RenderPass {
     self.clear_colors[slot as usize] = value;
   }
   pub fn add_uniform_buffer_trait(&mut self, buffer: &Arc<dyn UniformBufferTrait>) {
-    let mut descriptor = self.descriptor.write().unwrap();
+    let mut descriptor = self.descriptor.write();
     descriptor.add_uniform_buffer(&buffer.clone());
   }
   pub fn add_uniform_buffer<T: BufferAttribute + 'static>(
@@ -251,23 +251,27 @@ impl RenderPass {
     &mut self,
     mapping: &Arc<TextureMapping<T>>,
   ) {
-    let mut descriptor = self.descriptor.write().unwrap();
+    let mut descriptor = self.descriptor.write();
     descriptor.add_texture_mapping(&(Arc::clone(mapping) as Arc<dyn TextureMappingTrait>));
   }
   pub fn add(&mut self, bindable: &dyn RenderPassBindable) {
     bindable.bind_renderpass(self);
   }
   pub fn own_pipeline(&mut self, pipeline: Pipeline) {
-    self.executer.own(pipeline, 0);
+    self.executer.lock().unwrap().own(pipeline, 0);
   }
   pub fn own_pipeline_with_priority(&mut self, pipeline: Pipeline, priority: usize) {
-    self.executer.own(pipeline, priority);
+    self.executer.lock().unwrap().own(pipeline, priority);
   }
-  pub fn add_pipeline(&mut self, pipeline: &Arc<RwLock<Pipeline>>) {
-    self.executer.add(pipeline, 0);
+  pub fn add_pipeline(&mut self, pipeline: &dyn ReaderClonable<Pipeline>) {
+    self.executer.lock().unwrap().add(pipeline, 0);
   }
-  pub fn add_pipeline_with_priority(&mut self, pipeline: &Arc<RwLock<Pipeline>>, priority: usize) {
-    self.executer.add(pipeline, priority);
+  pub fn add_pipeline_with_priority(
+    &mut self,
+    pipeline: &dyn ReaderClonable<Pipeline>,
+    priority: usize,
+  ) {
+    self.executer.lock().unwrap().add(pipeline, priority);
   }
   pub fn set_disabled(&mut self, disabled: bool, reason: usize) {
     self.disabled_reasons.set(reason, disabled);
