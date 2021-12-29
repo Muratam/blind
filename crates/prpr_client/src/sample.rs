@@ -36,7 +36,8 @@ impl CasualScene {
   }
   pub fn new() -> Self {
     // renderpass
-    let camera = Camera::new();
+    let mut camera = Camera::new();
+    camera.write().camera_pos = Vec3::X * 5.0;
     let mut renderpass = RenderPass::new();
     renderpass.set_clear_color(Some(Vec4::new(1.0, 1.0, 1.0, 0.0)));
     renderpass.set_clear_depth(Some(1.0));
@@ -88,10 +89,20 @@ impl system::Updatable for CasualScene {
   fn update(&mut self) {
     let frame = Time::frame();
     let f = (frame as f32) / 100.0;
-    self.camera.write().camera_pos = Vec3::new(f.sin(), f.cos(), f.cos()) * 5.0;
+    if input::Mouse::state(input::MouseState::IsDown) {
+      self.camera.write().rotate_self_fixed(Vec2::new(
+        input::Mouse::dx() as f32 * 0.01,
+        input::Mouse::dy() as f32 * 0.01,
+      ));
+    }
+    self.camera.write().dolly(Vec3::new(
+      input::Mouse::wheel_dx() as f32 * 0.005,
+      0.0,
+      input::Mouse::wheel_dy() as f32 * 0.005,
+    ));
+
     for object in &mut self.objects {
-      object.transform.write().rotation *= Quat::from_rotation_x(input::Mouse::dx() as f32 * 0.01)
-        * Quat::from_rotation_y(input::Mouse::dy() as f32 * 0.01);
+      object.transform.write().rotation *= Quat::from_rotation_y(f);
     }
     // adjust viewport
     let viewport = Instance::viewport();
@@ -185,8 +196,6 @@ pub fn sample_world() {
   - デバッグ用のが欲しくはなるかも
   - 結局ズーム操作はエミュレーションすることになるのでは
 - pipeline.add で同じUniformBufferな時に気をつけたい(Camera)
-- キーボード入力 / タッチ入力を受け取る
-  - https://rustwasm.github.io/docs/wasm-bindgen/examples/paint.html
 - texture2darray, texture3d 対応する
   - texture として扱いたい？
     - https://ics.media/web3d-maniacs/webgl2_texture2darray/

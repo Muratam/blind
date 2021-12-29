@@ -24,6 +24,41 @@ pub struct CameraData {
   pub far: f32,
 }
 impl CameraData {
+  pub fn dolly(&mut self, translate: Vec3) {
+    let z = self.camera_target_pos - self.camera_pos;
+    if z.length_squared() == 0.0 {
+      log::error("failed to dolly");
+      return;
+    }
+    let lz = z.length();
+    let z = z / lz;
+    let x = Vec3::Y.cross(z);
+    let y = x.cross(z);
+    let translate = x * translate.x + y * translate.y + z * translate.z;
+    self.camera_pos += translate;
+    self.camera_target_pos += translate;
+  }
+  // pub fn rotate_target_fixed(&mut self, angles: Vec2) {}
+  pub fn rotate_self_fixed(&mut self, angles: Vec2) {
+    let z = self.camera_target_pos - self.camera_pos;
+    if z.length_squared() == 0.0 {
+      log::error("failed to rotate_self_fixed");
+      return;
+    }
+    let lz = z.length();
+    let z = z / lz;
+    let x = Vec3::Y.cross(z);
+    let y = x.cross(z);
+    self.camera_target_pos = self.camera_pos
+      + (Quat::from_axis_angle(y, angles.x) * Quat::from_axis_angle(x, angles.y)).mul_vec3(lz * z)
+  }
+  pub fn world_dolly(&mut self, world_translate: Vec3) {
+    self.camera_pos += world_translate;
+    self.camera_target_pos += world_translate;
+  }
+}
+
+impl CameraData {
   fn to_view_mat(camera_pos: Vec3, target_pos: Vec3) -> Mat4 {
     Mat4::look_at_rh(camera_pos, target_pos, Vec3::Y)
   }
