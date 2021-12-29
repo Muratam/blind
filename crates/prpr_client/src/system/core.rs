@@ -13,6 +13,8 @@ impl Core {
     let layers = Layers::new();
     prgl::Instance::set(layers.main_3d_context());
     TimeGlobal::initialize();
+    prgl::RenderPassExecuter::global_initialize();
+    UpdaterExecuter::global_initialize();
     Self { layers }
   }
   pub fn pre_update(&mut self) {
@@ -21,6 +23,8 @@ impl Core {
     TimeGlobal::write_lock().pre_update();
   }
   pub fn post_update(&mut self) {
+    UpdaterExecuter::global_write_lock().execute();
+    prgl::RenderPassExecuter::global_write_lock().execute();
     TimeGlobal::write_lock().post_update();
     prgl::Instance::flush();
   }

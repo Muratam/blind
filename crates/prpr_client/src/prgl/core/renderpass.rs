@@ -26,6 +26,7 @@ pub struct RenderPass {
   // raw_framebuffer_for_renderbuffer: RawFrameBuffer,
   // raw_renderbuffer: RawRenderBuffer,
   buffer_setup_info: RwLock<BufferSetupInfo>,
+  disabled_reasons: collections::BitSet64,
   descriptor: Arc<RwLock<Descriptor>>,
   executer: PipelineExecuter,
   renderpass_id: u64,
@@ -53,6 +54,7 @@ impl RenderPass {
         viewport: None,
         use_default_buffer: false,
       }),
+      disabled_reasons: collections::BitSet64::new(),
       descriptor: Arc::new(RwLock::new(Descriptor::new())),
       executer: PipelineExecuter::new(),
       renderpass_id: ID_COUNTER.fetch_add(1, Ordering::SeqCst) as u64,
@@ -180,6 +182,9 @@ impl RenderPass {
   }
 
   pub fn draw(&mut self, cmd: &mut Command, outer_ctx: &Arc<DescriptorContext>) {
+    if self.disabled() {
+      return;
+    }
     self.setup_framebuffer_impl();
     self.bind_framebuffer_impl();
     self.viewport_impl();
@@ -264,6 +269,13 @@ impl RenderPass {
   pub fn add_pipeline_with_priority(&mut self, pipeline: &Arc<RwLock<Pipeline>>, priority: usize) {
     self.executer.add(pipeline, priority);
   }
+  pub fn set_disabled(&mut self, disabled: bool, reason: usize) {
+    self.disabled_reasons.set(reason, disabled);
+  }
+  pub fn disabled(&self) -> bool {
+    self.disabled_reasons.any()
+  }
+
   pub fn renderpass_id(&self) -> u64 {
     self.renderpass_id
   }

@@ -93,7 +93,7 @@ impl Pipeline {
   pub fn set_draw_mode(&mut self, primitive_topology: PrimitiveToporogy) {
     self.primitive_topology = primitive_topology;
   }
-  pub fn set_invisible(&mut self, reason: usize, invisible: bool) {
+  pub fn set_invisible(&mut self, invisible: bool, reason: usize) {
     self.invisible_reasons.set(reason, invisible);
   }
   pub fn invisible(&self) -> bool {

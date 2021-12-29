@@ -4,9 +4,13 @@ use prgl;
 
 struct CasualScene {
   objects: Vec<prgl::TransformObject>,
-  renderpass: prgl::RenderPass,
+  renderpass: Arc<RwLock<prgl::RenderPass>>,
   camera: prgl::Camera,
   out_color: Arc<Texture>,
+}
+enum CasualRenderPassOrder {
+  Scene,
+  PostEffect,
 }
 impl CasualScene {
   pub fn shader() -> ShaderTemplate {
@@ -62,6 +66,8 @@ impl CasualScene {
         }
       }
     }
+    let renderpass = Arc::new(RwLock::new(renderpass));
+    RenderPassExecuter::global_write_lock().add(&renderpass, CasualRenderPassOrder::Scene as usize);
     Self {
       objects,
       renderpass,
@@ -79,10 +85,11 @@ impl CasualScene {
     // adjust viewport
     let viewport = prgl::Instance::viewport();
     self.camera.write_lock().aspect_ratio = viewport.aspect_ratio();
-    self.renderpass.set_viewport(Some(&viewport));
-  }
-  pub fn draw(&mut self, cmd: &mut Command) {
-    self.renderpass.draw(cmd, &DescriptorContext::nil());
+    self
+      .renderpass
+      .write()
+      .unwrap()
+      .set_viewport(Some(&viewport));
   }
 }
 
@@ -92,7 +99,7 @@ crate::shader_attr! {
   }
 }
 struct CasualPostEffect {
-  renderpass: prgl::RenderPass,
+  renderpass: Arc<RwLock<prgl::RenderPass>>,
   out_color: Arc<Texture>,
 }
 impl CasualPostEffect {
@@ -134,6 +141,9 @@ impl CasualPostEffect {
     let out_color = TextureRecipe::new_fullscreen(PixelFormat::R8G8B8A8);
     renderpass.set_color_target(Some(&out_color));
     renderpass.own_pipeline(pipeline);
+    let renderpass = Arc::new(RwLock::new(renderpass));
+    RenderPassExecuter::global_write_lock()
+      .add(&renderpass, CasualRenderPassOrder::PostEffect as usize);
     Self {
       renderpass,
       out_color,
@@ -141,20 +151,21 @@ impl CasualPostEffect {
   }
   pub fn update(&mut self) {
     let viewport = prgl::Instance::viewport();
-    self.renderpass.set_viewport(Some(&viewport));
-  }
-  pub fn draw(&mut self, cmd: &mut Command) {
-    self.renderpass.draw(cmd, &DescriptorContext::nil());
+    self
+      .renderpass
+      .write()
+      .unwrap()
+      .set_viewport(Some(&viewport));
   }
 }
 
-pub struct SampleSystem {
+pub struct SampleScene {
   scene: CasualScene,
   posteffect: CasualPostEffect,
   surface: Surface,
 }
-impl System for SampleSystem {
-  fn new(core: &Core) -> Self {
+impl SampleScene {
+  pub fn new() -> Self {
     let scene = CasualScene::new();
     let posteffect = CasualPostEffect::new(&scene.out_color);
     let surface = Surface::new(&posteffect.out_color);
@@ -164,21 +175,26 @@ impl System for SampleSystem {
       surface,
     }
   }
-
-  fn update(&mut self, core: &Core) {
-    // ok: parallel
+}
+impl Updater for SampleScene {
+  fn update(&mut self) {
     self.scene.update();
     self.posteffect.update();
     self.surface.update();
+  }
+}
 
-    // TODO: use executer
-    // x: parallel
-    let mut cmd = prgl::Command::new();
-    self.scene.draw(&mut cmd);
-    self.posteffect.draw(&mut cmd);
-    self.surface.draw(&mut cmd);
-
-    // the others
+pub struct SampleSystem {
+  scene: SampleScene,
+}
+impl System for SampleSystem {
+  fn new(core: &Core) -> Self {
+    Self {
+      scene: SampleScene::new(),
+    }
+  }
+  fn update(&mut self, core: &Core) {
+    self.scene.update();
     self.render_sample(core);
   }
 }

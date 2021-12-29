@@ -1,6 +1,6 @@
 use super::*;
 use once_cell::sync::OnceCell;
-static TIME_GLOBAL_INSTANCE: OnceCell<RwLock<TimeGlobal>> = OnceCell::new();
+static INSTANCE: OnceCell<RwLock<TimeGlobal>> = OnceCell::new();
 pub struct TimeGlobal {
   frame: i64,
   pre_now_milli_sec: f64,
@@ -8,21 +8,21 @@ pub struct TimeGlobal {
 }
 impl TimeGlobal {
   pub fn read_lock() -> RwLockReadGuard<'static, Self> {
-    TIME_GLOBAL_INSTANCE
+    INSTANCE
       .get()
       .expect("time global not initialized")
       .read()
       .unwrap()
   }
   pub fn write_lock() -> RwLockWriteGuard<'static, Self> {
-    TIME_GLOBAL_INSTANCE
+    INSTANCE
       .get()
       .expect("time global not initialized")
       .write()
       .unwrap()
   }
   pub fn initialize() {
-    TIME_GLOBAL_INSTANCE
+    INSTANCE
       .set(RwLock::new(TimeGlobal {
         pre_now_milli_sec: js::date::now_millisec(),
         processed_milli_sec: 0.0,

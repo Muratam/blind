@@ -6,7 +6,7 @@ crate::shader_attr! {
   }
 }
 pub struct Surface {
-  renderpass: RenderPass,
+  renderpass: Arc<RwLock<prgl::RenderPass>>,
 }
 // NOTE: 利便性のために最後のキャンバス出力をコピーで済ますもの
 // 最後ダイレクトに書いたほうが無駄な工程が減る
@@ -21,7 +21,6 @@ impl Surface {
       out_attr: { out_color: vec4 }
     }
   }
-  // フルサイズのテクスチャであると想定できる
   pub fn new(src_color: &Arc<Texture>) -> Self {
     let mut renderpass = RenderPass::new();
     renderpass.set_use_default_buffer(true);
@@ -31,13 +30,18 @@ impl Surface {
       src_color: src_color.clone(),
     })));
     renderpass.own_pipeline(pipeline);
+    let renderpass = Arc::new(RwLock::new(renderpass));
+    RenderPassExecuter::global_write_lock().add(&renderpass, usize::MAX);
     Self { renderpass }
   }
-  pub fn update(&mut self) {
-    let viewport = prgl::Instance::viewport();
-    self.renderpass.set_viewport(Some(&viewport));
-  }
-  pub fn draw(&mut self, cmd: &mut Command) {
-    self.renderpass.draw(cmd, &DescriptorContext::nil());
+}
+
+impl Updater for Surface {
+  fn update(&mut self) {
+    self
+      .renderpass
+      .write()
+      .unwrap()
+      .set_viewport(Some(&prgl::Instance::viewport()));
   }
 }

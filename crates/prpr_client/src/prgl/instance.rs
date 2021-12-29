@@ -1,7 +1,7 @@
 use super::*;
 use crate::html;
 
-// WARN: HTML操作系は多分別スレッドから実行できない
+// WARN: 多分別スレッドから実行できない
 use once_cell::sync::OnceCell;
 static INSTANCE: OnceCell<Instance> = OnceCell::new();
 unsafe impl Send for Instance {}
