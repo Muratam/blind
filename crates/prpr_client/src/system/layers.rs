@@ -6,10 +6,10 @@ fn setup_global_style(parent: &web_sys::HtmlElement) {
     padding: 0px;
     border: 0px;
     margin: 0px;
+    touch-action: none;
+    overscroll-behavior-x: none;
     overscroll-behavior-y: none;
   }"###;
-  // overscroll-behavior-x: none;
-  // touch-action: none;
   let _ = html::append_css(parent, css);
 }
 

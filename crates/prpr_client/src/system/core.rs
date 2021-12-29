@@ -39,9 +39,11 @@ impl Core {
       let html_layer = self.html_layer();
       let mut text: String = format!("{} ms\n", Time::processed_milli_sec());
       text += &format!(
-        "({},{}): {}",
+        "({},{}): ({},{}):{}",
         input::Mouse::x(),
         input::Mouse::y(),
+        input::Mouse::wheel_dx(),
+        input::Mouse::wheel_dy(),
         input::Mouse::state(MouseState::IsDown)
       );
       if input::Mouse::state(MouseState::IsLeftClicked) {
@@ -53,7 +55,10 @@ impl Core {
       if input::Mouse::state(MouseState::IsDoubleClicked) {
         log::info("double clicked");
       }
-
+      // if let Some(pre_text) = html_layer.text_content() {
+      //   text += "\n";
+      //   text += &pre_text;
+      // }
       html_layer.set_text_content(Some(&text));
     }
   }
