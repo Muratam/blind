@@ -48,38 +48,32 @@ impl PipelineExecuter {
 
 // WARN: 多分別スレッドから実行できない
 use once_cell::sync::OnceCell;
-static INSTANCE: OnceCell<RwLock<RenderPassExecuter>> = OnceCell::new();
-unsafe impl Send for RenderPassExecuter {}
-unsafe impl Sync for RenderPassExecuter {}
+static INSTANCE: OnceCell<RwLock<RenderPassExecuterImpl>> = OnceCell::new();
+unsafe impl Send for RenderPassExecuterImpl {}
+unsafe impl Sync for RenderPassExecuterImpl {}
 
 struct RenderPassExecuteInfo {
   pass: WeakReader<RenderPass>,
   order: usize, // asc
 }
-pub struct RenderPassExecuter {
+pub struct RenderPassExecuterImpl {
   passes: Vec<RenderPassExecuteInfo>,
   owns: Vec<Owner<RenderPass>>,
   need_sort: bool,
 }
-impl RenderPassExecuter {
-  pub fn global_read_lock() -> RwLockReadGuard<'static, Self> {
+impl RenderPassExecuterImpl {
+  pub fn initialize_global() {
     INSTANCE
-      .get()
-      .expect("RenderPassExecuter global not initialized")
-      .read()
-      .unwrap()
+      .set(RwLock::new(RenderPassExecuterImpl::new()))
+      .ok();
   }
-  pub fn global_write_lock() -> RwLockWriteGuard<'static, Self> {
+  pub fn write_global() -> RwLockWriteGuard<'static, Self> {
     INSTANCE
       .get()
       .expect("RenderPassExecuter global not initialized")
       .write()
       .unwrap()
   }
-  pub fn global_initialize() {
-    INSTANCE.set(RwLock::new(RenderPassExecuter::new())).ok();
-  }
-
   pub fn new() -> Self {
     Self {
       passes: Vec::new(),
@@ -113,5 +107,14 @@ impl RenderPassExecuter {
         return false;
       }
     });
+  }
+}
+pub struct RenderPassExecuter {}
+impl RenderPassExecuter {
+  pub fn add(pass: &Reader<RenderPass>, order: usize) {
+    RenderPassExecuterImpl::write_global().add(pass, order);
+  }
+  pub fn own(pass: RenderPass, order: usize) {
+    RenderPassExecuterImpl::write_global().own(pass, order);
   }
 }

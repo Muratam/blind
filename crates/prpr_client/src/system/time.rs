@@ -1,20 +1,20 @@
 use super::*;
 use once_cell::sync::OnceCell;
-static INSTANCE: OnceCell<RwLock<TimeGlobal>> = OnceCell::new();
-pub struct TimeGlobal {
+static INSTANCE: OnceCell<RwLock<TimeImpl>> = OnceCell::new();
+pub struct TimeImpl {
   frame: i64,
   pre_now_milli_sec: f64,
   processed_milli_sec: f64,
 }
-impl TimeGlobal {
-  pub fn read_lock() -> RwLockReadGuard<'static, Self> {
+impl TimeImpl {
+  pub fn read_global() -> RwLockReadGuard<'static, Self> {
     INSTANCE
       .get()
       .expect("time global not initialized")
       .read()
       .unwrap()
   }
-  pub fn write_lock() -> RwLockWriteGuard<'static, Self> {
+  pub fn write_global() -> RwLockWriteGuard<'static, Self> {
     INSTANCE
       .get()
       .expect("time global not initialized")
@@ -23,7 +23,7 @@ impl TimeGlobal {
   }
   pub fn initialize() {
     INSTANCE
-      .set(RwLock::new(TimeGlobal {
+      .set(RwLock::new(TimeImpl {
         pre_now_milli_sec: js::date::now_millisec(),
         processed_milli_sec: 0.0,
         frame: 0,
@@ -41,9 +41,9 @@ impl TimeGlobal {
 pub struct Time {}
 impl Time {
   pub fn frame() -> i64 {
-    TimeGlobal::read_lock().frame
+    TimeImpl::read_global().frame
   }
   pub fn processed_milli_sec() -> f64 {
-    TimeGlobal::read_lock().processed_milli_sec
+    TimeImpl::read_global().processed_milli_sec
   }
 }

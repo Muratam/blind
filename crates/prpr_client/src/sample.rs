@@ -67,7 +67,7 @@ impl CasualScene {
       }
     }
     let renderpass = Owner::new(renderpass);
-    RenderPassExecuter::global_write_lock().add(
+    RenderPassExecuter::add(
       &renderpass.clone_reader(),
       CasualRenderPassOrder::Scene as usize,
     );
@@ -144,7 +144,7 @@ impl CasualPostEffect {
     renderpass.set_color_target(Some(&out_color.clone_reader()));
     renderpass.own_pipeline(pipeline);
     let renderpass = Owner::new(renderpass);
-    RenderPassExecuter::global_write_lock().add(
+    RenderPassExecuter::add(
       &renderpass.clone_reader(),
       CasualRenderPassOrder::PostEffect as usize,
     );
@@ -200,7 +200,6 @@ impl System for SampleSystem {
 }
 /* TODO:
 - Ownerパターンに変えたい場所を変える
-  - write_lock()
   - clone_reader()
 - renderbuffer
   - MSAA: https://ics.media/web3d-maniacs/webgl2_renderbufferstoragemultisample/

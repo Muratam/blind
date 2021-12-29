@@ -34,7 +34,7 @@ impl Surface {
     );
     renderpass.own_pipeline(pipeline);
     let renderpass = Owner::new(renderpass);
-    RenderPassExecuter::global_write_lock().add(&renderpass.clone_reader(), usize::MAX);
+    RenderPassExecuter::add(&renderpass.clone_reader(), usize::MAX);
     Self { renderpass }
   }
 }

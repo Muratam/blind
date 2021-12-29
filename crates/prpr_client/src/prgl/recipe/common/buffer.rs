@@ -39,7 +39,7 @@ impl<T: BufferAttribute, I: RefInto<T> + Default> IntoUniformBufferTemplate<T, I
   pub fn write(&mut self) -> RwLockWriteGuard<'_, IntoUniformBuffer<T, I>> {
     self.data.write()
   }
-  pub fn read_lock(&self) -> RwLockReadGuard<'_, IntoUniformBuffer<T, I>> {
+  pub fn read(&self) -> RwLockReadGuard<'_, IntoUniformBuffer<T, I>> {
     self.data.read()
   }
 }

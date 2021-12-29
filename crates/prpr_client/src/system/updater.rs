@@ -1,8 +1,9 @@
 use super::*;
+// 使いにくいので一旦無効化
 pub trait Updater {
   fn update(&mut self);
 }
-
+/*
 // WARN: 本当はUpdaterの方に制約を課す必要がありそう
 use once_cell::sync::OnceCell;
 static INSTANCE: OnceCell<RwLock<UpdaterExecuter>> = OnceCell::new();
@@ -75,3 +76,4 @@ impl UpdaterExecuter {
     });
   }
 }
+*/
