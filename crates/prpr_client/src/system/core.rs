@@ -29,6 +29,7 @@ impl Core {
   fn debug_update(&mut self) {
     // TODO: 消す
     if true {
+      // HtmlBox
       let html_layer = self.html_layer();
       let text = format!("{} ms\n", Time::processed_milli_sec());
       html_layer.set_text_content(Some(&text));

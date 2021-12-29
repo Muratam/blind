@@ -141,6 +141,15 @@ impl EventHolderImpl {
         .ok();
       closure.forget();
     };
+    let setup_callback_body = |event_name: &str| {
+      let closure = Closure::wrap(Box::new(move |event: web_sys::Event| {
+        event.prevent_default();
+      }) as Box<dyn FnMut(_)>);
+      html::body()
+        .add_event_listener_with_callback(event_name, closure.as_ref().unchecked_ref())
+        .ok();
+      closure.forget();
+    };
     // setup_callback("touchstart");
     // setup_callback("touchcancel");
     // setup_callback("touchforcechange");
@@ -148,9 +157,15 @@ impl EventHolderImpl {
     // setup_callback("touchend");
     // setup_callback("focus");
     // setup_callback("blur");
+
+    // disable pinch-in zoom
     setup_callback("gesturestart");
     setup_callback("gesturechage");
     setup_callback("gestureend");
+    // disable zoom
+    setup_callback_body("keydown");
+    setup_callback_body("keypress");
+    setup_callback_body("keydown");
   }
   pub fn mouse_x(&self) -> i32 {
     self.mouse_x
