@@ -61,8 +61,8 @@ impl EventHolderImpl {
       .write()
       .unwrap()
   }
-  pub fn initialize_global() {
-    INSTANCE.set(RwLock::new(Self::new(&html::body()))).ok();
+  pub fn initialize_global(elem: &web_sys::HtmlElement) {
+    INSTANCE.set(RwLock::new(Self::new(elem))).ok();
   }
   pub fn new(elem: &web_sys::HtmlElement) -> Self {
     let (mouse_tx, mouse_rx) = mpsc::channel::<MouseEventInfo>();
@@ -80,6 +80,7 @@ impl EventHolderImpl {
     };
     result.setup_mouse_events(elem, mouse_tx);
     result.setup_wheel_events(elem, wheel_tx);
+    result.setup_prevent_defaults(elem);
     result
   }
   fn setup_mouse_events(&mut self, elem: &web_sys::HtmlElement, tx: mpsc::Sender<MouseEventInfo>) {
@@ -128,7 +129,28 @@ impl EventHolderImpl {
         .ok();
       closure.forget();
     };
-    setup_callback("wheel", false);
+    setup_callback("wheel", true);
+  }
+  fn setup_prevent_defaults(&mut self, elem: &web_sys::HtmlElement) {
+    let setup_callback = |event_name: &str| {
+      let closure = Closure::wrap(Box::new(move |event: web_sys::Event| {
+        event.prevent_default();
+      }) as Box<dyn FnMut(_)>);
+      elem
+        .add_event_listener_with_callback(event_name, closure.as_ref().unchecked_ref())
+        .ok();
+      closure.forget();
+    };
+    // setup_callback("touchstart");
+    // setup_callback("touchcancel");
+    // setup_callback("touchforcechange");
+    // setup_callback("touchmove");
+    // setup_callback("touchend");
+    // setup_callback("focus");
+    // setup_callback("blur");
+    setup_callback("gesturestart");
+    setup_callback("gesturechage");
+    setup_callback("gestureend");
   }
   pub fn mouse_x(&self) -> i32 {
     self.mouse_x

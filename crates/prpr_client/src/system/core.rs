@@ -14,7 +14,7 @@ impl Core {
     time::TimeImpl::initialize_global();
     prgl::RenderPassExecuterImpl::initialize_global();
     UpdaterImpl::initialize_global();
-    EventHolderImpl::initialize_global();
+    EventHolderImpl::initialize_global(layers.html_layer());
     Self { layers }
   }
   pub fn pre_update(&mut self) {
