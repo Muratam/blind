@@ -27,7 +27,7 @@ pub struct RenderPass {
   // raw_renderbuffer: RawRenderBuffer,
   buffer_setup_info: RwLock<BufferSetupInfo>,
   disabled_reasons: collections::BitSet64,
-  descriptor: Main<Descriptor>,
+  descriptor: Primary<Descriptor>,
   executer: Mutex<PipelineExecuter>,
   renderpass_id: u64,
 }
@@ -55,7 +55,7 @@ impl RenderPass {
         use_default_buffer: false,
       }),
       disabled_reasons: collections::BitSet64::new(),
-      descriptor: Main::new(Descriptor::new()),
+      descriptor: Primary::new(Descriptor::new()),
       executer: Mutex::new(PipelineExecuter::new()),
       renderpass_id: ID_COUNTER.fetch_add(1, Ordering::SeqCst) as u64,
     }

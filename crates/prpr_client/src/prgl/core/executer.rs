@@ -6,7 +6,7 @@ struct PipelineExecuteInfo {
 }
 pub struct PipelineExecuter {
   pipelines: Vec<PipelineExecuteInfo>,
-  owns: Vec<Main<Pipeline>>,
+  owns: Vec<Primary<Pipeline>>,
   need_sort: bool,
 }
 
@@ -26,7 +26,7 @@ impl PipelineExecuter {
     self.need_sort = true;
   }
   pub fn own(&mut self, pipeline: Pipeline, order: usize) {
-    let pipeline = Main::new(pipeline);
+    let pipeline = Primary::new(pipeline);
     self.add(&pipeline, order);
     self.owns.push(pipeline);
   }
@@ -58,7 +58,7 @@ struct RenderPassExecuteInfo {
 }
 pub struct RenderPassExecuterImpl {
   passes: Vec<RenderPassExecuteInfo>,
-  owns: Vec<Main<RenderPass>>,
+  owns: Vec<Primary<RenderPass>>,
   need_sort: bool,
 }
 impl RenderPassExecuterImpl {
@@ -89,7 +89,7 @@ impl RenderPassExecuterImpl {
     self.need_sort = true;
   }
   pub fn own(&mut self, pass: RenderPass, order: usize) {
-    let pass = Main::new(pass);
+    let pass = Primary::new(pass);
     self.add(&pass, order);
     self.owns.push(pass);
   }

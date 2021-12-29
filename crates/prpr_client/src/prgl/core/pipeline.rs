@@ -8,7 +8,7 @@ pub struct Pipeline {
   primitive_topology: PrimitiveToporogy,
   shader: Option<Arc<Shader>>,
   invisible_reasons: collections::BitSet64,
-  descriptor: Main<Descriptor>,
+  descriptor: Primary<Descriptor>,
 }
 
 impl Pipeline {
@@ -20,7 +20,7 @@ impl Pipeline {
       primitive_topology: PrimitiveToporogy::Triangles,
       shader: None,
       invisible_reasons: collections::BitSet64::new(),
-      descriptor: Main::new(Descriptor::new()),
+      descriptor: Primary::new(Descriptor::new()),
     }
   }
 

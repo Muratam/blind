@@ -1,12 +1,12 @@
 use super::*;
 
 pub struct UniformBufferTemplate<T: BufferAttribute + Default> {
-  data: Main<UniformBuffer<T>>,
+  data: Primary<UniformBuffer<T>>,
 }
 impl<T: BufferAttribute + Default> UniformBufferTemplate<T> {
   pub fn new() -> Self {
     Self {
-      data: Main::new(UniformBuffer::new(Default::default())),
+      data: Primary::new(UniformBuffer::new(Default::default())),
     }
   }
   pub fn write(&mut self) -> RwLockWriteGuard<'_, UniformBuffer<T>> {
@@ -28,12 +28,12 @@ impl<T: BufferAttribute + Default + 'static> RenderPassBindable for UniformBuffe
 }
 
 pub struct IntoUniformBufferTemplate<T: BufferAttribute, I: RefInto<T> + Default> {
-  data: Main<IntoUniformBuffer<T, I>>,
+  data: Primary<IntoUniformBuffer<T, I>>,
 }
 impl<T: BufferAttribute, I: RefInto<T> + Default> IntoUniformBufferTemplate<T, I> {
   pub fn new() -> Self {
     Self {
-      data: Main::new(IntoUniformBuffer::new(Default::default())),
+      data: Primary::new(IntoUniformBuffer::new(Default::default())),
     }
   }
   pub fn write(&mut self) -> RwLockWriteGuard<'_, IntoUniformBuffer<T, I>> {

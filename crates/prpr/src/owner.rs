@@ -1,7 +1,7 @@
 use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard, Weak};
 
-// Main しか書き込みができない
-pub struct Main<T> {
+// Primary しか書き込みができない
+pub struct Primary<T> {
   data: Arc<RwLock<T>>,
 }
 // Replica は読み込みしかできない
@@ -17,14 +17,14 @@ pub trait ReplicaTrait<T> {
   fn clone_replica(&self) -> Replica<T>;
   fn clone_weak_replica(&self) -> WeakReplica<T>;
 }
-unsafe impl<T: Send> Send for Main<T> {}
-unsafe impl<T: Send + Sync> Sync for Main<T> {}
+unsafe impl<T: Send> Send for Primary<T> {}
+unsafe impl<T: Send + Sync> Sync for Primary<T> {}
 unsafe impl<T: Send> Send for Replica<T> {}
 unsafe impl<T: Send + Sync> Sync for Replica<T> {}
 unsafe impl<T: Send> Send for WeakReplica<T> {}
 unsafe impl<T: Send + Sync> Sync for WeakReplica<T> {}
 
-impl<T> Main<T> {
+impl<T> Primary<T> {
   pub fn new(data: T) -> Self {
     Self {
       data: Arc::new(RwLock::new(data)),
@@ -43,7 +43,7 @@ impl<T> WeakReplica<T> {
   }
 }
 
-impl<T> ReplicaTrait<T> for Main<T> {
+impl<T> ReplicaTrait<T> for Primary<T> {
   fn read(&self) -> RwLockReadGuard<'_, T> {
     self.data.read().unwrap()
   }

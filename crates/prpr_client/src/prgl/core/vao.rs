@@ -58,7 +58,7 @@ impl<T: BufferAttribute> VaoTrait for Vao<T> {
     }
   }
 }
-impl<T: BufferAttribute> VaoTrait for Main<Vao<T>> {
+impl<T: BufferAttribute> VaoTrait for Primary<Vao<T>> {
   fn bind(&self, cmd: &mut Command) {
     self.read().bind(cmd);
   }

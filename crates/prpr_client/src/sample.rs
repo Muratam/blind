@@ -4,9 +4,9 @@ use prgl;
 
 struct CasualScene {
   objects: Vec<prgl::TransformObject>,
-  renderpass: Main<prgl::RenderPass>,
+  renderpass: Primary<prgl::RenderPass>,
   camera: prgl::Camera,
-  out_color: Main<Texture>,
+  out_color: Primary<Texture>,
 }
 enum CasualRenderPassOrder {
   Scene,
@@ -66,7 +66,7 @@ impl CasualScene {
         }
       }
     }
-    let renderpass = Main::new(renderpass);
+    let renderpass = Primary::new(renderpass);
     RenderPassExecuter::add(&renderpass, CasualRenderPassOrder::Scene as usize);
     Self {
       objects,
@@ -95,8 +95,8 @@ crate::shader_attr! {
   }
 }
 struct CasualPostEffect {
-  renderpass: Main<prgl::RenderPass>,
-  out_color: Main<Texture>,
+  renderpass: Primary<prgl::RenderPass>,
+  out_color: Primary<Texture>,
 }
 impl CasualPostEffect {
   pub fn shader() -> ShaderTemplate {
@@ -131,13 +131,15 @@ impl CasualPostEffect {
     let mut renderpass = RenderPass::new();
     let mut pipeline = FullScreen::new_pipeline();
     pipeline.add(&MayShader::new(CasualPostEffect::shader()));
-    pipeline.add(&Main::new(TextureMapping::new(CasualPostEffectMapping {
-      src_color: src_color.clone_replica(),
-    })));
+    pipeline.add(&Primary::new(TextureMapping::new(
+      CasualPostEffectMapping {
+        src_color: src_color.clone_replica(),
+      },
+    )));
     let out_color = TextureRecipe::new_fullscreen(PixelFormat::R8G8B8A8);
     renderpass.set_color_target(Some(&out_color));
     renderpass.own_pipeline(pipeline);
-    let renderpass = Main::new(renderpass);
+    let renderpass = Primary::new(renderpass);
     RenderPassExecuter::add(&renderpass, CasualRenderPassOrder::PostEffect as usize);
     Self {
       renderpass,

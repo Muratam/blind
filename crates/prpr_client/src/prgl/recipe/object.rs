@@ -1,7 +1,7 @@
 use super::*;
 
 pub struct TransformObject {
-  pub pipeline: Main<Pipeline>,
+  pub pipeline: Primary<Pipeline>,
   pub transform: Transform,
 }
 impl TransformObject {
@@ -10,7 +10,7 @@ impl TransformObject {
     let transform = Transform::new();
     transform.bind_pipeline(&mut pipeline);
     Self {
-      pipeline: Main::new(pipeline),
+      pipeline: Primary::new(pipeline),
       transform,
     }
   }
