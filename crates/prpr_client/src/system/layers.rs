@@ -83,8 +83,8 @@ impl Layers {
       return;
     }
     for c in vec![&self.main_2d_layer, &self.main_3d_layer] {
-      c.set_attribute("width", &self.width.to_string()).ok();
-      c.set_attribute("height", &self.height.to_string()).ok();
+      c.set_width(self.width as u32);
+      c.set_height(self.height as u32);
     }
   }
   pub fn width(&self) -> i32 {
