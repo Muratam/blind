@@ -22,11 +22,12 @@ impl CasualScene {
       vs_attr: ShapeVertex,
       vs_code: {
         gl_Position = view_proj_mat * model_mat * vec4(position, 1.0);
-        in_position = position;
+        in_normal = normal;
       },
-      fs_attr: { in_position: vec3 },
+      fs_attr: { in_normal: vec3 },
       fs_code: {
-        out_color = vec4(texture(normal_map, vec2(0.5, 0.5)).rgb + in_position, 1.0);
+        // texture(normal_map, vec2(0.5, 0.5)).rgb
+        out_color = vec4(in_normal + 0.5, 1.0);
       }
       out_attr: { out_color: vec4 }
     }
@@ -45,14 +46,19 @@ impl CasualScene {
     // objects
     let shader = MayShader::new(CasualScene::shader());
     let material = PbrMaterial::new();
-    let shape = Shape::new_cube();
+    let shape1 = Shape::new_cube();
+    let shape2 = Shape::new_sphere(20, 20);
     let mut objects = Vec::new();
-    const COUNT: u32 = 4;
+    const COUNT: u32 = 5;
     for x in 0..COUNT {
       for y in 0..COUNT {
         for z in 0..COUNT {
           let mut object = TransformObject::new();
-          object.pipeline.write().add(&shape);
+          if (x ^ y ^ z) & 2 == 0 {
+            object.pipeline.write().add(&shape1);
+          } else {
+            object.pipeline.write().add(&shape2);
+          }
           object.pipeline.write().add(&material);
           object.pipeline.write().add(&shader);
           object.transform.write().translate = Vec3::new(

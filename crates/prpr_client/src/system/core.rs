@@ -38,8 +38,8 @@ impl Core {
   }
   pub fn post_update(&mut self) {
     prgl::RenderPassExecuterImpl::write_global().execute();
-    time::TimeImpl::write_global().post_update();
     prgl::Instance::flush();
+    time::TimeImpl::write_global().post_update();
   }
   // depracated(もっとラップする)
   pub fn main_2d_context(&self) -> web_sys::CanvasRenderingContext2d {

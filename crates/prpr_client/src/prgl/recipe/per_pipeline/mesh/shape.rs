@@ -42,6 +42,44 @@ impl Shape {
       vao: ArcOwner::new(Vao::new(v_buffer, i_buffer)),
     }
   }
+  pub fn new_sphere(xn: usize, yn: usize) -> Self {
+    use std::f32::consts::PI;
+    let mut v_data: Vec<ShapeVertex> = Vec::new();
+    for x in 0..=xn {
+      let x = x as f32;
+      let xn = xn as f32;
+      let xrad = PI * 2.0 * x / xn;
+      for y in 0..=yn {
+        let y = y as f32;
+        let yn = yn as f32;
+        let yrad = PI * y / yn;
+        let normal = Vec3::new(xrad.sin() * yrad.sin(), yrad.cos(), xrad.cos() * yrad.sin());
+        let position = normal * 0.5;
+        v_data.push(ShapeVertex { position, normal })
+      }
+    }
+    let mut i_data: Vec<IndexBufferType> = Vec::new();
+    for x in 1..=xn {
+      for y in 1..=yn {
+        let i = y + (yn + 1) * x;
+        for idx in [
+          i,
+          i - 1,
+          i - (yn + 1),
+          i - (yn + 1),
+          i - 1,
+          i - (yn + 1) - 1,
+        ] {
+          i_data.push(idx as IndexBufferType);
+        }
+      }
+    }
+    let i_buffer = IndexBuffer::new(i_data);
+    let v_buffer = VertexBuffer::new(v_data);
+    Self {
+      vao: ArcOwner::new(Vao::new(v_buffer, i_buffer)),
+    }
+  }
 }
 impl PipelineBindable for Shape {
   fn bind_pipeline(&self, pipeline: &mut Pipeline) {
