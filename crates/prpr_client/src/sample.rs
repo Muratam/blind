@@ -75,7 +75,9 @@ impl CasualScene {
       out_color,
     }
   }
-  pub fn update(&mut self) {
+}
+impl Updatable for CasualScene {
+  fn update(&mut self) {
     let frame = Time::frame();
     let f = (frame as f32) / 100.0;
     self.camera.write().camera_pos = Vec3::new(f.sin(), f.cos(), f.cos()) * 5.0;
@@ -146,48 +148,25 @@ impl CasualPostEffect {
       out_color,
     }
   }
-  pub fn update(&mut self) {
+}
+impl Updatable for CasualPostEffect {
+  fn update(&mut self) {
     let viewport = prgl::Instance::viewport();
     self.renderpass.write().set_viewport(Some(&viewport));
   }
 }
-
-pub struct SampleScene {
-  scene: CasualScene,
-  posteffect: CasualPostEffect,
-  surface: Surface,
-}
-impl SampleScene {
-  pub fn new() -> Self {
+pub struct SampleSystem {}
+impl System for SampleSystem {
+  fn new(core: &Core) -> Self {
     let scene = CasualScene::new();
     let posteffect = CasualPostEffect::new(&scene.out_color);
     let surface = Surface::new(&posteffect.out_color);
-    Self {
-      scene,
-      posteffect,
-      surface,
-    }
-  }
-}
-impl Updater for SampleScene {
-  fn update(&mut self) {
-    self.scene.update();
-    self.posteffect.update();
-    self.surface.update();
-  }
-}
-
-pub struct SampleSystem {
-  scene: SampleScene,
-}
-impl System for SampleSystem {
-  fn new(core: &Core) -> Self {
-    Self {
-      scene: SampleScene::new(),
-    }
+    Updater::own(scene);
+    Updater::own(posteffect);
+    Updater::own(surface);
+    Self {}
   }
   fn update(&mut self, core: &Core) {
-    self.scene.update();
     self.render_sample(core);
   }
 }

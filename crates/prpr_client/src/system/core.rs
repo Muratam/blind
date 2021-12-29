@@ -13,7 +13,7 @@ impl Core {
     prgl::Instance::set(layers.main_3d_context());
     time::TimeImpl::initialize();
     prgl::RenderPassExecuterImpl::initialize_global();
-    // UpdaterExecuter::initialize_global();
+    UpdaterImpl::initialize_global();
     Self { layers }
   }
   pub fn pre_update(&mut self) {
@@ -22,7 +22,7 @@ impl Core {
     time::TimeImpl::write_global().pre_update();
   }
   pub fn post_update(&mut self) {
-    // UpdaterExecuter::write_global().execute();
+    UpdaterImpl::write_global().execute();
     prgl::RenderPassExecuterImpl::write_global().execute();
     time::TimeImpl::write_global().post_update();
     prgl::Instance::flush();
