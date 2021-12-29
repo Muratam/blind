@@ -7,11 +7,12 @@ impl Mouse {
   }
   // CanvasのFrameBufferと合わせて左下が原点
   pub fn x() -> i32 {
-    EventHolderImpl::read_global().mouse_x()
+    let width = prgl::Instance::viewport().width;
+    EventHolderImpl::read_global().mouse_x() - width / 2
   }
   pub fn y() -> i32 {
     let height = prgl::Instance::viewport().height;
-    height - EventHolderImpl::read_global().mouse_y()
+    height / 2 - EventHolderImpl::read_global().mouse_y()
   }
   pub fn dx() -> i32 {
     EventHolderImpl::read_global().mouse_dx()

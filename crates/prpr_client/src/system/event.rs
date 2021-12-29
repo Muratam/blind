@@ -36,10 +36,10 @@ static INSTANCE: OnceCell<RwLock<EventHolderImpl>> = OnceCell::new();
 unsafe impl Send for EventHolderImpl {}
 unsafe impl Sync for EventHolderImpl {}
 pub struct EventHolderImpl {
-  mouse_x: i32,
-  mouse_y: i32,
-  mouse_pre_x: i32,
-  mouse_pre_y: i32,
+  mouse_x: Option<i32>,
+  mouse_y: Option<i32>,
+  mouse_pre_x: Option<i32>,
+  mouse_pre_y: Option<i32>,
   mouse_state: BitSet64,
   mouse_rx: mpsc::Receiver<MouseEventInfo>,
   wheel_delta_x: i32,
@@ -68,10 +68,10 @@ impl EventHolderImpl {
     let (mouse_tx, mouse_rx) = mpsc::channel::<MouseEventInfo>();
     let (wheel_tx, wheel_rx) = mpsc::channel::<WheelEventInfo>();
     let mut result = Self {
-      mouse_x: 0,
-      mouse_y: 0,
-      mouse_pre_x: 0,
-      mouse_pre_y: 0,
+      mouse_x: None,
+      mouse_y: None,
+      mouse_pre_x: None,
+      mouse_pre_y: None,
       mouse_state: BitSet64::new(),
       mouse_rx,
       wheel_delta_x: 0,
@@ -144,7 +144,7 @@ impl EventHolderImpl {
     let setup_callback_keyboard = |event_name: &str| {
       let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
         // allow reload
-        if event.key() == "r" {
+        if event.key() == "r" || event.key() == "F12" {
           return;
         }
         event.prevent_default();
@@ -172,16 +172,16 @@ impl EventHolderImpl {
     setup_callback_keyboard("keydown");
   }
   pub fn mouse_x(&self) -> i32 {
-    self.mouse_x
+    self.mouse_x.unwrap_or(0)
   }
   pub fn mouse_y(&self) -> i32 {
-    self.mouse_y
+    self.mouse_y.unwrap_or(0)
   }
   pub fn mouse_dx(&self) -> i32 {
-    self.mouse_x - self.mouse_pre_x
+    self.mouse_x() - self.mouse_pre_x.unwrap_or(self.mouse_x())
   }
   pub fn mouse_dy(&self) -> i32 {
-    self.mouse_y - self.mouse_pre_y
+    self.mouse_y() - self.mouse_pre_y.unwrap_or(self.mouse_y())
   }
   pub fn mouse_state(&self, state: MouseState) -> bool {
     self.mouse_state.get(state as usize)
@@ -206,8 +206,8 @@ impl Updatable for EventHolderImpl {
     self.mouse_pre_y = self.mouse_y;
     // NOTE: めっちゃはやいとDownがだめかも？反応しないことが多ければwhile を if に
     while let Ok(info) = self.mouse_rx.try_recv() {
-      self.mouse_x = info.x;
-      self.mouse_y = info.y;
+      self.mouse_x = Some(info.x);
+      self.mouse_y = Some(info.y);
       match info.event {
         MouseEvent::Move => {}
         MouseEvent::Down => self.set_mouse_state(MouseState::IsDown, true),
