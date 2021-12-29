@@ -122,7 +122,7 @@ impl Texture {
 // ShaderTemplateで生成したmappingを引数に取ってバインドに使う
 pub struct TextureMapping<T: TextureMappingAttribute> {
   keys: Vec<&'static str>,
-  mapping: RwLock<T>,
+  mapping: T,
 }
 pub trait TextureMappingTrait {
   fn bind(&self, cmd: &mut Command);
@@ -131,14 +131,8 @@ impl<T: TextureMappingAttribute> TextureMapping<T> {
   pub fn new(mapping: T) -> Self {
     Self {
       keys: mapping.keys(),
-      mapping: RwLock::new(mapping),
+      mapping: mapping,
     }
-  }
-  pub fn write_lock(&self) -> RwLockWriteGuard<'_, T> {
-    self.mapping.write().unwrap()
-  }
-  pub fn read_lock(&self) -> RwLockReadGuard<'_, T> {
-    self.mapping.read().unwrap()
   }
 }
 
@@ -146,8 +140,7 @@ impl<T: TextureMappingAttribute> TextureMappingTrait for TextureMapping<T> {
   fn bind(&self, cmd: &mut Command) {
     if let Some(shader) = cmd.current_shader() {
       let shader = shader.clone();
-      let lock = self.mapping.read().unwrap();
-      let values = lock.values();
+      let values = self.mapping.values();
       for i in 0..self.keys.len() {
         if let Some(utl) = shader.uniform_texture_location(self.keys[i]) {
           match &values[i] {

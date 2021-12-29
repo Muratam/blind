@@ -200,9 +200,8 @@ impl System for SampleSystem {
 }
 /* TODO:
 - Ownerパターンに変えたい場所を変える
-  - Arc<RwLock<>> : Updater
-  - Arc<>
   - write_lock()
+  - clone_reader()
 - renderbuffer
   - MSAA: https://ics.media/web3d-maniacs/webgl2_renderbufferstoragemultisample/
   - mipmap がなぜかはいっている？
