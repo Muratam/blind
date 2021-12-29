@@ -89,8 +89,8 @@ impl EventHolderImpl {
       let tx = tx.clone();
       let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
         tx.send(MouseEventInfo {
-          x: event.offset_x(),
-          y: event.offset_y(),
+          x: event.client_x(),
+          y: event.client_y(),
           event: event_type,
         })
         .ok();

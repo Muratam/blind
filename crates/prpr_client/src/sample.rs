@@ -1,6 +1,7 @@
 // hoge_client に逃がす前段階でのサンプル
 use super::*;
 use prgl::*;
+use prhtml;
 
 struct CasualScene {
   objects: Vec<TransformObject>,
@@ -184,6 +185,8 @@ pub fn sample_world() {
   Updater::own(scene);
   Updater::own(posteffect);
   Updater::own(surface);
+  let elem = prhtml::FloatingBox::new(prhtml::Instance::root());
+  Updater::own(elem);
 }
 /* TODO:
 - ShaderTemplate -> void main()

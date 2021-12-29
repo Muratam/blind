@@ -11,6 +11,7 @@ pub struct WholeScreen {
   max_height: i32,
   width: RwLock<i32>,
   height: RwLock<i32>,
+  is_size_changed: RwLock<bool>,
 }
 impl WholeScreen {
   pub fn get() -> &'static Self {
@@ -26,6 +27,7 @@ impl WholeScreen {
       max_height: screen.height().unwrap(),
       width: RwLock::new(1),
       height: RwLock::new(1),
+      is_size_changed: RwLock::new(true),
     };
     INSTANCE.set(instance).ok();
   }
@@ -41,6 +43,9 @@ impl WholeScreen {
   pub fn height() -> i32 {
     *Self::get().height.read().unwrap()
   }
+  pub fn is_size_changed() -> bool {
+    *Self::get().is_size_changed.read().unwrap()
+  }
   pub fn viewport() -> math::Rect<i32> {
     let width = Self::width();
     let height = Self::height();
@@ -55,7 +60,13 @@ impl WholeScreen {
     math::Rect::new(0, 0, Self::max_width(), Self::max_height())
   }
   pub fn update_size(width: i32, height: i32) {
+    let pre_width = Self::width();
+    let pre_height = Self::height();
+    if pre_width == width && pre_height == height {
+      return;
+    }
     *Self::get().width.write().unwrap() = width;
     *Self::get().height.write().unwrap() = height;
+    *Self::get().is_size_changed.write().unwrap() = true;
   }
 }

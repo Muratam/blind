@@ -4,6 +4,7 @@ fn setup_global_style(parent: &web_sys::HtmlElement) {
     padding: 0px;
     border: 0px;
     margin: 0px;
+    box-sizing: border-box;
     touch-action: none;
     overscroll-behavior-x: none;
     overscroll-behavior-y: none;

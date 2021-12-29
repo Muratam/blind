@@ -26,25 +26,10 @@ impl Core {
   }
   pub fn update(&mut self) {
     UpdaterImpl::write_global().execute();
-    self.debug_update();
-  }
-  fn debug_update(&mut self) {
-    // TODO: 消す
-    if true {
-      // HtmlBox
-      let html_layer = self.html_layer();
-      let mut text = format!("{} ms\n", Time::processed_milli_sec());
-      text += &format!("({}, {})\n", input::Mouse::x(), input::Mouse::y());
-      html_layer.set_text_content(Some(&text));
-    }
   }
   pub fn post_update(&mut self) {
     prgl::RenderPassExecuterImpl::write_global().execute();
     prgl::Instance::flush();
     time::TimeImpl::write_global().post_update();
-  }
-  // depracated(もっとラップする)
-  pub fn html_layer(&self) -> &web_sys::HtmlDivElement {
-    self.layers.html_layer()
   }
 }
