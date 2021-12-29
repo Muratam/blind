@@ -43,24 +43,26 @@ impl FloatingBox {
     let width = system::WholeScreen::width() as f32;
     let height = system::WholeScreen::height() as f32;
     let style = self.raw_element.style();
+    // 画面の縦の長さが1000pxとして指定する
+    // あまりにも小さいpxを指定するとフォントが対応していないことがあり崩れるため
+    let px = |f: f32| format!("{}px", f);
     style.set_property("border-style", "solid")?;
     style.set_property("border-color", "red")?;
-    style.set_property("border-width", "4px")?;
+    style.set_property("border-width", &px(4.0))?;
+    style.set_property("font-size", &px(24.0))?;
+    style.set_property("padding", &px(10.0))?;
     style.set_property("background-color", "rgba(255,255,255,0.5)")?;
     style.set_property("position", "absolute")?;
-    style.set_property("width", &format!("{}px", self.size.x * height))?;
-    style.set_property("height", &format!("{}px", self.size.y * height))?;
-    style.set_property(
-      "top",
-      &format!("{}px", (self.pos.y + 0.5 - self.size.y * 0.5) * height),
-    )?;
-    style.set_property(
-      "left",
-      &format!(
-        "{}px",
-        (self.pos.x - self.size.x * 0.5) * height + 0.5 * width
-      ),
-    )
+    let expected_height = 1000.0;
+    let scale = height / expected_height;
+    style.set_property("transform", &format!("scale({})", scale))?;
+    style.set_property("transform-origin", "center")?;
+    style.set_property("width", &px(self.size.x * expected_height))?;
+    style.set_property("height", &px(self.size.y * expected_height))?;
+    let y = self.pos.y * height + 0.5 * height - self.size.y * 0.5 * expected_height;
+    let x = self.pos.x * height + 0.5 * width - self.size.x * 0.5 * expected_height;
+    style.set_property("top", &px(y))?;
+    style.set_property("left", &px(x))
     // style.set_property("z-index", &z_index.to_string()).ok();
   }
 }
