@@ -141,8 +141,12 @@ impl EventHolderImpl {
         .ok();
       closure.forget();
     };
-    let setup_callback_body = |event_name: &str| {
-      let closure = Closure::wrap(Box::new(move |event: web_sys::Event| {
+    let setup_callback_keyboard = |event_name: &str| {
+      let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
+        // allow reload
+        if event.key() == "r" {
+          return;
+        }
         event.prevent_default();
       }) as Box<dyn FnMut(_)>);
       html::body()
@@ -163,9 +167,9 @@ impl EventHolderImpl {
     setup_callback("gesturechage");
     setup_callback("gestureend");
     // disable zoom
-    setup_callback_body("keydown");
-    setup_callback_body("keypress");
-    setup_callback_body("keydown");
+    setup_callback_keyboard("keydown");
+    setup_callback_keyboard("keypress");
+    setup_callback_keyboard("keydown");
   }
   pub fn mouse_x(&self) -> i32 {
     self.mouse_x

@@ -31,7 +31,8 @@ impl Core {
     if true {
       // HtmlBox
       let html_layer = self.html_layer();
-      let text = format!("{} ms\n", Time::processed_milli_sec());
+      let mut text = format!("{} ms\n", Time::processed_milli_sec());
+      text += &format!("({}, {})\n", input::Mouse::x(), input::Mouse::y());
       html_layer.set_text_content(Some(&text));
     }
   }
