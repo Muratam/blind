@@ -21,8 +21,10 @@ impl CasualScene {
       ],
       vs_attr: ShapeVertex,
       vs_code: {
-        gl_Position = view_proj_mat * model_mat * vec4(position, 1.0);
-        in_normal = normal;
+        mat4 mvp_mat = view_proj_mat * model_mat;
+        gl_Position = mvp_mat * vec4(position, 1.0);
+        mat4 it_mvp_mat = transpose(inverse(mvp_mat));
+        in_normal = (it_mvp_mat * vec4(normal, 0.0)).xyz;
       },
       fs_attr: { in_normal: vec3 },
       fs_code: {
@@ -49,9 +51,9 @@ impl CasualScene {
     let shape1 = Shape::new_cube();
     let shape2 = Shape::new_sphere(20, 20);
     let mut objects = Vec::new();
-    const COUNT: u32 = 5;
+    const COUNT: u32 = 4;
     for x in 0..COUNT {
-      for y in 0..COUNT {
+      for y in 0..1 {
         for z in 0..COUNT {
           let mut object = TransformObject::new();
           if (x ^ y ^ z) & 2 == 0 {
