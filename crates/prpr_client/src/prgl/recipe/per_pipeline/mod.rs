@@ -1,4 +1,4 @@
-pub use super::*;
+use super::*;
 mod material;
 pub use self::material::*;
 mod mesh;

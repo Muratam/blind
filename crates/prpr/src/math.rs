@@ -8,7 +8,6 @@ pub struct Rect<T: num_traits::Num + Copy> {
   pub width: T,
   pub height: T,
 }
-
 impl<T: num_traits::Num + Copy> Rect<T> {
   pub fn new(x: T, y: T, width: T, height: T) -> Self {
     Self {
@@ -19,7 +18,6 @@ impl<T: num_traits::Num + Copy> Rect<T> {
     }
   }
 }
-
 impl<T: num_traits::NumCast + num_traits::Num + Copy> Rect<T> {
   pub fn aspect_ratio(&self) -> f32 {
     if let Some(width) = self.width.to_f32() {
