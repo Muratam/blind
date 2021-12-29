@@ -3,6 +3,8 @@ use collections::BitSet64;
 use std::sync::mpsc;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
+// NOTE: Keyboard, GamePad are not implemented
+//     -> Dropping Support for Android, ios
 
 pub enum MouseState {
   IsDown,
