@@ -4,9 +4,9 @@ use prgl;
 
 struct CasualScene {
   objects: Vec<prgl::TransformObject>,
-  renderpass: Owner<prgl::RenderPass>,
+  renderpass: Main<prgl::RenderPass>,
   camera: prgl::Camera,
-  out_color: Owner<Texture>,
+  out_color: Main<Texture>,
 }
 enum CasualRenderPassOrder {
   Scene,
@@ -66,7 +66,7 @@ impl CasualScene {
         }
       }
     }
-    let renderpass = Owner::new(renderpass);
+    let renderpass = Main::new(renderpass);
     RenderPassExecuter::add(&renderpass, CasualRenderPassOrder::Scene as usize);
     Self {
       objects,
@@ -95,8 +95,8 @@ crate::shader_attr! {
   }
 }
 struct CasualPostEffect {
-  renderpass: Owner<prgl::RenderPass>,
-  out_color: Owner<Texture>,
+  renderpass: Main<prgl::RenderPass>,
+  out_color: Main<Texture>,
 }
 impl CasualPostEffect {
   pub fn shader() -> ShaderTemplate {
@@ -127,17 +127,17 @@ impl CasualPostEffect {
       out_attr: { out_color: vec4 }
     }
   }
-  pub fn new(src_color: &dyn Readable<Texture>) -> Self {
+  pub fn new(src_color: &dyn ReplicaTrait<Texture>) -> Self {
     let mut renderpass = RenderPass::new();
     let mut pipeline = FullScreen::new_pipeline();
     pipeline.add(&MayShader::new(CasualPostEffect::shader()));
-    pipeline.add(&Owner::new(TextureMapping::new(CasualPostEffectMapping {
-      src_color: src_color.clone_reader(),
+    pipeline.add(&Main::new(TextureMapping::new(CasualPostEffectMapping {
+      src_color: src_color.clone_replica(),
     })));
     let out_color = TextureRecipe::new_fullscreen(PixelFormat::R8G8B8A8);
     renderpass.set_color_target(Some(&out_color));
     renderpass.own_pipeline(pipeline);
-    let renderpass = Owner::new(renderpass);
+    let renderpass = Main::new(renderpass);
     RenderPassExecuter::add(&renderpass, CasualRenderPassOrder::PostEffect as usize);
     Self {
       renderpass,

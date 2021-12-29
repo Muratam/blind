@@ -18,16 +18,16 @@ pub struct RenderPass {
   // scissor: Option<Rect<i32>>,
   //
   // None => Surface
-  color_targets: Vec<Option<Reader<Texture>>>,
-  depth_target: Option<Reader<Texture>>,
-  // stencil_target: Option<Reader<Texture>>,
+  color_targets: Vec<Option<Replica<Texture>>>,
+  depth_target: Option<Replica<Texture>>,
+  // stencil_target: Option<Replica<Texture>>,
   //
   raw_framebuffer: RawFrameBuffer,
   // raw_framebuffer_for_renderbuffer: RawFrameBuffer,
   // raw_renderbuffer: RawRenderBuffer,
   buffer_setup_info: RwLock<BufferSetupInfo>,
   disabled_reasons: collections::BitSet64,
-  descriptor: Owner<Descriptor>,
+  descriptor: Main<Descriptor>,
   executer: Mutex<PipelineExecuter>,
   renderpass_id: u64,
 }
@@ -55,7 +55,7 @@ impl RenderPass {
         use_default_buffer: false,
       }),
       disabled_reasons: collections::BitSet64::new(),
-      descriptor: Owner::new(Descriptor::new()),
+      descriptor: Main::new(Descriptor::new()),
       executer: Mutex::new(PipelineExecuter::new()),
       renderpass_id: ID_COUNTER.fetch_add(1, Ordering::SeqCst) as u64,
     }
@@ -72,7 +72,7 @@ impl RenderPass {
     let mut max_width: i32 = 0;
     let mut max_height: i32 = 0;
     let mut bind_count: i32 = 0;
-    let mut bind_impl = |attachment: u32, texture: &Reader<Texture>| {
+    let mut bind_impl = |attachment: u32, texture: &Replica<Texture>| {
       texture.read().raw_texture().bind();
       ctx.framebuffer_texture_2d(
         gl::FRAMEBUFFER,
@@ -193,7 +193,7 @@ impl RenderPass {
     self.executer.lock().unwrap().execute(cmd, &outer_ctx);
   }
 
-  pub fn set_color_target(&mut self, target: Option<&dyn Readable<Texture>>) {
+  pub fn set_color_target(&mut self, target: Option<&dyn ReplicaTrait<Texture>>) {
     self.set_color_target_by_slot(target, 0);
   }
   pub fn set_clear_color(&mut self, value: Option<Vec4>) {
@@ -212,16 +212,20 @@ impl RenderPass {
     let mut info = self.buffer_setup_info.write().unwrap();
     info.use_default_buffer = use_default_buffer;
   }
-  pub fn set_depth_target(&mut self, target: Option<&dyn Readable<Texture>>) {
-    self.depth_target = target.map(|target| target.clone_reader());
+  pub fn set_depth_target(&mut self, target: Option<&dyn ReplicaTrait<Texture>>) {
+    self.depth_target = target.map(|target| target.clone_replica());
     self.buffer_setup_info.write().unwrap().is_dirty = true;
   }
-  pub fn set_color_target_by_slot(&mut self, target: Option<&dyn Readable<Texture>>, slot: i32) {
+  pub fn set_color_target_by_slot(
+    &mut self,
+    target: Option<&dyn ReplicaTrait<Texture>>,
+    slot: i32,
+  ) {
     if slot < 0 || slot >= MAX_OUTPUT_SLOT as i32 {
       log::error(format!("Invalid set_color_target_by_slot {}", slot));
       return;
     }
-    self.color_targets[slot as usize] = target.map(|target| target.clone_reader());
+    self.color_targets[slot as usize] = target.map(|target| target.clone_replica());
     self.buffer_setup_info.write().unwrap().is_dirty = true;
   }
   pub fn set_clear_color_by_slot(&mut self, value: Option<Vec4>, slot: i32) {
@@ -236,23 +240,23 @@ impl RenderPass {
   }
   pub fn add_uniform_buffer<T: BufferAttribute + 'static>(
     &mut self,
-    buffer: &dyn Readable<UniformBuffer<T>>,
+    buffer: &dyn ReplicaTrait<UniformBuffer<T>>,
   ) {
-    self.add_uniform_buffer_trait(Box::new(buffer.clone_reader()) as Box<dyn UniformBufferTrait>);
+    self.add_uniform_buffer_trait(Box::new(buffer.clone_replica()) as Box<dyn UniformBufferTrait>);
   }
   pub fn add_into_uniform_buffer<T: BufferAttribute + 'static, I: RefInto<T> + 'static>(
     &mut self,
-    buffer: &dyn Readable<IntoUniformBuffer<T, I>>,
+    buffer: &dyn ReplicaTrait<IntoUniformBuffer<T, I>>,
   ) {
-    self.add_uniform_buffer_trait(Box::new(buffer.clone_reader()) as Box<dyn UniformBufferTrait>);
+    self.add_uniform_buffer_trait(Box::new(buffer.clone_replica()) as Box<dyn UniformBufferTrait>);
   }
   pub fn add_texture_mapping<T: TextureMappingAttribute + 'static>(
     &mut self,
-    mapping: &dyn Readable<TextureMapping<T>>,
+    mapping: &dyn ReplicaTrait<TextureMapping<T>>,
   ) {
     let mut descriptor = self.descriptor.write();
     descriptor
-      .add_texture_mapping(Box::new(mapping.clone_reader()) as Box<dyn TextureMappingTrait>);
+      .add_texture_mapping(Box::new(mapping.clone_replica()) as Box<dyn TextureMappingTrait>);
   }
   pub fn add(&mut self, bindable: &dyn RenderPassBindable) {
     bindable.bind_renderpass(self);
@@ -263,10 +267,14 @@ impl RenderPass {
   pub fn own_pipeline_with_priority(&mut self, pipeline: Pipeline, priority: usize) {
     self.executer.lock().unwrap().own(pipeline, priority);
   }
-  pub fn add_pipeline(&mut self, pipeline: &dyn Readable<Pipeline>) {
+  pub fn add_pipeline(&mut self, pipeline: &dyn ReplicaTrait<Pipeline>) {
     self.executer.lock().unwrap().add(pipeline, 0);
   }
-  pub fn add_pipeline_with_priority(&mut self, pipeline: &dyn Readable<Pipeline>, priority: usize) {
+  pub fn add_pipeline_with_priority(
+    &mut self,
+    pipeline: &dyn ReplicaTrait<Pipeline>,
+    priority: usize,
+  ) {
     self.executer.lock().unwrap().add(pipeline, priority);
   }
   pub fn set_disabled(&mut self, disabled: bool, reason: usize) {

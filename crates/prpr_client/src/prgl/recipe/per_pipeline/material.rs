@@ -10,21 +10,21 @@ crate::shader_attr! {
   }
 }
 pub struct PbrMaterial {
-  ubo: Owner<UniformBuffer<PbrAttribute>>,
-  mapping: Owner<TextureMapping<PbrMapping>>,
+  ubo: Main<UniformBuffer<PbrAttribute>>,
+  mapping: Main<TextureMapping<PbrMapping>>,
 }
 impl PbrMaterial {
   pub fn new() -> Self {
-    let default_normal_map = Owner::new(Texture::new_rgba_map(4, 4, |_, _| {
+    let default_normal_map = Main::new(Texture::new_rgba_map(4, 4, |_, _| {
       Vec4::new(0.0, 0.0, 1.0, 0.0)
     }));
     Self {
-      ubo: Owner::new(UniformBuffer::new(PbrAttribute {
+      ubo: Main::new(UniformBuffer::new(PbrAttribute {
         albedo_color: Vec3::ONE,
         roughness: 0.0,
       })),
-      mapping: Owner::new(TextureMapping::new(PbrMapping {
-        normal_map: default_normal_map.clone_reader(),
+      mapping: Main::new(TextureMapping::new(PbrMapping {
+        normal_map: default_normal_map.clone_replica(),
       })),
     }
   }

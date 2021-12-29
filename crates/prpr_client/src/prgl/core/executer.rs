@@ -1,12 +1,12 @@
 use super::*;
 
 struct PipelineExecuteInfo {
-  pipeline: WeakReader<Pipeline>,
+  pipeline: WeakReplica<Pipeline>,
   order: usize, // asc
 }
 pub struct PipelineExecuter {
   pipelines: Vec<PipelineExecuteInfo>,
-  owns: Vec<Owner<Pipeline>>,
+  owns: Vec<Main<Pipeline>>,
   need_sort: bool,
 }
 
@@ -18,15 +18,15 @@ impl PipelineExecuter {
       owns: Vec::new(),
     }
   }
-  pub fn add(&mut self, pipeline: &dyn Readable<Pipeline>, order: usize) {
+  pub fn add(&mut self, pipeline: &dyn ReplicaTrait<Pipeline>, order: usize) {
     self.pipelines.push(PipelineExecuteInfo {
-      pipeline: pipeline.clone_weak_reader(),
+      pipeline: pipeline.clone_weak_replica(),
       order,
     });
     self.need_sort = true;
   }
   pub fn own(&mut self, pipeline: Pipeline, order: usize) {
-    let pipeline = Owner::new(pipeline);
+    let pipeline = Main::new(pipeline);
     self.add(&pipeline, order);
     self.owns.push(pipeline);
   }
@@ -53,12 +53,12 @@ unsafe impl Send for RenderPassExecuterImpl {}
 unsafe impl Sync for RenderPassExecuterImpl {}
 
 struct RenderPassExecuteInfo {
-  pass: WeakReader<RenderPass>,
+  pass: WeakReplica<RenderPass>,
   order: usize, // asc
 }
 pub struct RenderPassExecuterImpl {
   passes: Vec<RenderPassExecuteInfo>,
-  owns: Vec<Owner<RenderPass>>,
+  owns: Vec<Main<RenderPass>>,
   need_sort: bool,
 }
 impl RenderPassExecuterImpl {
@@ -81,15 +81,15 @@ impl RenderPassExecuterImpl {
       need_sort: false,
     }
   }
-  pub fn add(&mut self, pass: &dyn Readable<RenderPass>, order: usize) {
+  pub fn add(&mut self, pass: &dyn ReplicaTrait<RenderPass>, order: usize) {
     self.passes.push(RenderPassExecuteInfo {
-      pass: pass.clone_weak_reader(),
+      pass: pass.clone_weak_replica(),
       order,
     });
     self.need_sort = true;
   }
   pub fn own(&mut self, pass: RenderPass, order: usize) {
-    let pass = Owner::new(pass);
+    let pass = Main::new(pass);
     self.add(&pass, order);
     self.owns.push(pass);
   }
@@ -111,7 +111,7 @@ impl RenderPassExecuterImpl {
 }
 pub struct RenderPassExecuter {}
 impl RenderPassExecuter {
-  pub fn add(pass: &dyn Readable<RenderPass>, order: usize) {
+  pub fn add(pass: &dyn ReplicaTrait<RenderPass>, order: usize) {
     RenderPassExecuterImpl::write_global().add(pass, order);
   }
   pub fn own(pass: RenderPass, order: usize) {

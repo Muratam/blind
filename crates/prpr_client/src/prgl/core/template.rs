@@ -20,7 +20,7 @@ pub type uvec4 = (uint, uint, uint, uint);
 pub type mat4 = math::Mat4;
 // Texture用, 名前だけ欲しい
 #[allow(non_camel_case_types)]
-pub type sampler2D = Reader<Texture>;
+pub type sampler2D = Replica<Texture>;
 
 #[derive(Debug, Clone)]
 #[allow(non_camel_case_types)]

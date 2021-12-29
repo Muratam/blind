@@ -6,7 +6,7 @@ crate::shader_attr! {
   }
 }
 pub struct Surface {
-  renderpass: Owner<prgl::RenderPass>,
+  renderpass: Main<prgl::RenderPass>,
 }
 // NOTE: 利便性のために最後のキャンバス出力をコピーで済ますもの
 // 最後ダイレクトに書いたほうが無駄な工程が減る
@@ -21,16 +21,16 @@ impl Surface {
       out_attr: { out_color: vec4 }
     }
   }
-  pub fn new(src_color: &dyn Readable<Texture>) -> Self {
+  pub fn new(src_color: &dyn ReplicaTrait<Texture>) -> Self {
     let mut renderpass = RenderPass::new();
     renderpass.set_use_default_buffer(true);
     let mut pipeline = FullScreen::new_pipeline();
     pipeline.add(&MayShader::new(Self::shader()));
-    pipeline.add(&Owner::new(TextureMapping::new(SurfaceMapping {
-      src_color: src_color.clone_reader(),
+    pipeline.add(&Main::new(TextureMapping::new(SurfaceMapping {
+      src_color: src_color.clone_replica(),
     })));
     renderpass.own_pipeline(pipeline);
-    let renderpass = Owner::new(renderpass);
+    let renderpass = Main::new(renderpass);
     RenderPassExecuter::add(&renderpass, usize::MAX);
     Self { renderpass }
   }

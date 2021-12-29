@@ -58,12 +58,12 @@ impl<T: BufferAttribute> VaoTrait for Vao<T> {
     }
   }
 }
-impl<T: BufferAttribute> VaoTrait for Owner<Vao<T>> {
+impl<T: BufferAttribute> VaoTrait for Main<Vao<T>> {
   fn bind(&self, cmd: &mut Command) {
     self.read().bind(cmd);
   }
 }
-impl<T: BufferAttribute> VaoTrait for Reader<Vao<T>> {
+impl<T: BufferAttribute> VaoTrait for Replica<Vao<T>> {
   fn bind(&self, cmd: &mut Command) {
     self.read().bind(cmd);
   }
