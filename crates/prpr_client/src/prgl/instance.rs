@@ -49,7 +49,14 @@ impl Instance {
     *Self::get().height.read().unwrap()
   }
   pub fn viewport() -> Rect<i32> {
-    Rect::new(0, 0, Self::width(), Self::height())
+    let width = Self::width();
+    let height = Self::height();
+    Rect::new(
+      (Self::max_width() - width) / 2,
+      (Self::max_height() - height) / 2,
+      width,
+      height,
+    )
   }
   pub fn max_viewport() -> Rect<i32> {
     Rect::new(0, 0, Self::max_width(), Self::max_height())

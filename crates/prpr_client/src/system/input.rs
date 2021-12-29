@@ -5,13 +5,13 @@ impl Mouse {
   pub fn state(state: MouseState) -> bool {
     EventHolderImpl::read_global().mouse_state(state)
   }
-  // CanvasのFrameBufferと合わせて左下が原点
+  // 中央が原点で左上が正
   pub fn x() -> i32 {
-    let width = prgl::Instance::viewport().width;
+    let width = prgl::Instance::width();
     EventHolderImpl::read_global().mouse_x() - width / 2
   }
   pub fn y() -> i32 {
-    let height = prgl::Instance::viewport().height;
+    let height = prgl::Instance::height();
     height / 2 - EventHolderImpl::read_global().mouse_y()
   }
   pub fn dx() -> i32 {
@@ -28,27 +28,27 @@ impl Mouse {
   }
   // normalized by viewport_y
   pub fn nx() -> f32 {
-    let height = prgl::Instance::viewport().height;
+    let height = prgl::Instance::height();
     Self::x() as f32 / height as f32
   }
   pub fn ny() -> f32 {
-    let height = prgl::Instance::viewport().height;
+    let height = prgl::Instance::height();
     Self::y() as f32 / height as f32
   }
   pub fn dnx() -> f32 {
-    let height = prgl::Instance::viewport().height;
+    let height = prgl::Instance::height();
     Self::dx() as f32 / height as f32
   }
   pub fn dny() -> f32 {
-    let height = prgl::Instance::viewport().height;
+    let height = prgl::Instance::height();
     Self::dy() as f32 / height as f32
   }
   pub fn wheel_dnx() -> f32 {
-    let height = prgl::Instance::viewport().height;
+    let height = prgl::Instance::height();
     Self::wheel_dx() as f32 / height as f32
   }
   pub fn wheel_dny() -> f32 {
-    let height = prgl::Instance::viewport().height;
+    let height = prgl::Instance::height();
     Self::wheel_dy() as f32 / height as f32
   }
 }

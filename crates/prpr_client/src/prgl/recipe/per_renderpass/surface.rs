@@ -1,11 +1,16 @@
 use super::*;
 
 crate::shader_attr! {
+  struct SurfaceOffset {
+    surface_offset: vec2,
+    surface_dummy: vec2,
+  }
   mapping SurfaceMapping {
     src_color: sampler2D,
   }
 }
 pub struct Surface {
+  ubo: ArcOwner<UniformBuffer<SurfaceOffset>>,
   renderpass: ArcOwner<prgl::RenderPass>,
 }
 // NOTE: 利便性のために最後のキャンバス出力をコピーで済ますもの
@@ -13,11 +18,11 @@ pub struct Surface {
 impl Surface {
   fn shader() -> ShaderTemplate {
     crate::shader_template! {
-      attrs: [SurfaceMapping],
+      attrs: [SurfaceMapping, SurfaceOffset],
       vs_attr: FullScreenVertex,
       vs_code: { gl_Position = vec4(position, 0.5, 1.0); },
       fs_attr: {},
-      fs_code: { out_color = texelFetch(src_color, ivec2(gl_FragCoord.xy), 0); }
+      fs_code: { out_color = texelFetch(src_color, ivec2(gl_FragCoord.xy + surface_offset.xy), 0); }
       out_attr: { out_color: vec4 }
     }
   }
@@ -29,16 +34,24 @@ impl Surface {
     pipeline.add(&ArcOwner::new(TextureMapping::new(SurfaceMapping {
       src_color: src_color.clone_reader(),
     })));
+    let ubo = ArcOwner::new(UniformBuffer::new(SurfaceOffset {
+      surface_offset: Vec2::ZERO,
+      surface_dummy: Vec2::ZERO,
+    }));
+    pipeline.add(&ubo);
     renderpass.own_pipeline(pipeline);
     let renderpass = ArcOwner::new(renderpass);
     RenderPassExecuter::add(&renderpass, usize::MAX);
-    Self { renderpass }
+    Self { ubo, renderpass }
   }
 }
 
 impl Updatable for Surface {
   fn update(&mut self) {
-    let viewport = Instance::viewport();
+    let mut viewport = Instance::viewport();
+    self.ubo.write().surface_offset = Vec2::new(viewport.x as f32, viewport.y as f32);
+    viewport.x = 0;
+    viewport.y = 0;
     self.renderpass.write().set_viewport(Some(&viewport));
   }
 }
