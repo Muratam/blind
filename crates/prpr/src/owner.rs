@@ -1,23 +1,28 @@
 use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard, Weak};
 
 // Owner しか書き込みができない
-pub struct Owner<T: ?Sized> {
+pub struct Owner<T> {
   data: Arc<RwLock<T>>,
 }
 // Reader は読み込みしかできない
-pub struct Reader<T: ?Sized> {
+pub struct Reader<T> {
   data: Arc<RwLock<T>>,
 }
 // WeakReaderは参照も持たない
-pub struct WeakReader<T: ?Sized> {
+pub struct WeakReader<T> {
   data: Weak<RwLock<T>>,
 }
-unsafe impl<T: ?Sized + Send> Send for Owner<T> {}
-unsafe impl<T: ?Sized + Send + Sync> Sync for Owner<T> {}
-unsafe impl<T: ?Sized + Send> Send for Reader<T> {}
-unsafe impl<T: ?Sized + Send + Sync> Sync for Reader<T> {}
-unsafe impl<T: ?Sized + Send> Send for WeakReader<T> {}
-unsafe impl<T: ?Sized + Send + Sync> Sync for WeakReader<T> {}
+pub trait Readable<T> {
+  fn read(&self) -> RwLockReadGuard<'_, T>;
+  fn clone_reader(&self) -> Reader<T>;
+  fn clone_weak_reader(&self) -> WeakReader<T>;
+}
+unsafe impl<T: Send> Send for Owner<T> {}
+unsafe impl<T: Send + Sync> Sync for Owner<T> {}
+unsafe impl<T: Send> Send for Reader<T> {}
+unsafe impl<T: Send + Sync> Sync for Reader<T> {}
+unsafe impl<T: Send> Send for WeakReader<T> {}
+unsafe impl<T: Send + Sync> Sync for WeakReader<T> {}
 
 impl<T> Owner<T> {
   pub fn new(data: T) -> Self {
@@ -30,15 +35,17 @@ impl<T> Owner<T> {
   pub fn write(&mut self) -> RwLockWriteGuard<'_, T> {
     self.data.write().unwrap()
   }
-  pub fn read(&self) -> RwLockReadGuard<'_, T> {
+}
+impl<T> Readable<T> for Owner<T> {
+  fn read(&self) -> RwLockReadGuard<'_, T> {
     self.data.read().unwrap()
   }
-  pub fn clone_reader(&self) -> Reader<T> {
+  fn clone_reader(&self) -> Reader<T> {
     Reader::<T> {
       data: self.data.clone(),
     }
   }
-  pub fn clone_weak_reader(&self) -> WeakReader<T> {
+  fn clone_weak_reader(&self) -> WeakReader<T> {
     WeakReader::<T> {
       data: Arc::downgrade(&self.data),
     }
@@ -50,16 +57,16 @@ impl<T> WeakReader<T> {
   }
 }
 
-impl<T> Reader<T> {
-  pub fn read(&self) -> RwLockReadGuard<'_, T> {
+impl<T> Readable<T> for Reader<T> {
+  fn read(&self) -> RwLockReadGuard<'_, T> {
     self.data.read().unwrap()
   }
-  pub fn clone_reader(&self) -> Reader<T> {
+  fn clone_reader(&self) -> Reader<T> {
     Reader::<T> {
       data: self.data.clone(),
     }
   }
-  pub fn clone_weak_reader(&self) -> WeakReader<T> {
+  fn clone_weak_reader(&self) -> WeakReader<T> {
     WeakReader::<T> {
       data: Arc::downgrade(&self.data),
     }

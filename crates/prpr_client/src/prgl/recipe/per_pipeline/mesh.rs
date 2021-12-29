@@ -40,7 +40,7 @@ impl FullScreen {
 }
 impl PipelineBindable for FullScreen {
   fn bind_pipeline(&self, pipeline: &mut Pipeline) {
-    pipeline.set_draw_vao(&self.vao.clone_reader());
+    pipeline.set_draw_vao(&self.vao);
   }
 }
 
@@ -89,7 +89,7 @@ impl Shape {
 }
 impl PipelineBindable for Shape {
   fn bind_pipeline(&self, pipeline: &mut Pipeline) {
-    pipeline.set_draw_vao(&self.vao.clone_reader());
+    pipeline.set_draw_vao(&self.vao);
   }
 }
 

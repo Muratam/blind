@@ -39,7 +39,7 @@ impl DescriptorContext {
   pub fn nil() -> Arc<Self> {
     Arc::new(Self::Nil)
   }
-  pub fn cons(others: &Arc<Self>, prior: &Reader<Descriptor>) -> Arc<Self> {
+  pub fn cons(others: &Arc<Self>, prior: &dyn Readable<Descriptor>) -> Arc<Self> {
     Arc::new(Self::Cons {
       prior: prior.clone_reader(),
       others: others.clone(),

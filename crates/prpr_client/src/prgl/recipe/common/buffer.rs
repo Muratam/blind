@@ -18,12 +18,12 @@ impl<T: BufferAttribute + Default> UniformBufferTemplate<T> {
 }
 impl<T: BufferAttribute + Default + 'static> PipelineBindable for UniformBufferTemplate<T> {
   fn bind_pipeline(&self, pipeline: &mut Pipeline) {
-    pipeline.add_uniform_buffer(&self.data.clone_reader());
+    pipeline.add_uniform_buffer(&self.data);
   }
 }
 impl<T: BufferAttribute + Default + 'static> RenderPassBindable for UniformBufferTemplate<T> {
   fn bind_renderpass(&self, renderpass: &mut RenderPass) {
-    renderpass.add_uniform_buffer(&self.data.clone_reader());
+    renderpass.add_uniform_buffer(&self.data);
   }
 }
 
@@ -47,13 +47,13 @@ impl<T: BufferAttribute + 'static, I: RefInto<T> + 'static + Default> PipelineBi
   for IntoUniformBufferTemplate<T, I>
 {
   fn bind_pipeline(&self, pipeline: &mut Pipeline) {
-    pipeline.add_into_uniform_buffer(&self.data.clone_reader());
+    pipeline.add_into_uniform_buffer(&self.data);
   }
 }
 impl<T: BufferAttribute + 'static, I: RefInto<T> + 'static + Default> RenderPassBindable
   for IntoUniformBufferTemplate<T, I>
 {
   fn bind_renderpass(&self, renderpass: &mut RenderPass) {
-    renderpass.add_into_uniform_buffer(&self.data.clone_reader());
+    renderpass.add_into_uniform_buffer(&self.data);
   }
 }

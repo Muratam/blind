@@ -39,9 +39,9 @@ impl CasualScene {
     renderpass.set_clear_depth(Some(1.0));
     renderpass.add(&camera);
     let out_color = TextureRecipe::new_fullscreen(PixelFormat::R8G8B8A8);
-    renderpass.set_color_target(Some(&out_color.clone_reader()));
+    renderpass.set_color_target(Some(&out_color));
     let src_depth = TextureRecipe::new_fullscreen_depth();
-    renderpass.set_depth_target(Some(&src_depth.clone_reader()));
+    renderpass.set_depth_target(Some(&src_depth));
     // objects
     let shader = MayShader::new(CasualScene::shader());
     let material = PbrMaterial::new();
@@ -61,16 +61,13 @@ impl CasualScene {
             z as f32 - (COUNT as f32) * 0.5,
           );
           object.transform.write().scale = Vec3::ONE * 0.72;
-          renderpass.add_pipeline(&object.pipeline.clone_reader());
+          renderpass.add_pipeline(&object.pipeline);
           objects.push(object);
         }
       }
     }
     let renderpass = Owner::new(renderpass);
-    RenderPassExecuter::add(
-      &renderpass.clone_reader(),
-      CasualRenderPassOrder::Scene as usize,
-    );
+    RenderPassExecuter::add(&renderpass, CasualRenderPassOrder::Scene as usize);
     Self {
       objects,
       renderpass,
@@ -130,24 +127,18 @@ impl CasualPostEffect {
       out_attr: { out_color: vec4 }
     }
   }
-  pub fn new(src_color: &Reader<Texture>) -> Self {
+  pub fn new(src_color: &dyn Readable<Texture>) -> Self {
     let mut renderpass = RenderPass::new();
     let mut pipeline = FullScreen::new_pipeline();
     pipeline.add(&MayShader::new(CasualPostEffect::shader()));
-    pipeline.add(
-      &Owner::new(TextureMapping::new(CasualPostEffectMapping {
-        src_color: src_color.clone_reader(),
-      }))
-      .clone_reader(),
-    );
+    pipeline.add(&Owner::new(TextureMapping::new(CasualPostEffectMapping {
+      src_color: src_color.clone_reader(),
+    })));
     let out_color = TextureRecipe::new_fullscreen(PixelFormat::R8G8B8A8);
-    renderpass.set_color_target(Some(&out_color.clone_reader()));
+    renderpass.set_color_target(Some(&out_color));
     renderpass.own_pipeline(pipeline);
     let renderpass = Owner::new(renderpass);
-    RenderPassExecuter::add(
-      &renderpass.clone_reader(),
-      CasualRenderPassOrder::PostEffect as usize,
-    );
+    RenderPassExecuter::add(&renderpass, CasualRenderPassOrder::PostEffect as usize);
     Self {
       renderpass,
       out_color,
@@ -167,8 +158,8 @@ pub struct SampleScene {
 impl SampleScene {
   pub fn new() -> Self {
     let scene = CasualScene::new();
-    let posteffect = CasualPostEffect::new(&scene.out_color.clone_reader());
-    let surface = Surface::new(&posteffect.out_color.clone_reader());
+    let posteffect = CasualPostEffect::new(&scene.out_color);
+    let surface = Surface::new(&posteffect.out_color);
     Self {
       scene,
       posteffect,
@@ -199,8 +190,6 @@ impl System for SampleSystem {
   }
 }
 /* TODO:
-- Ownerパターンに変えたい場所を変える
-  - clone_reader()
 - renderbuffer
   - MSAA: https://ics.media/web3d-maniacs/webgl2_renderbufferstoragemultisample/
   - mipmap がなぜかはいっている？

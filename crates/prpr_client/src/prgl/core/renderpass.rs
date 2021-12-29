@@ -189,11 +189,11 @@ impl RenderPass {
     self.bind_framebuffer_impl();
     self.viewport_impl();
     self.clear_impl();
-    let outer_ctx = DescriptorContext::cons(outer_ctx, &self.descriptor.clone_reader());
+    let outer_ctx = DescriptorContext::cons(outer_ctx, &self.descriptor);
     self.executer.lock().unwrap().execute(cmd, &outer_ctx);
   }
 
-  pub fn set_color_target(&mut self, target: Option<&Reader<Texture>>) {
+  pub fn set_color_target(&mut self, target: Option<&dyn Readable<Texture>>) {
     self.set_color_target_by_slot(target, 0);
   }
   pub fn set_clear_color(&mut self, value: Option<Vec4>) {
@@ -212,11 +212,11 @@ impl RenderPass {
     let mut info = self.buffer_setup_info.write().unwrap();
     info.use_default_buffer = use_default_buffer;
   }
-  pub fn set_depth_target(&mut self, target: Option<&Reader<Texture>>) {
+  pub fn set_depth_target(&mut self, target: Option<&dyn Readable<Texture>>) {
     self.depth_target = target.map(|target| target.clone_reader());
     self.buffer_setup_info.write().unwrap().is_dirty = true;
   }
-  pub fn set_color_target_by_slot(&mut self, target: Option<&Reader<Texture>>, slot: i32) {
+  pub fn set_color_target_by_slot(&mut self, target: Option<&dyn Readable<Texture>>, slot: i32) {
     if slot < 0 || slot >= MAX_OUTPUT_SLOT as i32 {
       log::error(format!("Invalid set_color_target_by_slot {}", slot));
       return;
@@ -236,19 +236,19 @@ impl RenderPass {
   }
   pub fn add_uniform_buffer<T: BufferAttribute + 'static>(
     &mut self,
-    buffer: &Reader<UniformBuffer<T>>,
+    buffer: &dyn Readable<UniformBuffer<T>>,
   ) {
     self.add_uniform_buffer_trait(Box::new(buffer.clone_reader()) as Box<dyn UniformBufferTrait>);
   }
   pub fn add_into_uniform_buffer<T: BufferAttribute + 'static, I: RefInto<T> + 'static>(
     &mut self,
-    buffer: &Reader<IntoUniformBuffer<T, I>>,
+    buffer: &dyn Readable<IntoUniformBuffer<T, I>>,
   ) {
     self.add_uniform_buffer_trait(Box::new(buffer.clone_reader()) as Box<dyn UniformBufferTrait>);
   }
   pub fn add_texture_mapping<T: TextureMappingAttribute + 'static>(
     &mut self,
-    mapping: &Reader<TextureMapping<T>>,
+    mapping: &dyn Readable<TextureMapping<T>>,
   ) {
     let mut descriptor = self.descriptor.write();
     descriptor
@@ -263,10 +263,10 @@ impl RenderPass {
   pub fn own_pipeline_with_priority(&mut self, pipeline: Pipeline, priority: usize) {
     self.executer.lock().unwrap().own(pipeline, priority);
   }
-  pub fn add_pipeline(&mut self, pipeline: &Reader<Pipeline>) {
+  pub fn add_pipeline(&mut self, pipeline: &dyn Readable<Pipeline>) {
     self.executer.lock().unwrap().add(pipeline, 0);
   }
-  pub fn add_pipeline_with_priority(&mut self, pipeline: &Reader<Pipeline>, priority: usize) {
+  pub fn add_pipeline_with_priority(&mut self, pipeline: &dyn Readable<Pipeline>, priority: usize) {
     self.executer.lock().unwrap().add(pipeline, priority);
   }
   pub fn set_disabled(&mut self, disabled: bool, reason: usize) {

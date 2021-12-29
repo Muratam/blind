@@ -153,14 +153,24 @@ impl<T: TextureMappingAttribute> TextureMappingTrait for TextureMapping<T> {
     }
   }
 }
+impl<T: TextureMappingAttribute> TextureMappingTrait for Owner<TextureMapping<T>> {
+  fn bind(&self, cmd: &mut Command) {
+    self.read().bind(cmd);
+  }
+}
 impl<T: TextureMappingAttribute> TextureMappingTrait for Reader<TextureMapping<T>> {
   fn bind(&self, cmd: &mut Command) {
     self.read().bind(cmd);
   }
 }
 
+impl<T: TextureMappingAttribute + 'static> PipelineBindable for Owner<TextureMapping<T>> {
+  fn bind_pipeline(&self, pipeline: &mut Pipeline) {
+    pipeline.add_texture_mapping_reader(&self.clone_reader());
+  }
+}
 impl<T: TextureMappingAttribute + 'static> PipelineBindable for Reader<TextureMapping<T>> {
   fn bind_pipeline(&self, pipeline: &mut Pipeline) {
-    pipeline.add_texture_mapping(&self);
+    pipeline.add_texture_mapping_reader(&self);
   }
 }

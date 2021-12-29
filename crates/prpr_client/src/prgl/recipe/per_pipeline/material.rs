@@ -31,7 +31,7 @@ impl PbrMaterial {
 }
 impl PipelineBindable for PbrMaterial {
   fn bind_pipeline(&self, pipeline: &mut Pipeline) {
-    pipeline.add_texture_mapping(&self.mapping.clone_reader());
-    pipeline.add_uniform_buffer(&self.ubo.clone_reader());
+    pipeline.add(&self.mapping);
+    pipeline.add(&self.ubo);
   }
 }

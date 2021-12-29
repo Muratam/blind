@@ -30,7 +30,7 @@ impl Pipeline {
     }
     if let Some(shader) = &self.shader {
       cmd.set_shader(shader);
-      DescriptorContext::cons(outer_ctx, &self.descriptor.clone_reader()).bind(cmd);
+      DescriptorContext::cons(outer_ctx, &self.descriptor).bind(cmd);
     } else {
       // log::error("No Shader Program");
       return;
@@ -49,12 +49,11 @@ impl Pipeline {
   pub fn set_shader(&mut self, shader: &Arc<Shader>) {
     self.shader = Some(Arc::clone(shader));
   }
-  pub fn set_vao<T: BufferAttribute + 'static>(&mut self, vao: &Reader<Vao<T>>) {
+  pub fn set_vao<T: BufferAttribute + 'static>(&mut self, vao: &dyn Readable<Vao<T>>) {
     let mut descriptor = self.descriptor.write();
-    // as Reader<Box<dyn VaoTrait>>)
     descriptor.set_vao(Box::new(vao.clone_reader()) as Box<dyn VaoTrait>);
   }
-  pub fn set_draw_vao<T: BufferAttribute + 'static>(&mut self, vao: &Reader<Vao<T>>) {
+  pub fn set_draw_vao<T: BufferAttribute + 'static>(&mut self, vao: &dyn Readable<Vao<T>>) {
     self.set_vao(vao);
     self.set_draw_command(vao.read().draw_command());
   }
@@ -64,23 +63,42 @@ impl Pipeline {
   }
   pub fn add_uniform_buffer<T: BufferAttribute + 'static>(
     &mut self,
-    buffer: &Reader<UniformBuffer<T>>,
+    buffer: &dyn Readable<UniformBuffer<T>>,
   ) {
     self.add_uniform_buffer_trait(Box::new(buffer.clone_reader()) as Box<dyn UniformBufferTrait>);
   }
+  pub fn add_uniform_buffer_reader<T: BufferAttribute + 'static>(
+    &mut self,
+    buffer: &Reader<UniformBuffer<T>>,
+  ) {
+    self.add_uniform_buffer(buffer);
+  }
+
   pub fn add_into_uniform_buffer<T: BufferAttribute + 'static, I: RefInto<T> + 'static>(
+    &mut self,
+    buffer: &dyn Readable<IntoUniformBuffer<T, I>>,
+  ) {
+    self.add_uniform_buffer_trait(Box::new(buffer.clone_reader()) as Box<dyn UniformBufferTrait>);
+  }
+  pub fn add_into_uniform_buffer_reader<T: BufferAttribute + 'static, I: RefInto<T> + 'static>(
     &mut self,
     buffer: &Reader<IntoUniformBuffer<T, I>>,
   ) {
-    self.add_uniform_buffer_trait(Box::new(buffer.clone_reader()) as Box<dyn UniformBufferTrait>);
+    self.add_into_uniform_buffer(buffer);
   }
   pub fn add_texture_mapping<T: TextureMappingAttribute + 'static>(
     &mut self,
-    mapping: &Reader<TextureMapping<T>>,
+    mapping: &dyn Readable<TextureMapping<T>>,
   ) {
     let mut descriptor = self.descriptor.write();
     descriptor
       .add_texture_mapping(Box::new(mapping.clone_reader()) as Box<dyn TextureMappingTrait>);
+  }
+  pub fn add_texture_mapping_reader<T: TextureMappingAttribute + 'static>(
+    &mut self,
+    mapping: &Reader<TextureMapping<T>>,
+  ) {
+    self.add_texture_mapping(mapping);
   }
   pub fn set_cull_mode(&mut self, mode: CullMode) {
     self.cull_mode = mode;
