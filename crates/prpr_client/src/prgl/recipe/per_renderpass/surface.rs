@@ -38,7 +38,7 @@ impl Surface {
 
 impl Updatable for Surface {
   fn update(&mut self) {
-    let viewport = prgl::Instance::viewport();
+    let viewport = Instance::viewport();
     self.renderpass.write().set_viewport(Some(&viewport));
   }
 }

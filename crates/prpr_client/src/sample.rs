@@ -1,6 +1,6 @@
 // hoge_client に逃がす前段階でのサンプル
 use super::*;
-use prgl;
+use prgl::*;
 
 struct CasualScene {
   objects: Vec<prgl::TransformObject>,
@@ -76,7 +76,7 @@ impl CasualScene {
     }
   }
 }
-impl Updatable for CasualScene {
+impl system::Updatable for CasualScene {
   fn update(&mut self) {
     let frame = Time::frame();
     let f = (frame as f32) / 100.0;
@@ -149,15 +149,15 @@ impl CasualPostEffect {
     }
   }
 }
-impl Updatable for CasualPostEffect {
+impl system::Updatable for CasualPostEffect {
   fn update(&mut self) {
     let viewport = prgl::Instance::viewport();
     self.renderpass.write().set_viewport(Some(&viewport));
   }
 }
 pub struct SampleSystem {}
-impl System for SampleSystem {
-  fn new(core: &Core) -> Self {
+impl system::System for SampleSystem {
+  fn new(core: &system::Core) -> Self {
     let scene = CasualScene::new();
     let posteffect = CasualPostEffect::new(&scene.out_color);
     let surface = Surface::new(&posteffect.out_color);
@@ -166,7 +166,7 @@ impl System for SampleSystem {
     Updater::own(surface);
     Self {}
   }
-  fn update(&mut self, core: &Core) {
+  fn update(&mut self, core: &system::Core) {
     self.render_sample(core);
   }
 }
@@ -212,7 +212,7 @@ impl System for SampleSystem {
 */
 
 impl SampleSystem {
-  fn render_sample(&mut self, core: &Core) {
+  fn render_sample(&mut self, core: &system::Core) {
     if false {
       // 多分使用することはない
       let ctx = core.main_2d_context();

@@ -8,17 +8,16 @@ pub extern crate wasm_bindgen;
 extern crate assert_type_eq;
 
 // for publish
-mod html;
-mod js;
-mod prgl;
-mod system;
-pub use prgl::*;
+pub mod html;
+pub mod js;
+pub mod prgl;
+pub mod system;
 use std::sync::{Arc, Mutex, RwLock, RwLockReadGuard, RwLockWriteGuard, Weak};
-pub use system::*;
+pub use system::{Time, Updatable, Updater};
 
 // 最終的にhoge_clientに逃がす
 mod sample;
 pub fn run_sample() {
   js::console::log("create prpr world !!");
-  run::<sample::SampleSystem>();
+  system::run::<sample::SampleSystem>();
 }

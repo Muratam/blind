@@ -76,14 +76,14 @@ macro_rules! shader_attr_by_type {
         result
       }
     }
-    impl BufferAttribute for $s {
+    impl $crate::prgl::BufferAttribute for $s {
       fn ub_data(&self) -> &[u8] {
         let u8_size = Self::struct_size();
         let ptr = self as *const $s as *const u8;
         unsafe { ::core::slice::from_raw_parts(ptr, u8_size) }
       }
-      fn vs_in_template(&self) -> VsInTemplate {
-        VsInTemplate{
+      fn vs_in_template(&self) -> $crate::prgl::VsInTemplate {
+        $crate::prgl::VsInTemplate{
           keys: Self::keys_static(),
           values: Self::new().values(),
           offsets: Self::offsets(),
@@ -93,24 +93,24 @@ macro_rules! shader_attr_by_type {
       fn keys(&self) -> Vec<&'static str> { Self::keys_static() }
       #[allow(unused_variables)]
       #[allow(unused_mut)]
-      fn values(&self) -> Vec<ShaderPrimitiveType> {
+      fn values(&self) -> Vec<$crate::prgl::ShaderPrimitiveType> {
         let mut result = Vec::new();
-        $(result.push(ShaderPrimitiveType::$v(self.$k));)*
+        $(result.push($crate::prgl::ShaderPrimitiveType::$v(self.$k));)*
         result
       }
       fn name(&self) -> &'static str { Self::name_static() }
-      fn find(&self, key: &str) -> Option<ShaderPrimitiveType> {
+      fn find(&self, key: &str) -> Option<$crate::prgl::ShaderPrimitiveType> {
         match key {
-          $(stringify!($k) => Some(ShaderPrimitiveType::$v(self.$k)),)*
+          $(stringify!($k) => Some($crate::prgl::ShaderPrimitiveType::$v(self.$k)),)*
           _ => None,
         }
       }
       #[allow(unused_variables)]
       #[allow(unused_mut)]
-      fn from_hashmap(&mut self, map: &::std::collections::HashMap<String, ShaderPrimitiveType>) -> Vec<&'static str> {
+      fn from_hashmap(&mut self, map: &::std::collections::HashMap<String, $crate::prgl::ShaderPrimitiveType>) -> Vec<&'static str> {
         let mut ignored = Vec::new();
         $(
-          if let Some(ShaderPrimitiveType::$v(v)) = map.get(stringify!($k)) {
+          if let Some($crate::prgl::ShaderPrimitiveType::$v(v)) = map.get(stringify!($k)) {
             self.$k = *v;
           } else {
             ignored.push(stringify!($k));
@@ -120,9 +120,9 @@ macro_rules! shader_attr_by_type {
       }
       #[allow(unused_variables)]
       #[allow(unused_mut)]
-      fn to_hashmap(&self) -> ::std::collections::HashMap<String, ShaderPrimitiveType> {
+      fn to_hashmap(&self) -> ::std::collections::HashMap<String, $crate::prgl::ShaderPrimitiveType> {
         let mut result = ::std::collections::HashMap::new();
-        $(result.insert(String::from(stringify!($k)), ShaderPrimitiveType::$v(self.$k));)*
+        $(result.insert(String::from(stringify!($k)), $crate::prgl::ShaderPrimitiveType::$v(self.$k));)*
         result
       }
     }
@@ -166,32 +166,32 @@ macro_rules! shader_attr_by_type {
         result
       }
     }
-    impl TextureMappingAttribute for $s {
+    impl $crate::prgl::TextureMappingAttribute for $s {
       fn keys(&self) -> Vec<&'static str>{
         Self::keys_static()
       }
       #[allow(unused_variables)]
       #[allow(unused_mut)]
-      fn values(&self) -> Vec<ShaderSamplerType>{
+      fn values(&self) -> Vec<$crate::prgl::ShaderSamplerType>{
         let mut result = Vec::new();
-        $(result.push(ShaderSamplerType::$v(self.$k.clone_replica()));)*
+        $(result.push($crate::prgl::ShaderSamplerType::$v(self.$k.clone_replica()));)*
         result
       }
       fn name(&self) -> &'static str {
         Self::name_static()
       }
-      fn find(&self, key: &str) -> Option<ShaderSamplerType>{
+      fn find(&self, key: &str) -> Option<$crate::prgl::ShaderSamplerType>{
         match key {
-          $(stringify!($k) => Some(ShaderSamplerType::$v(self.$k.clone_replica())),)*
+          $(stringify!($k) => Some($crate::prgl::ShaderSamplerType::$v(self.$k.clone_replica())),)*
           _ => None,
         }
       }
       #[allow(unused_variables)]
       #[allow(unused_mut)]
-      fn from_hashmap(&mut self, map: &::std::collections::HashMap<String, ShaderSamplerType>) -> Vec<&'static str>{
+      fn from_hashmap(&mut self, map: &::std::collections::HashMap<String, $crate::prgl::ShaderSamplerType>) -> Vec<&'static str>{
         let mut ignored = Vec::new();
         $(
-          if let Some(ShaderSamplerType::$v(v)) = map.get(stringify!($k)) {
+          if let Some($crate::prgl::ShaderSamplerType::$v(v)) = map.get(stringify!($k)) {
             self.$k = v.clone_replica();
           } else {
             ignored.push(stringify!($k));
@@ -201,9 +201,9 @@ macro_rules! shader_attr_by_type {
       }
       #[allow(unused_variables)]
       #[allow(unused_mut)]
-      fn to_hashmap(&self) -> ::std::collections::HashMap<String, ShaderSamplerType>{
+      fn to_hashmap(&self) -> ::std::collections::HashMap<String, $crate::prgl::ShaderSamplerType>{
         let mut result = ::std::collections::HashMap::new();
-        $(result.insert(String::from(stringify!($k)), ShaderSamplerType::$v(self.$k.clone_replica()));)*
+        $(result.insert(String::from(stringify!($k)), $crate::prgl::ShaderSamplerType::$v(self.$k.clone_replica()));)*
         result
       }
     }
@@ -303,7 +303,7 @@ macro_rules! shader_template {
       "#version {} es\nprecision {} float;\n",
       template.version, template.precision_float
     );
-    let mut result = ShaderTemplate::new(
+    let mut result = $crate::prgl::ShaderTemplate::new(
       template.attrs.1,
       template.attrs.2,
       format!("{}\n{}{}\n{}",
