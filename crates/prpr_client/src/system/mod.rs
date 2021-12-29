@@ -9,6 +9,8 @@ mod time;
 pub use time::Time;
 mod updater;
 pub use updater::*;
+mod event;
+pub use event::*;
 
 pub fn run(f: fn()) {
   let mut core = Core::new();

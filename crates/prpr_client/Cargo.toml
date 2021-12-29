@@ -54,4 +54,12 @@ features = [
   "WebGlUniformLocation",
   "WebGlShaderPrecisionFormat",
   "WebGlContextAttributes",
+  # Event
+  "MouseEvent",
+  "WheelEvent",
+  "KeyboardEvent",
+  "TouchEvent",
+  "PointerEvent",
+  "GamepadEvent",
+  "DragEvent",
 ]

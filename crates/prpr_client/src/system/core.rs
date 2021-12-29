@@ -2,6 +2,7 @@ use super::*;
 use crate::prgl;
 pub struct Core {
   layers: Layers,
+  event_holder: EventHolder,
   // audio
   // input
   // etc...
@@ -14,7 +15,10 @@ impl Core {
     time::TimeImpl::initialize();
     prgl::RenderPassExecuterImpl::initialize_global();
     UpdaterImpl::initialize_global();
-    Self { layers }
+    Self {
+      layers,
+      event_holder: EventHolder::new(&html::body()),
+    }
   }
   pub fn pre_update(&mut self) {
     self.layers.adjust_screen_size();
@@ -22,6 +26,11 @@ impl Core {
     time::TimeImpl::write_global().pre_update();
   }
   pub fn update(&mut self) {
+    UpdaterImpl::write_global().execute();
+    self.debug_update();
+  }
+  fn debug_update(&mut self) {
+    self.event_holder.update();
     // TODO: 消す
     if true {
       let ctx = self.main_2d_context();
@@ -31,10 +40,25 @@ impl Core {
       ctx.move_to(110.0, 75.0);
       ctx.stroke();
       let html_layer = self.html_layer();
-      let text = format!("{} ms", Time::processed_milli_sec());
+      let mut text: String = format!("{} ms\n", Time::processed_milli_sec());
+      text += &format!(
+        "({},{}): {}",
+        self.event_holder.mouse_x(),
+        self.event_holder.mouse_y(),
+        self.event_holder.mouse_state(MouseState::IsDown)
+      );
+      if self.event_holder.mouse_state(MouseState::IsLeftClicked) {
+        log::info("left clicked");
+      }
+      if self.event_holder.mouse_state(MouseState::IsRightClicked) {
+        log::info("right clicked");
+      }
+      if self.event_holder.mouse_state(MouseState::IsDoubleClicked) {
+        log::info("double clicked");
+      }
+
       html_layer.set_text_content(Some(&text));
     }
-    UpdaterImpl::write_global().execute();
   }
   pub fn post_update(&mut self) {
     prgl::RenderPassExecuterImpl::write_global().execute();
