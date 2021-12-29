@@ -185,16 +185,7 @@ pub fn sample_world() {
   Updater::own(surface);
 }
 /* TODO:
-- renderbuffer
-  - MSAA: https://ics.media/web3d-maniacs/webgl2_renderbufferstoragemultisample/
-  - mipmap がなぜかはいっている？
 - ShaderTemplate -> void main()
-- 複数のカメラで描画したい
-  - 同じのを別カメラで２回やればOK
-  - Selection はカメラから？
-  - 指操作はカメラに紐付ける？
-  - デバッグ用のが欲しくはなるかも
-  - 結局ズーム操作はエミュレーションすることになるのでは
 - pipeline.add で同じUniformBufferな時に気をつけたい(Camera)
 - texture2darray, texture3d 対応する
   - texture として扱いたい？
@@ -204,15 +195,9 @@ pub fn sample_world() {
     - https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext/copyBufferSubData
     - https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/texImage2D
   - https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/WebGL_best_practices#teximagetexsubimage_uploads_esp._videos_can_cause_pipeline_flushes
-- client_wait_sync ?
-  - https://ics.media/entry/19043/
-  - https://inside.pixiv.blog/petamoriken/5853
-  - 描画だけをメインスレッドにすればいいかも
-  - https://rustwasm.github.io/wasm-bindgen/examples/wasm-in-web-worker.html
-- zoom-in/outの解像度耐えたい
-  - pinch-in/out も
-  - window.visualViewport
-  - cssの方でscaleいじれば強引にいけそう
+- renderbuffer
+  - MSAA: https://ics.media/web3d-maniacs/webgl2_renderbufferstoragemultisample/
+  - mipmap がなぜかはいっている？
 - Async Computeしたい
   - transform feedback
   - draw instanced
@@ -221,4 +206,9 @@ pub fn sample_world() {
   - ReverseZ
   - Coverage Dither
   - Alpha Blend
+- client_wait_sync ?
+  - https://ics.media/entry/19043/
+  - https://inside.pixiv.blog/petamoriken/5853
+  - 描画だけをメインスレッドにすればいいかも？
+  - https://rustwasm.github.io/wasm-bindgen/examples/wasm-in-web-worker.html
 */

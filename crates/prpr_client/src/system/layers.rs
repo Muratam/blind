@@ -22,11 +22,9 @@ fn setup_layer(elem: &web_sys::HtmlElement, z_index: i64) {
 }
 
 pub struct Layers {
-  // (下) 3D -> 2D -> HTML (上)
+  // (下) 3D -> HTML (上)
   main_3d_layer: web_sys::HtmlCanvasElement,
-  main_2d_layer: web_sys::HtmlCanvasElement,
   // overlay3d_layer: web_sys::HtmlCanvasElement,
-  // overlay2d_layer: web_sys::HtmlCanvasElement,
   html_layer: web_sys::HtmlDivElement,
   width: i32,
   height: i32,
@@ -38,13 +36,10 @@ impl Layers {
     setup_global_style(&root_element);
     let main_3d_layer = html::append_canvas(&root_element);
     setup_layer(&main_3d_layer, 0);
-    let main_2d_layer = html::append_canvas(&root_element);
-    setup_layer(&main_2d_layer, 1);
     let html_layer = html::append_div(&root_element);
-    setup_layer(&html_layer, 2);
+    setup_layer(&html_layer, 1);
     html_layer.style().set_property("overflow", "scroll").ok();
     let mut result = Self {
-      main_2d_layer,
       main_3d_layer,
       html_layer,
       width: 0,
@@ -54,9 +49,6 @@ impl Layers {
     result
   }
 
-  pub fn main_2d_context(&self) -> web_sys::CanvasRenderingContext2d {
-    self.main_2d_layer.canvas_2d_context()
-  }
   pub fn main_3d_context(&self) -> web_sys::WebGl2RenderingContext {
     self.main_3d_layer.webgl2_context()
   }
@@ -82,10 +74,8 @@ impl Layers {
     if !updated {
       return;
     }
-    for c in vec![&self.main_2d_layer, &self.main_3d_layer] {
-      c.set_width(self.width as u32);
-      c.set_height(self.height as u32);
-    }
+    self.main_3d_layer.set_width(self.width as u32);
+    self.main_3d_layer.set_height(self.height as u32);
   }
   pub fn width(&self) -> i32 {
     self.width
