@@ -18,7 +18,7 @@ impl PipelineExecuter {
       owns: Vec::new(),
     }
   }
-  pub fn add(&mut self, pipeline: &dyn ReaderClonable<Pipeline>, order: usize) {
+  pub fn add(&mut self, pipeline: &Reader<Pipeline>, order: usize) {
     self.pipelines.push(PipelineExecuteInfo {
       pipeline: pipeline.clone_weak_reader(),
       order,
@@ -27,7 +27,7 @@ impl PipelineExecuter {
   }
   pub fn own(&mut self, pipeline: Pipeline, order: usize) {
     let pipeline = Owner::new(pipeline);
-    self.add(&pipeline, order);
+    self.add(&pipeline.clone_reader(), order);
     self.owns.push(pipeline);
   }
   pub fn execute(&mut self, cmd: &mut Command, outer_ctx: &Arc<DescriptorContext>) {
@@ -87,7 +87,7 @@ impl RenderPassExecuter {
       need_sort: false,
     }
   }
-  pub fn add(&mut self, pass: &dyn ReaderClonable<RenderPass>, order: usize) {
+  pub fn add(&mut self, pass: &Reader<RenderPass>, order: usize) {
     self.passes.push(RenderPassExecuteInfo {
       pass: pass.clone_weak_reader(),
       order,
@@ -96,7 +96,7 @@ impl RenderPassExecuter {
   }
   pub fn own(&mut self, pass: RenderPass, order: usize) {
     let pass = Owner::new(pass);
-    self.add(&pass, order);
+    self.add(&pass.clone_reader(), order);
     self.owns.push(pass);
   }
   pub fn execute(&mut self) {

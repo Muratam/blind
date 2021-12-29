@@ -174,7 +174,7 @@ macro_rules! shader_attr_by_type {
       #[allow(unused_mut)]
       fn values(&self) -> Vec<ShaderSamplerType>{
         let mut result = Vec::new();
-        $(result.push(ShaderSamplerType::$v(Arc::clone(&self.$k)));)*
+        $(result.push(ShaderSamplerType::$v(self.$k.clone_reader()));)*
         result
       }
       fn name(&self) -> &'static str {
@@ -182,7 +182,7 @@ macro_rules! shader_attr_by_type {
       }
       fn find(&self, key: &str) -> Option<ShaderSamplerType>{
         match key {
-          $(stringify!($k) => Some(ShaderSamplerType::$v(Arc::clone(&self.$k))),)*
+          $(stringify!($k) => Some(ShaderSamplerType::$v(self.$k.clone_reader())),)*
           _ => None,
         }
       }
@@ -192,7 +192,7 @@ macro_rules! shader_attr_by_type {
         let mut ignored = Vec::new();
         $(
           if let Some(ShaderSamplerType::$v(v)) = map.get(stringify!($k)) {
-            self.$k = Arc::clone(v);
+            self.$k = v.clone_reader();
           } else {
             ignored.push(stringify!($k));
           }
@@ -203,7 +203,7 @@ macro_rules! shader_attr_by_type {
       #[allow(unused_mut)]
       fn to_hashmap(&self) -> ::std::collections::HashMap<String, ShaderSamplerType>{
         let mut result = ::std::collections::HashMap::new();
-        $(result.insert(String::from(stringify!($k)), ShaderSamplerType::$v(Arc::clone(&self.$k)));)*
+        $(result.insert(String::from(stringify!($k)), ShaderSamplerType::$v(self.$k.clone_reader()));)*
         result
       }
     }

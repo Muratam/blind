@@ -5,9 +5,9 @@ use super::*;
 // TODO: ShaderBind時にデフォルトテクスチャを貼る
 
 pub struct Descriptor {
-  vao: Option<Arc<dyn VaoTrait>>,
-  u_buffers: Vec<Arc<dyn UniformBufferTrait>>,
-  u_mappings: Vec<Arc<dyn TextureMappingTrait>>,
+  vao: Option<Box<dyn VaoTrait>>,
+  u_buffers: Vec<Box<dyn UniformBufferTrait>>,
+  u_mappings: Vec<Box<dyn TextureMappingTrait>>,
 }
 impl Descriptor {
   pub fn new() -> Descriptor {
@@ -17,14 +17,14 @@ impl Descriptor {
       u_mappings: Vec::new(),
     }
   }
-  pub fn set_vao(&mut self, vao: &Arc<dyn VaoTrait>) {
-    self.vao = Some(Arc::clone(vao));
+  pub fn set_vao(&mut self, vao: Box<dyn VaoTrait>) {
+    self.vao = Some(vao);
   }
-  pub fn add_uniform_buffer(&mut self, buffer: &Arc<dyn UniformBufferTrait>) {
-    self.u_buffers.push(Arc::clone(buffer));
+  pub fn add_uniform_buffer(&mut self, buffer: Box<dyn UniformBufferTrait>) {
+    self.u_buffers.push(buffer);
   }
-  pub fn add_texture_mapping(&mut self, mapping: &Arc<dyn TextureMappingTrait>) {
-    self.u_mappings.push(Arc::clone(mapping));
+  pub fn add_texture_mapping(&mut self, mapping: Box<dyn TextureMappingTrait>) {
+    self.u_mappings.push(mapping);
   }
 }
 pub enum DescriptorContext {
@@ -39,7 +39,7 @@ impl DescriptorContext {
   pub fn nil() -> Arc<Self> {
     Arc::new(Self::Nil)
   }
-  pub fn cons(others: &Arc<Self>, prior: &dyn ReaderClonable<Descriptor>) -> Arc<Self> {
+  pub fn cons(others: &Arc<Self>, prior: &Reader<Descriptor>) -> Arc<Self> {
     Arc::new(Self::Cons {
       prior: prior.clone_reader(),
       others: others.clone(),

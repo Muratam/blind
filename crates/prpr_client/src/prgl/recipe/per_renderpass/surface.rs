@@ -21,17 +21,20 @@ impl Surface {
       out_attr: { out_color: vec4 }
     }
   }
-  pub fn new(src_color: &Arc<Texture>) -> Self {
+  pub fn new(src_color: &Reader<Texture>) -> Self {
     let mut renderpass = RenderPass::new();
     renderpass.set_use_default_buffer(true);
     let mut pipeline = FullScreen::new_pipeline();
     pipeline.add(&MayShader::new(Self::shader()));
-    pipeline.add(&Arc::new(TextureMapping::new(SurfaceMapping {
-      src_color: src_color.clone(),
-    })));
+    pipeline.add(
+      &Owner::new(TextureMapping::new(SurfaceMapping {
+        src_color: src_color.clone_reader(),
+      }))
+      .clone_reader(),
+    );
     renderpass.own_pipeline(pipeline);
     let renderpass = Owner::new(renderpass);
-    RenderPassExecuter::global_write_lock().add(&renderpass, usize::MAX);
+    RenderPassExecuter::global_write_lock().add(&renderpass.clone_reader(), usize::MAX);
     Self { renderpass }
   }
 }

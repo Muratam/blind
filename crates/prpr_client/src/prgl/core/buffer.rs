@@ -57,7 +57,7 @@ pub trait UniformBufferTrait {
 }
 pub struct UniformBuffer<T: BufferAttribute> {
   raw_buffer: RawBuffer,
-  data: RwLock<T>,
+  data: T,
   name: &'static str,
   is_dirty: Mutex<bool>,
 }
@@ -67,23 +67,30 @@ impl<T: BufferAttribute> UniformBuffer<T> {
       name: data.name(),
       raw_buffer: RawBuffer::new_untyped(data.ub_data(), BufferUsage::Uniform),
       is_dirty: Mutex::new(false),
-      data: RwLock::new(data),
+      data,
     }
   }
-  pub fn write_lock(&self) -> RwLockWriteGuard<'_, T> {
-    *self.is_dirty.lock().unwrap() = true;
-    self.data.write().unwrap()
-  }
-  pub fn read_lock(&self) -> RwLockReadGuard<'_, T> {
-    self.data.read().unwrap()
+}
+
+impl<T: BufferAttribute> std::ops::Deref for UniformBuffer<T> {
+  type Target = T;
+  fn deref(&self) -> &T {
+    &self.data
   }
 }
+impl<T: BufferAttribute> std::ops::DerefMut for UniformBuffer<T> {
+  fn deref_mut(&mut self) -> &mut T {
+    *self.is_dirty.lock().unwrap() = true;
+    &mut self.data
+  }
+}
+
 impl<T: BufferAttribute> UniformBufferTrait for UniformBuffer<T> {
   fn bind(&self, cmd: &mut Command) {
     {
       let mut is_dirty_lock = self.is_dirty.lock().unwrap();
-      if *is_dirty_lock {
-        self.raw_buffer.write_untyped(0, self.read_lock().ub_data());
+      if !*is_dirty_lock {
+        self.raw_buffer.write_untyped(0, self.data.ub_data());
         *is_dirty_lock = false;
       }
     }
@@ -94,6 +101,12 @@ impl<T: BufferAttribute> UniformBufferTrait for UniformBuffer<T> {
     }
   }
 }
+impl<T: BufferAttribute> UniformBufferTrait for Reader<UniformBuffer<T>> {
+  fn bind(&self, cmd: &mut Command) {
+    self.read().bind(cmd);
+  }
+}
+
 pub trait RefInto<T> {
   fn ref_into(&self) -> T;
 }
@@ -101,7 +114,7 @@ pub struct IntoUniformBuffer<T: BufferAttribute, I: RefInto<T>> {
   raw_buffer: RawBuffer,
   name: &'static str,
   phantom_data: std::marker::PhantomData<T>,
-  into: RwLock<I>,
+  into: I,
   is_dirty: Mutex<bool>,
 }
 impl<T: BufferAttribute, I: RefInto<T>> IntoUniformBuffer<T, I> {
@@ -112,15 +125,20 @@ impl<T: BufferAttribute, I: RefInto<T>> IntoUniformBuffer<T, I> {
       raw_buffer: RawBuffer::new_untyped(data.ub_data(), BufferUsage::Uniform),
       is_dirty: Mutex::new(true),
       phantom_data: std::marker::PhantomData,
-      into: RwLock::new(into),
+      into: into,
     }
   }
-  pub fn write_lock(&self) -> RwLockWriteGuard<'_, I> {
-    *self.is_dirty.lock().unwrap() = true;
-    self.into.write().unwrap()
+}
+impl<T: BufferAttribute, I: RefInto<T>> std::ops::Deref for IntoUniformBuffer<T, I> {
+  type Target = I;
+  fn deref(&self) -> &I {
+    &self.into
   }
-  pub fn read_lock(&self) -> RwLockReadGuard<'_, I> {
-    self.into.read().unwrap()
+}
+impl<T: BufferAttribute, I: RefInto<T>> std::ops::DerefMut for IntoUniformBuffer<T, I> {
+  fn deref_mut(&mut self) -> &mut I {
+    *self.is_dirty.lock().unwrap() = true;
+    &mut self.into
   }
 }
 
@@ -129,7 +147,7 @@ impl<T: BufferAttribute, I: RefInto<T>> UniformBufferTrait for IntoUniformBuffer
     {
       let mut is_dirty_lock = self.is_dirty.lock().unwrap();
       if *is_dirty_lock {
-        let data: T = self.read_lock().ref_into();
+        let data: T = self.into.ref_into();
         self.raw_buffer.write_untyped(0, data.ub_data());
         *is_dirty_lock = false;
       }
@@ -139,5 +157,10 @@ impl<T: BufferAttribute, I: RefInto<T>> UniformBufferTrait for IntoUniformBuffer
         cmd.set_ubo(&self.raw_buffer, index);
       }
     }
+  }
+}
+impl<T: BufferAttribute, I: RefInto<T>> UniformBufferTrait for Reader<IntoUniformBuffer<T, I>> {
+  fn bind(&self, cmd: &mut Command) {
+    self.read().bind(cmd);
   }
 }

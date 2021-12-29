@@ -152,7 +152,7 @@ impl<T: TextureMappingAttribute> TextureMappingTrait for TextureMapping<T> {
         if let Some(utl) = shader.uniform_texture_location(self.keys[i]) {
           match &values[i] {
             ShaderSamplerType::sampler2D(texture) => {
-              cmd.set_uniform_texture(texture.raw_texture(), &utl);
+              cmd.set_uniform_texture(texture.read().raw_texture(), &utl);
             }
           }
         }
@@ -160,8 +160,13 @@ impl<T: TextureMappingAttribute> TextureMappingTrait for TextureMapping<T> {
     }
   }
 }
+impl<T: TextureMappingAttribute> TextureMappingTrait for Reader<TextureMapping<T>> {
+  fn bind(&self, cmd: &mut Command) {
+    self.read().bind(cmd);
+  }
+}
 
-impl<T: TextureMappingAttribute + 'static> PipelineBindable for Arc<TextureMapping<T>> {
+impl<T: TextureMappingAttribute + 'static> PipelineBindable for Reader<TextureMapping<T>> {
   fn bind_pipeline(&self, pipeline: &mut Pipeline) {
     pipeline.add_texture_mapping(&self);
   }

@@ -6,7 +6,7 @@ struct CasualScene {
   objects: Vec<prgl::TransformObject>,
   renderpass: Owner<prgl::RenderPass>,
   camera: prgl::Camera,
-  out_color: Arc<Texture>,
+  out_color: Owner<Texture>,
 }
 enum CasualRenderPassOrder {
   Scene,
@@ -39,9 +39,9 @@ impl CasualScene {
     renderpass.set_clear_depth(Some(1.0));
     renderpass.add(&camera);
     let out_color = TextureRecipe::new_fullscreen(PixelFormat::R8G8B8A8);
-    renderpass.set_color_target(Some(&out_color));
+    renderpass.set_color_target(Some(&out_color.clone_reader()));
     let src_depth = TextureRecipe::new_fullscreen_depth();
-    renderpass.set_depth_target(Some(&src_depth));
+    renderpass.set_depth_target(Some(&src_depth.clone_reader()));
     // objects
     let shader = MayShader::new(CasualScene::shader());
     let material = PbrMaterial::new();
@@ -55,19 +55,22 @@ impl CasualScene {
           object.pipeline.write().add(&shape);
           object.pipeline.write().add(&material);
           object.pipeline.write().add(&shader);
-          object.transform.write_lock().translate = Vec3::new(
+          object.transform.write().translate = Vec3::new(
             x as f32 - (COUNT as f32) * 0.5,
             y as f32 - (COUNT as f32) * 0.5,
             z as f32 - (COUNT as f32) * 0.5,
           );
-          object.transform.write_lock().scale = Vec3::ONE * 0.72;
-          renderpass.add_pipeline(&object.pipeline);
+          object.transform.write().scale = Vec3::ONE * 0.72;
+          renderpass.add_pipeline(&object.pipeline.clone_reader());
           objects.push(object);
         }
       }
     }
     let renderpass = Owner::new(renderpass);
-    RenderPassExecuter::global_write_lock().add(&renderpass, CasualRenderPassOrder::Scene as usize);
+    RenderPassExecuter::global_write_lock().add(
+      &renderpass.clone_reader(),
+      CasualRenderPassOrder::Scene as usize,
+    );
     Self {
       objects,
       renderpass,
@@ -78,13 +81,13 @@ impl CasualScene {
   pub fn update(&mut self) {
     let frame = Time::frame();
     let f = (frame as f32) / 100.0;
-    self.camera.write_lock().camera_pos = Vec3::new(f.sin(), f.cos(), f.cos()) * 5.0;
+    self.camera.write().camera_pos = Vec3::new(f.sin(), f.cos(), f.cos()) * 5.0;
     for object in &mut self.objects {
-      object.transform.write_lock().rotation *= Quat::from_rotation_y(3.1415 * 0.01);
+      object.transform.write().rotation *= Quat::from_rotation_y(3.1415 * 0.01);
     }
     // adjust viewport
     let viewport = prgl::Instance::viewport();
-    self.camera.write_lock().aspect_ratio = viewport.aspect_ratio();
+    self.camera.write().aspect_ratio = viewport.aspect_ratio();
     self.renderpass.write().set_viewport(Some(&viewport));
   }
 }
@@ -96,7 +99,7 @@ crate::shader_attr! {
 }
 struct CasualPostEffect {
   renderpass: Owner<prgl::RenderPass>,
-  out_color: Arc<Texture>,
+  out_color: Owner<Texture>,
 }
 impl CasualPostEffect {
   pub fn shader() -> ShaderTemplate {
@@ -127,19 +130,24 @@ impl CasualPostEffect {
       out_attr: { out_color: vec4 }
     }
   }
-  pub fn new(src_color: &Arc<Texture>) -> Self {
+  pub fn new(src_color: &Reader<Texture>) -> Self {
     let mut renderpass = RenderPass::new();
     let mut pipeline = FullScreen::new_pipeline();
     pipeline.add(&MayShader::new(CasualPostEffect::shader()));
-    pipeline.add(&Arc::new(TextureMapping::new(CasualPostEffectMapping {
-      src_color: src_color.clone(),
-    })));
+    pipeline.add(
+      &Owner::new(TextureMapping::new(CasualPostEffectMapping {
+        src_color: src_color.clone_reader(),
+      }))
+      .clone_reader(),
+    );
     let out_color = TextureRecipe::new_fullscreen(PixelFormat::R8G8B8A8);
-    renderpass.set_color_target(Some(&out_color));
+    renderpass.set_color_target(Some(&out_color.clone_reader()));
     renderpass.own_pipeline(pipeline);
     let renderpass = Owner::new(renderpass);
-    RenderPassExecuter::global_write_lock()
-      .add(&renderpass, CasualRenderPassOrder::PostEffect as usize);
+    RenderPassExecuter::global_write_lock().add(
+      &renderpass.clone_reader(),
+      CasualRenderPassOrder::PostEffect as usize,
+    );
     Self {
       renderpass,
       out_color,
@@ -158,24 +166,9 @@ pub struct SampleScene {
 }
 impl SampleScene {
   pub fn new() -> Self {
-    {
-      let mut x = Owner::new(1);
-      *x.write() = 10;
-      *x.write() = 20;
-      {
-        let r = x.read();
-        let r2 = x.read();
-        let n = *r + *r2;
-      }
-      let mut w = x.write();
-      *w = 10;
-      // let mut w2 = x.write();
-      // *w = 40;
-    }
-
     let scene = CasualScene::new();
-    let posteffect = CasualPostEffect::new(&scene.out_color);
-    let surface = Surface::new(&posteffect.out_color);
+    let posteffect = CasualPostEffect::new(&scene.out_color.clone_reader());
+    let surface = Surface::new(&posteffect.out_color.clone_reader());
     Self {
       scene,
       posteffect,
@@ -207,7 +200,7 @@ impl System for SampleSystem {
 }
 /* TODO:
 - Ownerパターンに変えたい場所を変える
-  - Arc<RwLock<>>
+  - Arc<RwLock<>> : Updater
   - Arc<>
   - write_lock()
 - renderbuffer

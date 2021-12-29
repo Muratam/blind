@@ -10,28 +10,28 @@ crate::shader_attr! {
   }
 }
 pub struct PbrMaterial {
-  ubo: Arc<UniformBuffer<PbrAttribute>>,
-  mapping: Arc<TextureMapping<PbrMapping>>,
+  ubo: Owner<UniformBuffer<PbrAttribute>>,
+  mapping: Owner<TextureMapping<PbrMapping>>,
 }
 impl PbrMaterial {
   pub fn new() -> Self {
-    let default_normal_map = Arc::new(Texture::new_rgba_map(4, 4, |_, _| {
+    let default_normal_map = Owner::new(Texture::new_rgba_map(4, 4, |_, _| {
       Vec4::new(0.0, 0.0, 1.0, 0.0)
     }));
     Self {
-      ubo: Arc::new(UniformBuffer::new(PbrAttribute {
+      ubo: Owner::new(UniformBuffer::new(PbrAttribute {
         albedo_color: Vec3::ONE,
         roughness: 0.0,
       })),
-      mapping: Arc::new(TextureMapping::new(PbrMapping {
-        normal_map: default_normal_map,
+      mapping: Owner::new(TextureMapping::new(PbrMapping {
+        normal_map: default_normal_map.clone_reader(),
       })),
     }
   }
 }
 impl PipelineBindable for PbrMaterial {
   fn bind_pipeline(&self, pipeline: &mut Pipeline) {
-    pipeline.add_texture_mapping(&self.mapping);
-    pipeline.add_uniform_buffer(&self.ubo);
+    pipeline.add_texture_mapping(&self.mapping.clone_reader());
+    pipeline.add_uniform_buffer(&self.ubo.clone_reader());
   }
 }

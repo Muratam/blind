@@ -6,7 +6,7 @@ crate::shader_attr! {
   }
 }
 pub struct FullScreen {
-  vao: Arc<Vao<FullScreenVertex>>,
+  vao: Owner<Vao<FullScreenVertex>>,
 }
 impl FullScreen {
   pub fn new() -> Self {
@@ -27,7 +27,7 @@ impl FullScreen {
       },
     ]);
     Self {
-      vao: Arc::new(Vao::new(v_buffer, i_buffer)),
+      vao: Owner::new(Vao::new(v_buffer, i_buffer)),
     }
   }
   pub fn new_pipeline() -> Pipeline {
@@ -40,7 +40,7 @@ impl FullScreen {
 }
 impl PipelineBindable for FullScreen {
   fn bind_pipeline(&self, pipeline: &mut Pipeline) {
-    pipeline.set_draw_vao(&self.vao);
+    pipeline.set_draw_vao(&self.vao.clone_reader());
   }
 }
 
@@ -53,7 +53,7 @@ crate::shader_attr! {
   }
 }
 pub struct Shape {
-  vao: Arc<Vao<ShapeVertex>>,
+  vao: Owner<Vao<ShapeVertex>>,
 }
 impl Shape {
   pub fn new_cube() -> Self {
@@ -83,13 +83,13 @@ impl Shape {
     let i_buffer = IndexBuffer::new(i_data);
     let v_buffer = VertexBuffer::new(v_data);
     Self {
-      vao: Arc::new(Vao::new(v_buffer, i_buffer)),
+      vao: Owner::new(Vao::new(v_buffer, i_buffer)),
     }
   }
 }
 impl PipelineBindable for Shape {
   fn bind_pipeline(&self, pipeline: &mut Pipeline) {
-    pipeline.set_draw_vao(&self.vao);
+    pipeline.set_draw_vao(&self.vao.clone_reader());
   }
 }
 
