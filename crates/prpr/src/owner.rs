@@ -1,30 +1,30 @@
 use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard, Weak};
 
-// Primary しか書き込みができない
-pub struct Primary<T> {
+// ArcOwner しか書き込みができない
+pub struct ArcOwner<T> {
   data: Arc<RwLock<T>>,
 }
-// Replica は読み込みしかできない
-pub struct Replica<T> {
+// ArcReader は読み込みしかできない
+pub struct ArcReader<T> {
   data: Arc<RwLock<T>>,
 }
 // WeakReaderは参照も持たない
-pub struct WeakReplica<T> {
+pub struct ArcWeakReader<T> {
   data: Weak<RwLock<T>>,
 }
 pub trait ReplicaTrait<T> {
   fn read(&self) -> RwLockReadGuard<'_, T>;
-  fn clone_replica(&self) -> Replica<T>;
-  fn clone_weak_replica(&self) -> WeakReplica<T>;
+  fn clone_reader(&self) -> ArcReader<T>;
+  fn clone_weak_reader(&self) -> ArcWeakReader<T>;
 }
-unsafe impl<T: Send> Send for Primary<T> {}
-unsafe impl<T: Send + Sync> Sync for Primary<T> {}
-unsafe impl<T: Send> Send for Replica<T> {}
-unsafe impl<T: Send + Sync> Sync for Replica<T> {}
-unsafe impl<T: Send> Send for WeakReplica<T> {}
-unsafe impl<T: Send + Sync> Sync for WeakReplica<T> {}
+unsafe impl<T: Send> Send for ArcOwner<T> {}
+unsafe impl<T: Send + Sync> Sync for ArcOwner<T> {}
+unsafe impl<T: Send> Send for ArcReader<T> {}
+unsafe impl<T: Send + Sync> Sync for ArcReader<T> {}
+unsafe impl<T: Send> Send for ArcWeakReader<T> {}
+unsafe impl<T: Send + Sync> Sync for ArcWeakReader<T> {}
 
-impl<T> Primary<T> {
+impl<T> ArcOwner<T> {
   pub fn new(data: T) -> Self {
     Self {
       data: Arc::new(RwLock::new(data)),
@@ -37,46 +37,46 @@ impl<T> Primary<T> {
   }
 }
 
-impl<T> WeakReplica<T> {
-  pub fn try_read(&self) -> Option<Replica<T>> {
-    self.data.upgrade().map(|x| Replica { data: x })
+impl<T> ArcWeakReader<T> {
+  pub fn try_read(&self) -> Option<ArcReader<T>> {
+    self.data.upgrade().map(|x| ArcReader { data: x })
   }
 }
 
-impl<T> ReplicaTrait<T> for Primary<T> {
+impl<T> ReplicaTrait<T> for ArcOwner<T> {
   fn read(&self) -> RwLockReadGuard<'_, T> {
     self.data.read().unwrap()
   }
-  fn clone_replica(&self) -> Replica<T> {
-    Replica::<T> {
+  fn clone_reader(&self) -> ArcReader<T> {
+    ArcReader::<T> {
       data: self.data.clone(),
     }
   }
-  fn clone_weak_replica(&self) -> WeakReplica<T> {
-    WeakReplica::<T> {
+  fn clone_weak_reader(&self) -> ArcWeakReader<T> {
+    ArcWeakReader::<T> {
       data: Arc::downgrade(&self.data),
     }
   }
 }
 
-impl<T> ReplicaTrait<T> for Replica<T> {
+impl<T> ReplicaTrait<T> for ArcReader<T> {
   fn read(&self) -> RwLockReadGuard<'_, T> {
     self.data.read().unwrap()
   }
-  fn clone_replica(&self) -> Replica<T> {
-    Replica::<T> {
+  fn clone_reader(&self) -> ArcReader<T> {
+    ArcReader::<T> {
       data: self.data.clone(),
     }
   }
-  fn clone_weak_replica(&self) -> WeakReplica<T> {
-    WeakReplica::<T> {
+  fn clone_weak_reader(&self) -> ArcWeakReader<T> {
+    ArcWeakReader::<T> {
       data: Arc::downgrade(&self.data),
     }
   }
 }
 
-impl<T> Clone for Replica<T> {
+impl<T> Clone for ArcReader<T> {
   fn clone(&self) -> Self {
-    self.clone_replica()
+    self.clone_reader()
   }
 }

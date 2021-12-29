@@ -29,7 +29,7 @@ impl Descriptor {
 }
 pub enum DescriptorContext {
   Cons {
-    prior: Replica<Descriptor>,
+    prior: ArcReader<Descriptor>,
     others: Arc<Self>,
   },
   Nil,
@@ -41,7 +41,7 @@ impl DescriptorContext {
   }
   pub fn cons(others: &Arc<Self>, prior: &dyn ReplicaTrait<Descriptor>) -> Arc<Self> {
     Arc::new(Self::Cons {
-      prior: prior.clone_replica(),
+      prior: prior.clone_reader(),
       others: others.clone(),
     })
   }

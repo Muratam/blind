@@ -3,10 +3,10 @@ use super::*;
 use prgl::*;
 
 struct CasualScene {
-  objects: Vec<prgl::TransformObject>,
-  renderpass: Primary<prgl::RenderPass>,
-  camera: prgl::Camera,
-  out_color: Primary<Texture>,
+  objects: Vec<TransformObject>,
+  renderpass: ArcOwner<RenderPass>,
+  camera: Camera,
+  out_color: ArcOwner<Texture>,
 }
 enum CasualRenderPassOrder {
   Scene,
@@ -66,7 +66,7 @@ impl CasualScene {
         }
       }
     }
-    let renderpass = Primary::new(renderpass);
+    let renderpass = ArcOwner::new(renderpass);
     RenderPassExecuter::add(&renderpass, CasualRenderPassOrder::Scene as usize);
     Self {
       objects,
@@ -85,7 +85,7 @@ impl system::Updatable for CasualScene {
       object.transform.write().rotation *= Quat::from_rotation_y(3.1415 * 0.01);
     }
     // adjust viewport
-    let viewport = prgl::Instance::viewport();
+    let viewport = Instance::viewport();
     self.camera.write().aspect_ratio = viewport.aspect_ratio();
     self.renderpass.write().set_viewport(Some(&viewport));
   }
@@ -97,8 +97,8 @@ crate::shader_attr! {
   }
 }
 struct CasualPostEffect {
-  renderpass: Primary<prgl::RenderPass>,
-  out_color: Primary<Texture>,
+  renderpass: ArcOwner<RenderPass>,
+  out_color: ArcOwner<Texture>,
 }
 impl CasualPostEffect {
   pub fn shader() -> ShaderTemplate {
@@ -133,15 +133,15 @@ impl CasualPostEffect {
     let mut renderpass = RenderPass::new();
     let mut pipeline = FullScreen::new_pipeline();
     pipeline.add(&MayShader::new(CasualPostEffect::shader()));
-    pipeline.add(&Primary::new(TextureMapping::new(
+    pipeline.add(&ArcOwner::new(TextureMapping::new(
       CasualPostEffectMapping {
-        src_color: src_color.clone_replica(),
+        src_color: src_color.clone_reader(),
       },
     )));
     let out_color = TextureRecipe::new_fullscreen(PixelFormat::R8G8B8A8);
     renderpass.set_color_target(Some(&out_color));
     renderpass.own_pipeline(pipeline);
-    let renderpass = Primary::new(renderpass);
+    let renderpass = ArcOwner::new(renderpass);
     RenderPassExecuter::add(&renderpass, CasualRenderPassOrder::PostEffect as usize);
     Self {
       renderpass,
@@ -149,9 +149,9 @@ impl CasualPostEffect {
     }
   }
 }
-impl system::Updatable for CasualPostEffect {
+impl Updatable for CasualPostEffect {
   fn update(&mut self) {
-    let viewport = prgl::Instance::viewport();
+    let viewport = Instance::viewport();
     self.renderpass.write().set_viewport(Some(&viewport));
   }
 }

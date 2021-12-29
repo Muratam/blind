@@ -6,7 +6,7 @@ crate::shader_attr! {
   }
 }
 pub struct FullScreen {
-  vao: Primary<Vao<FullScreenVertex>>,
+  vao: ArcOwner<Vao<FullScreenVertex>>,
 }
 impl FullScreen {
   pub fn new() -> Self {
@@ -27,7 +27,7 @@ impl FullScreen {
       },
     ]);
     Self {
-      vao: Primary::new(Vao::new(v_buffer, i_buffer)),
+      vao: ArcOwner::new(Vao::new(v_buffer, i_buffer)),
     }
   }
   pub fn new_pipeline() -> Pipeline {
@@ -53,7 +53,7 @@ crate::shader_attr! {
   }
 }
 pub struct Shape {
-  vao: Primary<Vao<ShapeVertex>>,
+  vao: ArcOwner<Vao<ShapeVertex>>,
 }
 impl Shape {
   pub fn new_cube() -> Self {
@@ -83,7 +83,7 @@ impl Shape {
     let i_buffer = IndexBuffer::new(i_data);
     let v_buffer = VertexBuffer::new(v_data);
     Self {
-      vao: Primary::new(Vao::new(v_buffer, i_buffer)),
+      vao: ArcOwner::new(Vao::new(v_buffer, i_buffer)),
     }
   }
 }

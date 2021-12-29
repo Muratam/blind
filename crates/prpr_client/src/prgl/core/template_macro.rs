@@ -174,7 +174,7 @@ macro_rules! shader_attr_by_type {
       #[allow(unused_mut)]
       fn values(&self) -> Vec<$crate::prgl::ShaderSamplerType>{
         let mut result = Vec::new();
-        $(result.push($crate::prgl::ShaderSamplerType::$v(self.$k.clone_replica()));)*
+        $(result.push($crate::prgl::ShaderSamplerType::$v(self.$k.clone_reader()));)*
         result
       }
       fn name(&self) -> &'static str {
@@ -182,7 +182,7 @@ macro_rules! shader_attr_by_type {
       }
       fn find(&self, key: &str) -> Option<$crate::prgl::ShaderSamplerType>{
         match key {
-          $(stringify!($k) => Some($crate::prgl::ShaderSamplerType::$v(self.$k.clone_replica())),)*
+          $(stringify!($k) => Some($crate::prgl::ShaderSamplerType::$v(self.$k.clone_reader())),)*
           _ => None,
         }
       }
@@ -192,7 +192,7 @@ macro_rules! shader_attr_by_type {
         let mut ignored = Vec::new();
         $(
           if let Some($crate::prgl::ShaderSamplerType::$v(v)) = map.get(stringify!($k)) {
-            self.$k = v.clone_replica();
+            self.$k = v.clone_reader();
           } else {
             ignored.push(stringify!($k));
           }
@@ -203,7 +203,7 @@ macro_rules! shader_attr_by_type {
       #[allow(unused_mut)]
       fn to_hashmap(&self) -> ::std::collections::HashMap<String, $crate::prgl::ShaderSamplerType>{
         let mut result = ::std::collections::HashMap::new();
-        $(result.insert(String::from(stringify!($k)), $crate::prgl::ShaderSamplerType::$v(self.$k.clone_replica()));)*
+        $(result.insert(String::from(stringify!($k)), $crate::prgl::ShaderSamplerType::$v(self.$k.clone_reader()));)*
         result
       }
     }

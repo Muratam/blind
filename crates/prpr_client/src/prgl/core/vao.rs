@@ -58,12 +58,12 @@ impl<T: BufferAttribute> VaoTrait for Vao<T> {
     }
   }
 }
-impl<T: BufferAttribute> VaoTrait for Primary<Vao<T>> {
+impl<T: BufferAttribute> VaoTrait for ArcOwner<Vao<T>> {
   fn bind(&self, cmd: &mut Command) {
     self.read().bind(cmd);
   }
 }
-impl<T: BufferAttribute> VaoTrait for Replica<Vao<T>> {
+impl<T: BufferAttribute> VaoTrait for ArcReader<Vao<T>> {
   fn bind(&self, cmd: &mut Command) {
     self.read().bind(cmd);
   }

@@ -8,7 +8,7 @@ pub struct Pipeline {
   primitive_topology: PrimitiveToporogy,
   shader: Option<Arc<Shader>>,
   invisible_reasons: collections::BitSet64,
-  descriptor: Primary<Descriptor>,
+  descriptor: ArcOwner<Descriptor>,
 }
 
 impl Pipeline {
@@ -20,7 +20,7 @@ impl Pipeline {
       primitive_topology: PrimitiveToporogy::Triangles,
       shader: None,
       invisible_reasons: collections::BitSet64::new(),
-      descriptor: Primary::new(Descriptor::new()),
+      descriptor: ArcOwner::new(Descriptor::new()),
     }
   }
 
@@ -51,7 +51,7 @@ impl Pipeline {
   }
   pub fn set_vao<T: BufferAttribute + 'static>(&mut self, vao: &dyn ReplicaTrait<Vao<T>>) {
     let mut descriptor = self.descriptor.write();
-    descriptor.set_vao(Box::new(vao.clone_replica()) as Box<dyn VaoTrait>);
+    descriptor.set_vao(Box::new(vao.clone_reader()) as Box<dyn VaoTrait>);
   }
   pub fn set_draw_vao<T: BufferAttribute + 'static>(&mut self, vao: &dyn ReplicaTrait<Vao<T>>) {
     self.set_vao(vao);
@@ -65,11 +65,11 @@ impl Pipeline {
     &mut self,
     buffer: &dyn ReplicaTrait<UniformBuffer<T>>,
   ) {
-    self.add_uniform_buffer_trait(Box::new(buffer.clone_replica()) as Box<dyn UniformBufferTrait>);
+    self.add_uniform_buffer_trait(Box::new(buffer.clone_reader()) as Box<dyn UniformBufferTrait>);
   }
   pub fn add_uniform_buffer_reader<T: BufferAttribute + 'static>(
     &mut self,
-    buffer: &Replica<UniformBuffer<T>>,
+    buffer: &ArcReader<UniformBuffer<T>>,
   ) {
     self.add_uniform_buffer(buffer);
   }
@@ -78,11 +78,11 @@ impl Pipeline {
     &mut self,
     buffer: &dyn ReplicaTrait<IntoUniformBuffer<T, I>>,
   ) {
-    self.add_uniform_buffer_trait(Box::new(buffer.clone_replica()) as Box<dyn UniformBufferTrait>);
+    self.add_uniform_buffer_trait(Box::new(buffer.clone_reader()) as Box<dyn UniformBufferTrait>);
   }
   pub fn add_into_uniform_buffer_reader<T: BufferAttribute + 'static, I: RefInto<T> + 'static>(
     &mut self,
-    buffer: &Replica<IntoUniformBuffer<T, I>>,
+    buffer: &ArcReader<IntoUniformBuffer<T, I>>,
   ) {
     self.add_into_uniform_buffer(buffer);
   }
@@ -92,11 +92,11 @@ impl Pipeline {
   ) {
     let mut descriptor = self.descriptor.write();
     descriptor
-      .add_texture_mapping(Box::new(mapping.clone_replica()) as Box<dyn TextureMappingTrait>);
+      .add_texture_mapping(Box::new(mapping.clone_reader()) as Box<dyn TextureMappingTrait>);
   }
   pub fn add_texture_mapping_reader<T: TextureMappingAttribute + 'static>(
     &mut self,
-    mapping: &Replica<TextureMapping<T>>,
+    mapping: &ArcReader<TextureMapping<T>>,
   ) {
     self.add_texture_mapping(mapping);
   }

@@ -6,7 +6,7 @@ crate::shader_attr! {
   }
 }
 pub struct Surface {
-  renderpass: Primary<prgl::RenderPass>,
+  renderpass: ArcOwner<prgl::RenderPass>,
 }
 // NOTE: 利便性のために最後のキャンバス出力をコピーで済ますもの
 // 最後ダイレクトに書いたほうが無駄な工程が減る
@@ -26,11 +26,11 @@ impl Surface {
     renderpass.set_use_default_buffer(true);
     let mut pipeline = FullScreen::new_pipeline();
     pipeline.add(&MayShader::new(Self::shader()));
-    pipeline.add(&Primary::new(TextureMapping::new(SurfaceMapping {
-      src_color: src_color.clone_replica(),
+    pipeline.add(&ArcOwner::new(TextureMapping::new(SurfaceMapping {
+      src_color: src_color.clone_reader(),
     })));
     renderpass.own_pipeline(pipeline);
-    let renderpass = Primary::new(renderpass);
+    let renderpass = ArcOwner::new(renderpass);
     RenderPassExecuter::add(&renderpass, usize::MAX);
     Self { renderpass }
   }

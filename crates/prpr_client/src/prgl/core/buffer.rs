@@ -101,22 +101,22 @@ impl<T: BufferAttribute> UniformBufferTrait for UniformBuffer<T> {
     }
   }
 }
-impl<T: BufferAttribute> UniformBufferTrait for Primary<UniformBuffer<T>> {
+impl<T: BufferAttribute> UniformBufferTrait for ArcOwner<UniformBuffer<T>> {
   fn bind(&self, cmd: &mut Command) {
     self.read().bind(cmd);
   }
 }
-impl<T: BufferAttribute> UniformBufferTrait for Replica<UniformBuffer<T>> {
+impl<T: BufferAttribute> UniformBufferTrait for ArcReader<UniformBuffer<T>> {
   fn bind(&self, cmd: &mut Command) {
     self.read().bind(cmd);
   }
 }
-impl<T: BufferAttribute + 'static> PipelineBindable for Primary<UniformBuffer<T>> {
+impl<T: BufferAttribute + 'static> PipelineBindable for ArcOwner<UniformBuffer<T>> {
   fn bind_pipeline(&self, pipeline: &mut Pipeline) {
-    pipeline.add_uniform_buffer_reader(&self.clone_replica());
+    pipeline.add_uniform_buffer_reader(&self.clone_reader());
   }
 }
-impl<T: BufferAttribute + 'static> PipelineBindable for Replica<UniformBuffer<T>> {
+impl<T: BufferAttribute + 'static> PipelineBindable for ArcReader<UniformBuffer<T>> {
   fn bind_pipeline(&self, pipeline: &mut Pipeline) {
     pipeline.add_uniform_buffer_reader(&self);
   }
@@ -174,25 +174,25 @@ impl<T: BufferAttribute, I: RefInto<T>> UniformBufferTrait for IntoUniformBuffer
     }
   }
 }
-impl<T: BufferAttribute, I: RefInto<T>> UniformBufferTrait for Primary<IntoUniformBuffer<T, I>> {
+impl<T: BufferAttribute, I: RefInto<T>> UniformBufferTrait for ArcOwner<IntoUniformBuffer<T, I>> {
   fn bind(&self, cmd: &mut Command) {
     self.read().bind(cmd);
   }
 }
-impl<T: BufferAttribute, I: RefInto<T>> UniformBufferTrait for Replica<IntoUniformBuffer<T, I>> {
+impl<T: BufferAttribute, I: RefInto<T>> UniformBufferTrait for ArcReader<IntoUniformBuffer<T, I>> {
   fn bind(&self, cmd: &mut Command) {
     self.read().bind(cmd);
   }
 }
 impl<T: BufferAttribute + 'static, I: RefInto<T> + 'static> PipelineBindable
-  for Primary<IntoUniformBuffer<T, I>>
+  for ArcOwner<IntoUniformBuffer<T, I>>
 {
   fn bind_pipeline(&self, pipeline: &mut Pipeline) {
-    pipeline.add_into_uniform_buffer_reader(&self.clone_replica());
+    pipeline.add_into_uniform_buffer_reader(&self.clone_reader());
   }
 }
 impl<T: BufferAttribute + 'static, I: RefInto<T> + 'static> PipelineBindable
-  for Replica<IntoUniformBuffer<T, I>>
+  for ArcReader<IntoUniformBuffer<T, I>>
 {
   fn bind_pipeline(&self, pipeline: &mut Pipeline) {
     pipeline.add_into_uniform_buffer_reader(&self);

@@ -18,16 +18,16 @@ pub struct RenderPass {
   // scissor: Option<Rect<i32>>,
   //
   // None => Surface
-  color_targets: Vec<Option<Replica<Texture>>>,
-  depth_target: Option<Replica<Texture>>,
-  // stencil_target: Option<Replica<Texture>>,
+  color_targets: Vec<Option<ArcReader<Texture>>>,
+  depth_target: Option<ArcReader<Texture>>,
+  // stencil_target: Option<ArcReader<Texture>>,
   //
   raw_framebuffer: RawFrameBuffer,
   // raw_framebuffer_for_renderbuffer: RawFrameBuffer,
   // raw_renderbuffer: RawRenderBuffer,
   buffer_setup_info: RwLock<BufferSetupInfo>,
   disabled_reasons: collections::BitSet64,
-  descriptor: Primary<Descriptor>,
+  descriptor: ArcOwner<Descriptor>,
   executer: Mutex<PipelineExecuter>,
   renderpass_id: u64,
 }
@@ -55,7 +55,7 @@ impl RenderPass {
         use_default_buffer: false,
       }),
       disabled_reasons: collections::BitSet64::new(),
-      descriptor: Primary::new(Descriptor::new()),
+      descriptor: ArcOwner::new(Descriptor::new()),
       executer: Mutex::new(PipelineExecuter::new()),
       renderpass_id: ID_COUNTER.fetch_add(1, Ordering::SeqCst) as u64,
     }
@@ -72,7 +72,7 @@ impl RenderPass {
     let mut max_width: i32 = 0;
     let mut max_height: i32 = 0;
     let mut bind_count: i32 = 0;
-    let mut bind_impl = |attachment: u32, texture: &Replica<Texture>| {
+    let mut bind_impl = |attachment: u32, texture: &ArcReader<Texture>| {
       texture.read().raw_texture().bind();
       ctx.framebuffer_texture_2d(
         gl::FRAMEBUFFER,
@@ -213,7 +213,7 @@ impl RenderPass {
     info.use_default_buffer = use_default_buffer;
   }
   pub fn set_depth_target(&mut self, target: Option<&dyn ReplicaTrait<Texture>>) {
-    self.depth_target = target.map(|target| target.clone_replica());
+    self.depth_target = target.map(|target| target.clone_reader());
     self.buffer_setup_info.write().unwrap().is_dirty = true;
   }
   pub fn set_color_target_by_slot(
@@ -225,7 +225,7 @@ impl RenderPass {
       log::error(format!("Invalid set_color_target_by_slot {}", slot));
       return;
     }
-    self.color_targets[slot as usize] = target.map(|target| target.clone_replica());
+    self.color_targets[slot as usize] = target.map(|target| target.clone_reader());
     self.buffer_setup_info.write().unwrap().is_dirty = true;
   }
   pub fn set_clear_color_by_slot(&mut self, value: Option<Vec4>, slot: i32) {
@@ -242,13 +242,13 @@ impl RenderPass {
     &mut self,
     buffer: &dyn ReplicaTrait<UniformBuffer<T>>,
   ) {
-    self.add_uniform_buffer_trait(Box::new(buffer.clone_replica()) as Box<dyn UniformBufferTrait>);
+    self.add_uniform_buffer_trait(Box::new(buffer.clone_reader()) as Box<dyn UniformBufferTrait>);
   }
   pub fn add_into_uniform_buffer<T: BufferAttribute + 'static, I: RefInto<T> + 'static>(
     &mut self,
     buffer: &dyn ReplicaTrait<IntoUniformBuffer<T, I>>,
   ) {
-    self.add_uniform_buffer_trait(Box::new(buffer.clone_replica()) as Box<dyn UniformBufferTrait>);
+    self.add_uniform_buffer_trait(Box::new(buffer.clone_reader()) as Box<dyn UniformBufferTrait>);
   }
   pub fn add_texture_mapping<T: TextureMappingAttribute + 'static>(
     &mut self,
@@ -256,7 +256,7 @@ impl RenderPass {
   ) {
     let mut descriptor = self.descriptor.write();
     descriptor
-      .add_texture_mapping(Box::new(mapping.clone_replica()) as Box<dyn TextureMappingTrait>);
+      .add_texture_mapping(Box::new(mapping.clone_reader()) as Box<dyn TextureMappingTrait>);
   }
   pub fn add(&mut self, bindable: &dyn RenderPassBindable) {
     bindable.bind_renderpass(self);

@@ -1,12 +1,12 @@
 use super::*;
 
 struct PipelineExecuteInfo {
-  pipeline: WeakReplica<Pipeline>,
+  pipeline: ArcWeakReader<Pipeline>,
   order: usize, // asc
 }
 pub struct PipelineExecuter {
   pipelines: Vec<PipelineExecuteInfo>,
-  owns: Vec<Primary<Pipeline>>,
+  owns: Vec<ArcOwner<Pipeline>>,
   need_sort: bool,
 }
 
@@ -20,13 +20,13 @@ impl PipelineExecuter {
   }
   pub fn add(&mut self, pipeline: &dyn ReplicaTrait<Pipeline>, order: usize) {
     self.pipelines.push(PipelineExecuteInfo {
-      pipeline: pipeline.clone_weak_replica(),
+      pipeline: pipeline.clone_weak_reader(),
       order,
     });
     self.need_sort = true;
   }
   pub fn own(&mut self, pipeline: Pipeline, order: usize) {
-    let pipeline = Primary::new(pipeline);
+    let pipeline = ArcOwner::new(pipeline);
     self.add(&pipeline, order);
     self.owns.push(pipeline);
   }
@@ -53,12 +53,12 @@ unsafe impl Send for RenderPassExecuterImpl {}
 unsafe impl Sync for RenderPassExecuterImpl {}
 
 struct RenderPassExecuteInfo {
-  pass: WeakReplica<RenderPass>,
+  pass: ArcWeakReader<RenderPass>,
   order: usize, // asc
 }
 pub struct RenderPassExecuterImpl {
   passes: Vec<RenderPassExecuteInfo>,
-  owns: Vec<Primary<RenderPass>>,
+  owns: Vec<ArcOwner<RenderPass>>,
   need_sort: bool,
 }
 impl RenderPassExecuterImpl {
@@ -83,13 +83,13 @@ impl RenderPassExecuterImpl {
   }
   pub fn add(&mut self, pass: &dyn ReplicaTrait<RenderPass>, order: usize) {
     self.passes.push(RenderPassExecuteInfo {
-      pass: pass.clone_weak_replica(),
+      pass: pass.clone_weak_reader(),
       order,
     });
     self.need_sort = true;
   }
   pub fn own(&mut self, pass: RenderPass, order: usize) {
-    let pass = Primary::new(pass);
+    let pass = ArcOwner::new(pass);
     self.add(&pass, order);
     self.owns.push(pass);
   }
