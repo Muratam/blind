@@ -5,24 +5,25 @@ impl Mouse {
   pub fn state(state: MouseState) -> bool {
     EventHolderImpl::read_global().mouse_state(state)
   }
-  // UI座標ではYが下が正
+  // CanvasのFrameBufferと合わせて左下が原点
   pub fn x() -> i32 {
     EventHolderImpl::read_global().mouse_x()
   }
   pub fn y() -> i32 {
-    EventHolderImpl::read_global().mouse_y()
+    let height = prgl::Instance::viewport().height;
+    height - EventHolderImpl::read_global().mouse_y()
   }
   pub fn dx() -> i32 {
     EventHolderImpl::read_global().mouse_dx()
   }
   pub fn dy() -> i32 {
-    EventHolderImpl::read_global().mouse_dy()
+    -EventHolderImpl::read_global().mouse_dy()
   }
   pub fn wheel_dx() -> i32 {
     EventHolderImpl::read_global().wheel_dx()
   }
   pub fn wheel_dy() -> i32 {
-    EventHolderImpl::read_global().wheel_dy()
+    -EventHolderImpl::read_global().wheel_dy()
   }
   // normalized by viewport_y
   pub fn nx() -> f32 {

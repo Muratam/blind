@@ -92,7 +92,7 @@ impl system::Updatable for CasualScene {
     if input::Mouse::state(input::MouseState::IsDown) {
       self.camera.write().rotate_self_fixed(Vec2::new(
         input::Mouse::dx() as f32 * 0.01,
-        input::Mouse::dy() as f32 * 0.01,
+        -input::Mouse::dy() as f32 * 0.01,
       ));
     }
     self.camera.write().dolly(Vec3::new(
