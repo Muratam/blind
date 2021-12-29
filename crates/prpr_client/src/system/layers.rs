@@ -8,6 +8,8 @@ fn setup_global_style(parent: &web_sys::HtmlElement) {
     touch-action: none;
     overscroll-behavior-x: none;
     overscroll-behavior-y: none;
+    overflow: hidden;
+    word-break: break-all;
     font-family: BlinkMacSystemFont, -apple-system, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
   }"###;
   let _ = js::html::append_css(parent, css);
@@ -38,7 +40,6 @@ impl Layers {
     setup_layer(&main_3d_layer, 0);
     let html_layer = js::html::append_div(&root_element);
     setup_layer(&html_layer, 1);
-    html_layer.style().set_property("overflow", "scroll").ok();
     let html_layer = Arc::new(html_layer);
     let mut result = Self {
       main_3d_layer,

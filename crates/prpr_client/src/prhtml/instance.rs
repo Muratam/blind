@@ -52,6 +52,7 @@ impl FloatingBox {
     style.set_property("font-size", &px(24.0))?;
     style.set_property("padding", &px(10.0))?;
     style.set_property("background-color", "rgba(255,255,255,0.5)")?;
+    style.set_property("overflow", "scroll")?;
     style.set_property("position", "absolute")?;
     let expected_height = 1000.0;
     let scale = height / expected_height;
@@ -68,9 +69,11 @@ impl FloatingBox {
 }
 impl Updatable for FloatingBox {
   fn update(&mut self) {
-    let mut text = format!("{} ms\n", Time::processed_milli_sec());
-    text += &format!("({}, {})\n", input::Mouse::x(), input::Mouse::y());
-    self.raw_element.set_text_content(Some(&text));
+    let mut text = format!("{} ms", Time::processed_milli_sec());
+    for _ in 0..100 {
+      text += &format!("({}, {})", input::Mouse::x(), input::Mouse::y());
+    }
+    self.raw_element.set_inner_text(&text);
     self.adjust().ok();
   }
 }

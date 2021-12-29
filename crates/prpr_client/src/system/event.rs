@@ -129,7 +129,7 @@ impl EventHolderImpl {
         .ok();
       closure.forget();
     };
-    setup_callback("wheel", true);
+    setup_callback("wheel", false);
   }
   fn setup_prevent_defaults(&mut self, elem: &web_sys::HtmlElement) {
     let setup_callback = |event_name: &str| {
@@ -144,7 +144,7 @@ impl EventHolderImpl {
     let setup_callback_keyboard = |event_name: &str| {
       let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
         // allow reload
-        if event.key() == "r" || event.key() == "F12" {
+        if event.key() == "r" || event.key() == "l" || event.key() == "F12" {
           return;
         }
         event.prevent_default();
