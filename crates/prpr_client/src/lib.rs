@@ -8,7 +8,6 @@ pub extern crate wasm_bindgen;
 extern crate assert_type_eq;
 
 // for publish
-pub mod html;
 pub mod js;
 pub mod prgl;
 pub mod system;

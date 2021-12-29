@@ -6,6 +6,22 @@ pub struct Core {
   // etc...
 }
 
+struct HtmlFloatingBox {
+  pos: math::Vec2,  // 中心の位置(正規化座標)
+  size: math::Vec2, // width,height(正規化座標)
+  raw_element: web_sys::HtmlDivElement,
+}
+impl HtmlFloatingBox {
+  pub fn new(root: &web_sys::HtmlDivElement) -> Self {
+    let raw_element = js::html::append_div(root);
+    Self {
+      pos: math::Vec2::ZERO,
+      size: math::Vec2::ONE * 0.25,
+      raw_element: raw_element,
+    }
+  }
+}
+
 impl Core {
   pub fn new() -> Self {
     let layers = Layers::new();

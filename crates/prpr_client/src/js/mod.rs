@@ -1,5 +1,5 @@
 // pure js
-use crate::html;
+pub mod html;
 use wasm_bindgen::closure::Closure;
 // use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;

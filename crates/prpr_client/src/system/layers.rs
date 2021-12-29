@@ -1,6 +1,4 @@
-use crate::html;
-use crate::html::Canvas;
-
+use super::*;
 fn setup_global_style(parent: &web_sys::HtmlElement) {
   let css = r###" * {
     padding: 0px;
@@ -10,7 +8,7 @@ fn setup_global_style(parent: &web_sys::HtmlElement) {
     overscroll-behavior-x: none;
     overscroll-behavior-y: none;
   }"###;
-  let _ = html::append_css(parent, css);
+  let _ = js::html::append_css(parent, css);
 }
 
 fn setup_layer(elem: &web_sys::HtmlElement, z_index: i64) {
@@ -32,11 +30,11 @@ pub struct Layers {
 
 impl Layers {
   pub fn new() -> Self {
-    let root_element = html::append_div(&html::body());
+    let root_element = js::html::append_div(&js::html::body());
     setup_global_style(&root_element);
-    let main_3d_layer = html::append_canvas(&root_element);
+    let main_3d_layer = js::html::append_canvas(&root_element);
     setup_layer(&main_3d_layer, 0);
-    let html_layer = html::append_div(&root_element);
+    let html_layer = js::html::append_div(&root_element);
     setup_layer(&html_layer, 1);
     html_layer.style().set_property("overflow", "scroll").ok();
     let mut result = Self {
@@ -50,21 +48,21 @@ impl Layers {
   }
 
   pub fn main_3d_context(&self) -> web_sys::WebGl2RenderingContext {
-    self.main_3d_layer.webgl2_context()
+    crate::js::html::canvas::get_webgl2_context(&self.main_3d_layer)
   }
   pub fn html_layer(&self) -> &web_sys::HtmlDivElement {
     &self.html_layer
   }
   pub fn adjust_screen_size(&mut self) {
     let mut updated = false;
-    if let Some(width) = html::window().inner_width().unwrap().as_f64() {
+    if let Some(width) = js::html::window().inner_width().unwrap().as_f64() {
       let width = width as i32;
       if self.width != width {
         self.width = width;
         updated = true;
       }
     }
-    if let Some(height) = html::window().inner_height().unwrap().as_f64() {
+    if let Some(height) = js::html::window().inner_height().unwrap().as_f64() {
       let height = height as i32;
       if self.height != height {
         self.height = height;

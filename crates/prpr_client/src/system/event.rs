@@ -149,7 +149,7 @@ impl EventHolderImpl {
         }
         event.prevent_default();
       }) as Box<dyn FnMut(_)>);
-      html::body()
+      js::html::body()
         .add_event_listener_with_callback(event_name, closure.as_ref().unchecked_ref())
         .ok();
       closure.forget();

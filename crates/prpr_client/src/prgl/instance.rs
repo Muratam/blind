@@ -1,5 +1,4 @@
 use super::*;
-use crate::html;
 
 // WARN: 多分別スレッドから実行できない
 use once_cell::sync::OnceCell;
@@ -23,7 +22,7 @@ impl Instance {
   }
   pub fn set(ctx: web_sys::WebGl2RenderingContext) {
     // 一度生成したら固定
-    let screen = html::screen();
+    let screen = js::html::screen();
     let instance = Self {
       ctx,
       max_width: screen.width().unwrap(),
