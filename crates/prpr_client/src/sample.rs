@@ -134,6 +134,7 @@ impl CasualPostEffect {
         vec4 base = texelFetch(src_color, iuv, 0).rgba;
         vec3 rgb = base.rgb;
         if (base.a < 0.5) {
+          rgb = vec3(0.5, 0.5, 0.5);
           for (int len = 1; len <= 5; len += 1) {
             for (int dx = -1; dx <= 1; dx+=1) {
               for (int dy = -1; dy <= 1; dy+=1) {
