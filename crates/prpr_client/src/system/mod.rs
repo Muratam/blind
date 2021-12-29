@@ -10,16 +10,12 @@ pub use time::Time;
 mod updater;
 pub use updater::*;
 
-pub trait System {
-  fn new(core: &Core) -> Self;
-  fn update(&mut self, core: &Core);
-}
-pub fn run<T: 'static + System>() {
+pub fn run(f: fn()) {
   let mut core = Core::new();
-  let mut system = T::new(&core);
+  f();
   js::start_animation_frame_loop(Box::new(move || {
     core.pre_update();
-    system.update(&core);
+    core.update();
     core.post_update();
   }))
 }

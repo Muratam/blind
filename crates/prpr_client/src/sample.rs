@@ -155,20 +155,14 @@ impl Updatable for CasualPostEffect {
     self.renderpass.write().set_viewport(Some(&viewport));
   }
 }
-pub struct SampleSystem {}
-impl system::System for SampleSystem {
-  fn new(core: &system::Core) -> Self {
-    let scene = CasualScene::new();
-    let posteffect = CasualPostEffect::new(&scene.out_color);
-    let surface = Surface::new(&posteffect.out_color);
-    Updater::own(scene);
-    Updater::own(posteffect);
-    Updater::own(surface);
-    Self {}
-  }
-  fn update(&mut self, core: &system::Core) {
-    self.render_sample(core);
-  }
+pub fn sample_world() {
+  js::console::log("create prpr world !!");
+  let scene = CasualScene::new();
+  let posteffect = CasualPostEffect::new(&scene.out_color);
+  let surface = Surface::new(&posteffect.out_color);
+  Updater::own(scene);
+  Updater::own(posteffect);
+  Updater::own(surface);
 }
 /* TODO:
 - renderbuffer
@@ -210,23 +204,3 @@ impl system::System for SampleSystem {
   - Coverage Dither
   - Alpha Blend
 */
-
-impl SampleSystem {
-  fn render_sample(&mut self, core: &system::Core) {
-    if false {
-      // 多分使用することはない
-      let ctx = core.main_2d_context();
-      use std::f64::consts::PI;
-      ctx.begin_path();
-      ctx.arc(75.0, 75.0, 50.0, 0.0, PI * 2.0).ok();
-      ctx.move_to(110.0, 75.0);
-      ctx.stroke();
-    }
-    // TODO: HTML
-    {
-      let html_layer = core.html_layer();
-      let text = format!("{} ms", Time::processed_milli_sec());
-      html_layer.set_text_content(Some(&text));
-    }
-  }
-}

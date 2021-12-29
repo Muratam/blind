@@ -21,8 +21,22 @@ impl Core {
     prgl::Instance::update_size(self.layers.width(), self.layers.height());
     time::TimeImpl::write_global().pre_update();
   }
-  pub fn post_update(&mut self) {
+  pub fn update(&mut self) {
+    // TODO: 消す
+    if true {
+      let ctx = self.main_2d_context();
+      use std::f64::consts::PI;
+      ctx.begin_path();
+      ctx.arc(75.0, 75.0, 50.0, 0.0, PI * 2.0).ok();
+      ctx.move_to(110.0, 75.0);
+      ctx.stroke();
+      let html_layer = self.html_layer();
+      let text = format!("{} ms", Time::processed_milli_sec());
+      html_layer.set_text_content(Some(&text));
+    }
     UpdaterImpl::write_global().execute();
+  }
+  pub fn post_update(&mut self) {
     prgl::RenderPassExecuterImpl::write_global().execute();
     time::TimeImpl::write_global().post_update();
     prgl::Instance::flush();
