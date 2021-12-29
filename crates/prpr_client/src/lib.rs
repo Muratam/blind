@@ -10,6 +10,7 @@ extern crate assert_type_eq;
 // for publish
 pub mod js;
 pub mod prgl;
+pub mod prhtml;
 pub mod system;
 use std::sync::{Arc, Mutex, RwLock, RwLockReadGuard, RwLockWriteGuard};
 pub use system::{input, Time, Updatable, Updater};

@@ -105,7 +105,7 @@ impl system::Updatable for CasualScene {
       object.transform.write().rotation *= Quat::from_rotation_y(f);
     }
     // adjust viewport
-    let viewport = Instance::viewport();
+    let viewport = system::WholeScreen::viewport();
     self.camera.write().aspect_ratio = viewport.aspect_ratio();
     self.renderpass.write().set_viewport(Some(&viewport));
   }
@@ -172,7 +172,7 @@ impl CasualPostEffect {
 }
 impl Updatable for CasualPostEffect {
   fn update(&mut self) {
-    let viewport = Instance::viewport();
+    let viewport = system::WholeScreen::viewport();
     self.renderpass.write().set_viewport(Some(&viewport));
   }
 }

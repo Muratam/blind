@@ -6,26 +6,12 @@ pub struct Core {
   // etc...
 }
 
-struct HtmlFloatingBox {
-  pos: math::Vec2,  // 中心の位置(正規化座標)
-  size: math::Vec2, // width,height(正規化座標)
-  raw_element: web_sys::HtmlDivElement,
-}
-impl HtmlFloatingBox {
-  pub fn new(root: &web_sys::HtmlDivElement) -> Self {
-    let raw_element = js::html::append_div(root);
-    Self {
-      pos: math::Vec2::ZERO,
-      size: math::Vec2::ONE * 0.25,
-      raw_element: raw_element,
-    }
-  }
-}
-
 impl Core {
   pub fn new() -> Self {
     let layers = Layers::new();
+    WholeScreen::initialize();
     prgl::Instance::set(layers.main_3d_context());
+    prhtml::Instance::set(layers.html_layer());
     time::TimeImpl::initialize_global();
     prgl::RenderPassExecuterImpl::initialize_global();
     UpdaterImpl::initialize_global();
@@ -34,7 +20,7 @@ impl Core {
   }
   pub fn pre_update(&mut self) {
     self.layers.adjust_screen_size();
-    prgl::Instance::update_size(self.layers.width(), self.layers.height());
+    WholeScreen::update_size(self.layers.width(), self.layers.height());
     time::TimeImpl::write_global().pre_update();
     EventHolderImpl::write_global().update();
   }

@@ -48,7 +48,7 @@ impl Surface {
 
 impl Updatable for Surface {
   fn update(&mut self) {
-    let mut viewport = Instance::viewport();
+    let mut viewport = system::WholeScreen::viewport();
     self.ubo.write().surface_offset = Vec2::new(viewport.x as f32, viewport.y as f32);
     viewport.x = 0;
     viewport.y = 0;

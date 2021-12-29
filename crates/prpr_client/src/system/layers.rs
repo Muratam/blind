@@ -23,7 +23,7 @@ pub struct Layers {
   // (下) 3D -> HTML (上)
   main_3d_layer: web_sys::HtmlCanvasElement,
   // overlay3d_layer: web_sys::HtmlCanvasElement,
-  html_layer: web_sys::HtmlDivElement,
+  html_layer: Arc<web_sys::HtmlDivElement>,
   width: i32,
   height: i32,
 }
@@ -37,6 +37,7 @@ impl Layers {
     let html_layer = js::html::append_div(&root_element);
     setup_layer(&html_layer, 1);
     html_layer.style().set_property("overflow", "scroll").ok();
+    let html_layer = Arc::new(html_layer);
     let mut result = Self {
       main_3d_layer,
       html_layer,
@@ -50,7 +51,7 @@ impl Layers {
   pub fn main_3d_context(&self) -> web_sys::WebGl2RenderingContext {
     crate::js::html::canvas::get_webgl2_context(&self.main_3d_layer)
   }
-  pub fn html_layer(&self) -> &web_sys::HtmlDivElement {
+  pub fn html_layer(&self) -> &Arc<web_sys::HtmlDivElement> {
     &self.html_layer
   }
   pub fn adjust_screen_size(&mut self) {

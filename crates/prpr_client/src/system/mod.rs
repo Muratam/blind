@@ -11,6 +11,8 @@ mod updater;
 pub use updater::*;
 mod event;
 pub use event::*;
+mod screen;
+pub use screen::*;
 pub mod input;
 
 pub fn run(f: fn()) {
