@@ -10,20 +10,20 @@ impl TimeImpl {
   pub fn read_global() -> RwLockReadGuard<'static, Self> {
     INSTANCE
       .get()
-      .expect("time global not initialized")
+      .expect("time global is not initialized")
       .read()
       .unwrap()
   }
   pub fn write_global() -> RwLockWriteGuard<'static, Self> {
     INSTANCE
       .get()
-      .expect("time global not initialized")
+      .expect("time global is not initialized")
       .write()
       .unwrap()
   }
-  pub fn initialize() {
+  pub fn initialize_global() {
     INSTANCE
-      .set(RwLock::new(TimeImpl {
+      .set(RwLock::new(Self {
         pre_now_milli_sec: js::date::now_millisec(),
         processed_milli_sec: 0.0,
         frame: 0,

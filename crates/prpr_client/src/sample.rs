@@ -49,11 +49,11 @@ impl CasualScene {
     let shader = MayShader::new(CasualScene::shader());
     let material = PbrMaterial::new();
     let shape1 = Shape::new_cube();
-    let shape2 = Shape::new_sphere(20, 20);
+    let shape2 = Shape::new_sphere(5, 5);
     let mut objects = Vec::new();
     const COUNT: u32 = 4;
     for x in 0..COUNT {
-      for y in 0..1 {
+      for y in 0..COUNT {
         for z in 0..COUNT {
           let mut object = TransformObject::new();
           if (x ^ y ^ z) & 2 == 0 {
@@ -90,7 +90,8 @@ impl system::Updatable for CasualScene {
     let f = (frame as f32) / 100.0;
     self.camera.write().camera_pos = Vec3::new(f.sin(), f.cos(), f.cos()) * 5.0;
     for object in &mut self.objects {
-      object.transform.write().rotation *= Quat::from_rotation_y(3.1415 * 0.01);
+      object.transform.write().rotation *= Quat::from_rotation_x(input::Mouse::dx() as f32 * 0.01)
+        * Quat::from_rotation_y(input::Mouse::dy() as f32 * 0.01);
     }
     // adjust viewport
     let viewport = Instance::viewport();

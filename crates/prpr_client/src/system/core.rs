@@ -2,7 +2,6 @@ use super::*;
 use crate::prgl;
 pub struct Core {
   layers: Layers,
-  event_holder: EventHolder,
   // audio
   // input
   // etc...
@@ -12,25 +11,23 @@ impl Core {
   pub fn new() -> Self {
     let layers = Layers::new();
     prgl::Instance::set(layers.main_3d_context());
-    time::TimeImpl::initialize();
+    time::TimeImpl::initialize_global();
     prgl::RenderPassExecuterImpl::initialize_global();
     UpdaterImpl::initialize_global();
-    Self {
-      layers,
-      event_holder: EventHolder::new(&html::body()),
-    }
+    EventHolderImpl::initialize_global();
+    Self { layers }
   }
   pub fn pre_update(&mut self) {
     self.layers.adjust_screen_size();
     prgl::Instance::update_size(self.layers.width(), self.layers.height());
     time::TimeImpl::write_global().pre_update();
+    EventHolderImpl::write_global().update();
   }
   pub fn update(&mut self) {
     UpdaterImpl::write_global().execute();
     self.debug_update();
   }
   fn debug_update(&mut self) {
-    self.event_holder.update();
     // TODO: 消す
     if true {
       let ctx = self.main_2d_context();
@@ -43,17 +40,17 @@ impl Core {
       let mut text: String = format!("{} ms\n", Time::processed_milli_sec());
       text += &format!(
         "({},{}): {}",
-        self.event_holder.mouse_x(),
-        self.event_holder.mouse_y(),
-        self.event_holder.mouse_state(MouseState::IsDown)
+        input::Mouse::x(),
+        input::Mouse::y(),
+        input::Mouse::state(MouseState::IsDown)
       );
-      if self.event_holder.mouse_state(MouseState::IsLeftClicked) {
+      if input::Mouse::state(MouseState::IsLeftClicked) {
         log::info("left clicked");
       }
-      if self.event_holder.mouse_state(MouseState::IsRightClicked) {
+      if input::Mouse::state(MouseState::IsRightClicked) {
         log::info("right clicked");
       }
-      if self.event_holder.mouse_state(MouseState::IsDoubleClicked) {
+      if input::Mouse::state(MouseState::IsDoubleClicked) {
         log::info("double clicked");
       }
 
