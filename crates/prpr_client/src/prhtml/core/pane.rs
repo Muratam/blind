@@ -4,9 +4,10 @@ pub struct Pane {
   scale: f32,
   rotate_deg: f32,
   offset: Vec2,
-  size: Vec2, // width,height(正規化座標)
-  min_width_by_y: Option<f32>,
-  max_width_by_y: Option<f32>,
+  height: f32,
+  width_by_width: f32,
+  min_width: Option<f32>,
+  max_width: Option<f32>,
   raw_element: web_sys::HtmlDivElement,
   fit_point: PaneFitPoint,
   is_dirty: bool,
@@ -33,16 +34,17 @@ impl Pane {
   // 回転・スケーリング・移動は差分を指定して可能。アニメーション向け
   // - offsetはtransformで
   // - サイズは固定。
-  pub fn new(fit_point: PaneFitPoint, width: f32, height: f32) -> Self {
+  pub fn new(fit_point: PaneFitPoint, width_by_width: f32, height: f32) -> Self {
     let root = prhtml::Instance::root();
     let raw_element = js::html::append_div(root);
     let mut result = Self {
       scale: 1.0,
       rotate_deg: 0.0,
       offset: Vec2::ZERO,
-      size: Vec2::new(width, height),
-      min_width_by_y: None,
-      max_width_by_y: None,
+      height,
+      width_by_width,
+      min_width: None,
+      max_width: None,
       raw_element,
       fit_point,
       is_dirty: true,
@@ -50,12 +52,12 @@ impl Pane {
     result.setup();
     result
   }
-  pub fn set_max_width_by_y(&mut self, v: Option<f32>) {
-    self.max_width_by_y = v;
+  pub fn set_max_width(&mut self, v: Option<f32>) {
+    self.max_width = v;
     self.is_dirty = true;
   }
-  pub fn set_min_width_by_y(&mut self, v: Option<f32>) {
-    self.min_width_by_y = v;
+  pub fn set_min_width(&mut self, v: Option<f32>) {
+    self.min_width = v;
     self.is_dirty = true;
   }
   pub fn set_scale(&mut self, v: f32) {
@@ -97,16 +99,16 @@ impl Pane {
       ),
     );
     let aspect = width as f32 / height as f32;
-    let h = self.size.y;
-    let mut w = self.size.x * aspect;
-    if let Some(mw) = self.max_width_by_y {
+    let h = self.height;
+    let mut w = self.width_by_width * aspect;
+    if let Some(mw) = self.max_width {
       w = w.min(mw);
     }
-    if let Some(mw) = self.min_width_by_y {
+    if let Some(mw) = self.min_width {
       w = w.max(mw);
     }
-    self.set_by_name_impl("width", &convert_percent_str(w * 100.0));
-    self.set_by_name_impl("height", &convert_percent_str(h * 100.0));
+    self.set_by_name_impl("width", &convert_percent_str(w));
+    self.set_by_name_impl("height", &convert_percent_str(h));
     let position = match self.fit_point {
       PaneFitPoint::LeftTop => Vec2::new(-0.5, 0.5),
       PaneFitPoint::Left => Vec2::new(-0.5, 0.0),
@@ -118,6 +120,8 @@ impl Pane {
       PaneFitPoint::Right => Vec2::new(0.5, 0.0),
       PaneFitPoint::RightBottom => Vec2::new(0.5, -0.5),
     };
+    let w = w * 0.01;
+    let h = h * 0.01;
     let y = (-position.y + 0.5) * height - h * 0.5 * expected_height + h * position.y * height;
     let x = (position.x + 0.5) * width - w * 0.5 * expected_height - w * position.x * height;
     let px = |f: f32| format!("{}px", f);
