@@ -28,42 +28,26 @@ impl<T: num_traits::NumCast + num_traits::Num + Copy> Rect<T> {
     return 1.0;
   }
 }
-
-#[derive(Clone, Copy)]
-pub enum Color {
-  Rgba(f32, f32, f32, f32),
-  Hsla(f32, f32, f32, f32),
-}
-impl Color {
-  pub fn rgba(rgba: Vec4) -> Self {
-    Self::Rgba(rgba.x, rgba.y, rgba.z, rgba.w)
-  }
-  pub fn hsla(hsla: Vec4) -> Self {
-    Self::Hsla(hsla.x, hsla.y, hsla.z, hsla.w)
-  }
-  pub fn to_css(&self) -> String {
-    fn clamp255(x: f32) -> i32 {
-      ((x * 255.0) as i32).clamp(0, 255)
-    }
-    match self {
-      Self::Rgba(r, g, b, a) => {
-        format!(
-          "rgba({},{},{},{:.4})",
-          clamp255(*r),
-          clamp255(*g),
-          clamp255(*b),
-          a.clamp(0.0, 1.0)
-        )
-      }
-      Self::Hsla(h, s, l, a) => {
-        format!(
-          "hsla({},{},{},{:.4})",
-          clamp255(*h),
-          clamp255(*s),
-          clamp255(*l),
-          a.clamp(0.0, 1.0)
-        )
-      }
-    }
+pub fn from_hlsa(hlsa: Vec4) -> Vec4 {
+  let h = (360.0 + (hlsa.x % 360.0)) % 360.0;
+  let l = hlsa.y.clamp(0.0, 1.0);
+  let l2 = if l > 0.5 { 1.0 - l } else { l };
+  let s = hlsa.z.clamp(0.0, 1.0);
+  let max = l + l2 * s;
+  let min = l - l2 * s;
+  let f = |x: f32| x / 60.0 * (max - min) + min;
+  let a = hlsa.w;
+  if h < 60.0 {
+    Vec4::new(max, f(h), min, a)
+  } else if h < 120.0 {
+    Vec4::new(f(120.0 - h), max, min, a)
+  } else if h < 180.0 {
+    Vec4::new(min, max, f(h - 120.0), a)
+  } else if h < 240.0 {
+    Vec4::new(min, f(240.0 - h), max, a)
+  } else if h < 300.0 {
+    Vec4::new(f(h - 240.0), min, max, a)
+  } else {
+    Vec4::new(max, min, f(360.0 - h), a)
   }
 }

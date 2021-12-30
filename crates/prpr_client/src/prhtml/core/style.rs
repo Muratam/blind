@@ -5,30 +5,43 @@ const EXPECTED_BROWSER_HEIGHT: f32 = 1000.0;
 fn percent(x: f32) -> f32 {
   x * EXPECTED_BROWSER_HEIGHT * 0.01
 }
+
+fn to_css(v: Vec4) -> String {
+  fn clamp255(x: f32) -> i32 {
+    ((x * 255.0) as i32).clamp(0, 255)
+  }
+  format!(
+    "rgba({},{},{},{:.4})",
+    clamp255(v.x),
+    clamp255(v.y),
+    clamp255(v.z),
+    v.w.clamp(0.0, 1.0)
+  )
+}
 pub enum Gradation {
-  Linear(f32, Vec<Color>),            // degree, colors
-  Radial(bool, f32, f32, Vec<Color>), // is_circle, x, y, colors
+  Linear(f32, Vec<Vec4>),            // degree, rgbas
+  Radial(bool, f32, f32, Vec<Vec4>), // is_circle, x, y, rgbas
 }
 impl Gradation {
   fn to_css(&self) -> String {
     match self {
-      Self::Linear(degree, colors) => {
+      Self::Linear(degree, rgbas) => {
         let mut result = format!("linear-gradient({}deg ", *degree as i32);
-        for color in colors {
-          result += &format!(", {}", color.to_css());
+        for rgba in rgbas {
+          result += &format!(", {}", to_css(*rgba));
         }
         result += ")";
         result
       }
-      Self::Radial(is_circle, x, y, colors) => {
+      Self::Radial(is_circle, x, y, rgbas) => {
         let mut result = format!(
           "radial-gradient({} at {:.2}% {:.2}%, ",
           if *is_circle { "circle" } else { "ellipse" },
           *x * 100.0,
           *y * 100.0,
         );
-        for color in colors {
-          result += &format!(", {}", color.to_css());
+        for rgba in rgbas {
+          result += &format!(", {}", to_css(*rgba));
         }
         result += ")";
         result
@@ -38,16 +51,16 @@ impl Gradation {
 }
 
 pub enum Filter {
-  Blur(f32),                        // px per
-  Brightness(f32),                  // 1.0: Identity
-  Contrast(f32),                    // 1.0: Identity
-  DropShadow(f32, f32, f32, Color), // x, y, r, color
-  GrayScale(f32),                   // 0.0: Identity
-  HueRotate(f32),                   // Degree
-  Invert(f32),                      // 0.0: Identity
-  Opacity(f32),                     // 1.0: Identity
-  Saturate(f32),                    // 1.0: Identity
-  Sepia(f32),                       // 1.0: Identity
+  Blur(f32),                       // px per
+  Brightness(f32),                 // 1.0: Identity
+  Contrast(f32),                   // 1.0: Identity
+  DropShadow(f32, f32, f32, Vec4), // x, y, r, rgba
+  GrayScale(f32),                  // 0.0: Identity
+  HueRotate(f32),                  // Degree
+  Invert(f32),                     // 0.0: Identity
+  Opacity(f32),                    // 1.0: Identity
+  Saturate(f32),                   // 1.0: Identity
+  Sepia(f32),                      // 1.0: Identity
 }
 impl Filter {
   fn value(&self) -> String {
@@ -61,12 +74,12 @@ impl Filter {
       Self::Opacity(x) => format!("opacity({:.4})", x),
       Self::Saturate(x) => format!("saturate({:.4})", x),
       Self::Sepia(x) => format!("sepia({:.4})", x),
-      Self::DropShadow(x, y, r, color) => format!(
+      Self::DropShadow(x, y, r, rgba) => format!(
         "drop-shadow({}px {}px {}px {} ",
         percent(*x),
         percent(*y),
         percent(*r),
-        color.to_css()
+        to_css(*rgba)
       ),
     }
   }
@@ -100,10 +113,10 @@ pub trait ContainerTrait {
   fn set_float_percentage_parameter_impl(&self, key: &str, value: f32) {
     self.set_by_name_impl(key, &format!("{}px", percent(value)));
   }
-  fn set_color_impl(&self, key: &str, color: Color) {
-    self.set_by_name_impl(key, &color.to_css());
+  fn set_color_impl(&self, key: &str, rgba: Vec4) {
+    self.set_by_name_impl(key, &to_css(rgba));
   }
-  fn set_shadow_impl(&self, key: &str, dx: f32, dy: f32, blur_radius: f32, color: Color) {
+  fn set_shadow_impl(&self, key: &str, dx: f32, dy: f32, blur_radius: f32, rgba: Vec4) {
     self.set_by_name_impl(
       key,
       &format!(
@@ -111,7 +124,7 @@ pub trait ContainerTrait {
         percent(dx),
         percent(dy),
         percent(blur_radius),
-        color.to_css()
+        &to_css(rgba)
       ),
     );
   }
@@ -136,19 +149,19 @@ pub trait ContainerTrait {
   }
 
   // BACKGROUND
-  fn set_background_color(&self, color: Color) {
-    self.set_color_impl("background-color", color);
+  fn set_background_color(&self, rgba: Vec4) {
+    self.set_color_impl("background-color", rgba);
   }
   fn set_background_gradation(&self, gradation: &Gradation) {
     self.set_by_name_impl("background", &gradation.to_css());
   }
-  fn set_background_shadow(&self, dx: f32, dy: f32, blur_radius: f32, color: Color) {
-    self.set_shadow_impl("box-shadow", dx, dy, blur_radius, color);
+  fn set_background_shadow(&self, dx: f32, dy: f32, blur_radius: f32, rgba: Vec4) {
+    self.set_shadow_impl("box-shadow", dx, dy, blur_radius, rgba);
   }
 
   // BORDER
-  fn set_border_color(&self, color: Color) {
-    self.set_color_impl("border-color", color);
+  fn set_border_color(&self, rgba: Vec4) {
+    self.set_color_impl("border-color", rgba);
   }
   fn set_border_radius(&self, percent: f32) {
     self.set_float_percentage_parameter_impl("border-radius", percent);
@@ -161,11 +174,11 @@ pub trait ContainerTrait {
   }
 
   // TEXT
-  fn set_text_color(&self, color: Color) {
-    self.set_color_impl("color", color);
+  fn set_text_color(&self, rgba: Vec4) {
+    self.set_color_impl("color", rgba);
   }
-  fn set_text_shadow(&self, dx: f32, dy: f32, blur_radius: f32, color: Color) {
-    self.set_shadow_impl("text-shadow", dx, dy, blur_radius, color);
+  fn set_text_shadow(&self, dx: f32, dy: f32, blur_radius: f32, rgba: Vec4) {
+    self.set_shadow_impl("text-shadow", dx, dy, blur_radius, rgba);
   }
   fn set_text_size(&self, percent: f32) {
     self.set_float_percentage_parameter_impl("font-size", percent);
