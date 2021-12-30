@@ -265,9 +265,6 @@ pub fn sample_world() {
   - overlay
 - html
   - box-based system
-    - 中心が0.0, 右上が正
-    - width が自動縮小の場合：伸びる最大アスペクト比を指定
-    -
   - table? fontawesome? iframe?(map?) bulma input? / slider? tooltip?
   - top menu? chart.js?
   - API -  WebMIDI, WebAudio, Video

@@ -7,6 +7,13 @@ pub struct Pane {
   raw_element: web_sys::HtmlDivElement,
 }
 impl Pane {
+  // FloatingPaneはどこでも置ける＋ドラッグできる。ただし見切れることがある。嫌いなのでいらない。
+  // {Left, Center, Right} * {Top, Center, Bottom} のどこに吸着するかを指定する
+  // width, height は画面の何％かで指定する。x,y はoffsetを指定する。
+  // height は固定。widthは伸びる可能性がある。最大%(heightに対して)を指定可能
+  // 回転・スケーリング・移動は差分を指定して可能。アニメーション向け
+  // Skewが必要かも
+  // - サイズは固定。
   pub fn new() -> Self {
     let root = prhtml::Instance::root();
     let raw_element = js::html::append_div(root);
