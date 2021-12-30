@@ -85,9 +85,6 @@ impl FloatingBox {
     // style.set_property("z-index", &z_index.to_string());
     // style.set_property("display", "none");
   }
-  // table? fontawesome? iframe?(map?) bulma input? / slider? tooltip?
-  // top menu?
-  // chart.js
 }
 impl Updatable for FloatingBox {
   fn update(&mut self) {
