@@ -242,16 +242,14 @@ pub fn sample_world() {
   Updater::own(posteffect);
   Updater::own(surface);
   {
-    let mut pane = prhtml::Pane::new();
-    pane.set_position(math::Vec2::new(-0.35, 0.35));
-    pane.set_size(math::Vec2::ONE * 0.125);
+    let mut pane = prhtml::Pane::new(prhtml::PaneFitPoint::RightTop, 0.125, 0.125);
+    // pane.set_position(math::Vec2::new(-0.35, 0.35));
     apply_style(&pane);
     Updater::own(Float1 { pane });
   }
   {
-    let mut pane = prhtml::Pane::new();
-    pane.set_position(math::Vec2::new(0.0, -0.25));
-    pane.set_size(math::Vec2::new(0.8, 0.30));
+    let mut pane = prhtml::Pane::new(prhtml::PaneFitPoint::Bottom, 0.8, 0.3);
+    // pane.set_position(math::Vec2::new(0.0, -0.25));
     apply_style(&pane);
     Updater::own(Float2 { pane });
   }
@@ -268,6 +266,12 @@ pub fn sample_world() {
   - table? fontawesome? iframe?(map?) bulma input? / slider? tooltip?
   - top menu? chart.js?
   - API -  WebMIDI, WebAudio, Video
+// css animation? <- 衝突するのでやめておきたい
+// ↓専用のTEXTクラスで実装
+// style.set_property("text-decoration", "underline")?; // line-through
+// style.set_property("z-index", &z_index.to_string());
+// style.set_property("display", "none");
+
 
 - texture2darray, texture3d 対応する
   - texture として扱いたい？

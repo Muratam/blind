@@ -37,9 +37,9 @@ impl Layers {
     let root_element = js::html::append_div(&js::html::body());
     setup_global_style(&root_element);
     let main_3d_layer = js::html::append_canvas(&root_element);
-    setup_layer(&main_3d_layer, 0);
+    setup_layer(&main_3d_layer, i32::MIN as i64);
     let html_layer = js::html::append_div(&root_element);
-    setup_layer(&html_layer, 1);
+    setup_layer(&html_layer, i32::MIN as i64 + 1);
     let overlay_3d_layer = js::html::append_canvas(&root_element);
     overlay_3d_layer // TODO: prglに逃がす？(画像を一枚貼り付けるだけなのでcanvasは不要かも？)
       .style()

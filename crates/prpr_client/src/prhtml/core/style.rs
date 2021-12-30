@@ -1,9 +1,12 @@
 use super::*;
 
 // 小さすぎると崩れるので、ある程度の大きさのheightを仮定している
-const EXPECTED_BROWSER_HEIGHT: f32 = 1000.0;
-fn percent(x: f32) -> f32 {
+pub const EXPECTED_BROWSER_HEIGHT: f32 = 1000.0;
+pub fn convert_percent(x: f32) -> f32 {
   x * EXPECTED_BROWSER_HEIGHT * 0.01
+}
+pub fn convert_percent_str(x: f32) -> String {
+  format!("{}px", convert_percent(x))
 }
 
 fn to_css(v: Vec4) -> String {
@@ -65,7 +68,7 @@ pub enum Filter {
 impl Filter {
   fn value(&self) -> String {
     match self {
-      Self::Blur(per) => format!("blur({}px)", percent(*per)),
+      Self::Blur(per) => format!("blur({})", convert_percent_str(*per)),
       Self::Brightness(x) => format!("brightness({:.4})", x),
       Self::Contrast(x) => format!("contrast({:.4})", x),
       Self::GrayScale(x) => format!("grayscale({:.4})", x),
@@ -75,10 +78,10 @@ impl Filter {
       Self::Saturate(x) => format!("saturate({:.4})", x),
       Self::Sepia(x) => format!("sepia({:.4})", x),
       Self::DropShadow(x, y, r, rgba) => format!(
-        "drop-shadow({}px {}px {}px {} ",
-        percent(*x),
-        percent(*y),
-        percent(*r),
+        "drop-shadow({} {} {} {} ",
+        convert_percent_str(*x),
+        convert_percent_str(*y),
+        convert_percent_str(*r),
         to_css(*rgba)
       ),
     }
@@ -156,7 +159,7 @@ pub trait HtmlElementHolder {
     }
   }
   fn set_float_percentage_parameter_impl(&self, key: &str, value: f32) {
-    self.set_by_name_impl(key, &format!("{}px", percent(value)));
+    self.set_by_name_impl(key, &convert_percent_str(value));
   }
   fn set_color_impl(&self, key: &str, rgba: Vec4) {
     self.set_by_name_impl(key, &to_css(rgba));
@@ -165,10 +168,10 @@ pub trait HtmlElementHolder {
     self.set_by_name_impl(
       key,
       &format!(
-        "{}px {}px {}px {}",
-        percent(dx),
-        percent(dy),
-        percent(blur_radius),
+        "{} {} {} {}",
+        convert_percent_str(dx),
+        convert_percent_str(dy),
+        convert_percent_str(blur_radius),
         &to_css(rgba)
       ),
     );
