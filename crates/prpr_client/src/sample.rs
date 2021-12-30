@@ -242,13 +242,16 @@ pub fn sample_world() {
   Updater::own(posteffect);
   Updater::own(surface);
   {
-    let mut pane = prhtml::Pane::new(prhtml::PaneFitPoint::RightTop, 0.125, 0.125);
+    let mut pane = prhtml::Pane::new(prhtml::PaneFitPoint::LeftTop, 0.125, 0.125);
     // pane.set_position(math::Vec2::new(-0.35, 0.35));
+    pane.set_max_width_by_y(Some(0.125));
+    pane.set_min_width_by_y(Some(0.125));
     apply_style(&pane);
     Updater::own(Float1 { pane });
   }
   {
     let mut pane = prhtml::Pane::new(prhtml::PaneFitPoint::Bottom, 0.8, 0.3);
+    pane.set_max_width_by_y(Some(1.2));
     // pane.set_position(math::Vec2::new(0.0, -0.25));
     apply_style(&pane);
     Updater::own(Float2 { pane });
