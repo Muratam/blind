@@ -28,7 +28,15 @@ impl RawShader {
     {
       if let Some(info_log) = ctx.get_shader_info_log(&shader) {
         log::error("failed to compile shader");
-        log::error(code);
+        {
+          // add line number
+          let code = code.replace("    ", "  ");
+          let mut error_code = String::from("");
+          for (i, code) in code.split("\n").enumerate() {
+            error_code += &format!("{}\t{}\n", i + 1, code);
+          }
+          log::error(error_code);
+        }
         log::error(info_log);
       }
       return None;

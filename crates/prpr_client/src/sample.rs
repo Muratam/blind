@@ -103,7 +103,7 @@ impl system::Updatable for CasualScene {
     ));
 
     for object in &mut self.objects {
-      object.transform.write().rotation *= Quat::from_rotation_y(f);
+      object.transform.write().rotation *= Quat::from_rotation_y(0.0001_f32.to_degrees());
     }
     // adjust viewport
     let viewport = system::WholeScreen::viewport();
@@ -135,16 +135,20 @@ impl CasualPostEffect {
         vec4 base = texelFetch(src_color, iuv, 0).rgba;
         vec3 rgb = base.rgb;
         if (base.a < 0.5) {
-          rgb = vec3(0.5, 0.5, 0.5);
+          rgb = vec3(1.0, 1.0, 1.0);
           for (int len = 1; len <= 5; len += 1) {
             for (int dx = -1; dx <= 1; dx+=1) {
               for (int dy = -1; dy <= 1; dy+=1) {
-                if (texelFetch(src_color, iuv + ivec2(dx, dy) * len, 0).a > 0.5) {
+                vec4 fetch = texelFetch(src_color, iuv + ivec2(dx, dy) * len, 0);
+                if (fetch.a > 0.5) {
                   rgb = vec3(0.0, 0.0, 0.0);
                 }
               }
             }
           }
+        } else {
+          float gray = (base.r + base.g + base.b) * 0.333;
+          rgb = vec3(1.0,1.0,1.0) * gray;
         }
         out_color = vec4(rgb, 1.0);
       }
@@ -177,6 +181,25 @@ impl Updatable for CasualPostEffect {
     self.renderpass.write().set_viewport(Some(&viewport));
   }
 }
+struct Float1 {
+  elem: prhtml::FloatingBox,
+}
+impl Updatable for Float1 {
+  fn update(&mut self) {
+    let text = format!("{} ms", Time::processed_milli_sec());
+    self.elem.set_text_debug(&text);
+    self.elem.update();
+  }
+}
+struct Float2 {
+  elem: prhtml::FloatingBox,
+}
+impl Updatable for Float2 {
+  fn update(&mut self) {
+    self.elem.set_text_debug(&prpr::ai::sandbox_next());
+    self.elem.update();
+  }
+}
 pub fn sample_world() {
   js::console::log("create prpr world !!");
   let scene = CasualScene::new();
@@ -185,18 +208,31 @@ pub fn sample_world() {
   Updater::own(scene);
   Updater::own(posteffect);
   Updater::own(surface);
-  let elem = prhtml::FloatingBox::new(prhtml::Instance::root());
-  Updater::own(elem);
+  {
+    let mut elem = prhtml::FloatingBox::new(prhtml::Instance::root());
+    elem.set_position(math::Vec2::new(-0.35, 0.35));
+    elem.set_size(math::Vec2::ONE * 0.125);
+    Updater::own(Float1 { elem });
+  }
+  {
+    let mut elem = prhtml::FloatingBox::new(prhtml::Instance::root());
+    elem.set_position(math::Vec2::new(0.0, -0.25));
+    elem.set_size(math::Vec2::new(0.8, 0.30));
+    Updater::own(Float2 { elem });
+  }
 }
 /* TODO:
 - ShaderTemplate -> void main()
 - pipeline.add で同じUniformBufferな時に気をつけたい(Camera)
-- Async Computeしたい
-  - transform feedback
+- particle
   - draw instanced
-  - particle(overlay)
+  - transform feedback
+  - overlay
 - html
   - box-based system
+    - 中心が0.0, 右上が正
+    - width が自動縮小の場合：伸びる最大アスペクト比を指定
+    -
   - table? fontawesome? iframe?(map?) bulma input? / slider? tooltip?
   - top menu? chart.js?
   - API -  WebMIDI, WebAudio, Video
@@ -211,7 +247,9 @@ pub fn sample_world() {
   - https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/WebGL_best_practices#teximagetexsubimage_uploads_esp._videos_can_cause_pipeline_flushes
 - renderbuffer
   - MSAA: https://ics.media/web3d-maniacs/webgl2_renderbufferstoragemultisample/
+  - https://github.com/WebGLSamples/WebGL2Samples/blob/master/samples/fbo_multisample.html
   - mipmap がなぜかはいっている？
+  - https://webglreport.com/?v=2 (MAX INFO)
 - State
   - Scissor
   - ReverseZ
