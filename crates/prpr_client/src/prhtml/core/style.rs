@@ -118,8 +118,36 @@ impl Align {
     }
   }
 }
-
-pub trait ContainerTrait {
+#[derive(Clone, Copy)]
+pub enum Cursor {
+  Auto,
+  Default,
+  Pointer,
+  Wait,
+  Text,
+  NotAllowed,
+  Move,
+  CrossHair,
+  ColResize,
+  RowResize,
+}
+impl Cursor {
+  fn value(&self) -> &'static str {
+    match self {
+      Self::Auto => "auto",
+      Self::Default => "default",
+      Self::Pointer => "pointer",
+      Self::Wait => "wait",
+      Self::Text => "text",
+      Self::NotAllowed => "not-allowed",
+      Self::Move => "move",
+      Self::CrossHair => "crosshair",
+      Self::ColResize => "col-resize",
+      Self::RowResize => "row-resize",
+    }
+  }
+}
+pub trait HtmlElementHolder {
   fn get_raw_element(&self) -> &web_sys::HtmlElement;
   fn set_by_name_impl(&self, key: &str, value: &str) {
     let style = self.get_raw_element().style();
@@ -145,15 +173,7 @@ pub trait ContainerTrait {
       ),
     );
   }
-
-  // OVERALL
-  fn set_padding(&self, percent: f32) {
-    self.set_float_percentage_parameter_impl("padding", percent);
-  }
-  fn set_align(&self, align: Align) {
-    self.set_by_name_impl("text-align", align.value());
-  }
-  fn set_filter(&self, filter: &Vec<Filter>) {
+  fn set_filter_impl(&self, filter: &Vec<Filter>) {
     if filter.len() == 0 {
       self.set_by_name_impl("filter", "none");
     } else {
@@ -167,30 +187,17 @@ pub trait ContainerTrait {
       );
     }
   }
-
-  // BACKGROUND
-  fn set_background_color(&self, rgba: Vec4) {
-    self.set_color_impl("background-color", rgba);
+}
+pub trait HtmlTextHolderTrait
+where
+  Self: HtmlElementHolder,
+{
+  // OVERALL
+  fn set_cursor(&self, cursor: Cursor) {
+    self.set_by_name_impl("cursor", cursor.value());
   }
-  fn set_background_gradation(&self, gradation: &Gradation) {
-    self.set_by_name_impl("background", &gradation.to_css());
-  }
-  fn set_background_shadow(&self, dx: f32, dy: f32, blur_radius: f32, rgba: Vec4) {
-    self.set_shadow_impl("box-shadow", dx, dy, blur_radius, rgba);
-  }
-
-  // BORDER
-  fn set_border_color(&self, rgba: Vec4) {
-    self.set_color_impl("border-color", rgba);
-  }
-  fn set_border_radius(&self, percent: f32) {
-    self.set_float_percentage_parameter_impl("border-radius", percent);
-  }
-  fn set_border_width(&self, percent: f32) {
-    self.set_float_percentage_parameter_impl("border-width", percent);
-  }
-  fn set_border_style(&self, border_style: BorderStyle) {
-    self.set_by_name_impl("border-style", border_style.value());
+  fn set_filter(&self, filter: &Vec<Filter>) {
+    self.set_filter_impl(filter);
   }
 
   // TEXT
@@ -214,6 +221,43 @@ pub trait ContainerTrait {
   }
   fn set_text_italic(&self, is_italic: bool) {
     self.set_by_name_impl("font-style", if is_italic { "italic" } else { "normal" });
+  }
+}
+pub trait HtmlContainerTrait
+where
+  Self: HtmlElementHolder,
+{
+  // OVERALL
+  fn set_padding(&self, percent: f32) {
+    self.set_float_percentage_parameter_impl("padding", percent);
+  }
+  fn set_align(&self, align: Align) {
+    self.set_by_name_impl("text-align", align.value());
+  }
+
+  // BORDER
+  fn set_border_color(&self, rgba: Vec4) {
+    self.set_color_impl("border-color", rgba);
+  }
+  fn set_border_radius(&self, percent: f32) {
+    self.set_float_percentage_parameter_impl("border-radius", percent);
+  }
+  fn set_border_width(&self, percent: f32) {
+    self.set_float_percentage_parameter_impl("border-width", percent);
+  }
+  fn set_border_style(&self, border_style: BorderStyle) {
+    self.set_by_name_impl("border-style", border_style.value());
+  }
+
+  // BACKGROUND
+  fn set_background_color(&self, rgba: Vec4) {
+    self.set_color_impl("background-color", rgba);
+  }
+  fn set_background_gradation(&self, gradation: &Gradation) {
+    self.set_by_name_impl("background", &gradation.to_css());
+  }
+  fn set_background_shadow(&self, dx: f32, dy: f32, blur_radius: f32, rgba: Vec4) {
+    self.set_shadow_impl("box-shadow", dx, dy, blur_radius, rgba);
   }
 
   // EXPERIMENTAL

@@ -43,11 +43,11 @@ impl Pane {
       }
     }
     // css animation?
+    // ↓専用のTEXTクラスで実装
     // style.set_property("text-decoration", "underline")?; // line-through
     let width = system::WholeScreen::width() as f32;
     let height = system::WholeScreen::height() as f32;
     let expected_height = 1000.0;
-    self.set_by_name_impl("cursor", "pointer"); // move, wait, ...etc
     let scale = height / expected_height;
     // transform: trainlate, rotate
     self.set_by_name_impl("transform", &format!("scale({})", scale));
@@ -64,12 +64,14 @@ impl Pane {
     self.is_dirty = false;
   }
 }
-impl ContainerTrait for Pane {
+impl HtmlElementHolder for Pane {
   fn get_raw_element(&self) -> &web_sys::HtmlElement {
     &wasm_bindgen::JsCast::dyn_ref::<web_sys::HtmlElement>(&self.raw_element)
       .expect("failed to cast to CanvasRenderingContext2d")
   }
 }
+impl HtmlTextHolderTrait for Pane {}
+impl HtmlContainerTrait for Pane {}
 
 impl Updatable for Pane {
   fn update(&mut self) {

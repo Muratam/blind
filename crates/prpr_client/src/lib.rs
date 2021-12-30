@@ -15,4 +15,4 @@ pub mod system;
 use std::sync::{Arc, Mutex, RwLock, RwLockReadGuard, RwLockWriteGuard};
 pub use system::{input, Time, Updatable, Updater};
 pub mod sample;
-pub use prhtml::ContainerTrait;
+pub use prhtml::{HtmlContainerTrait, HtmlTextHolderTrait};

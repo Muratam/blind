@@ -181,27 +181,28 @@ impl Updatable for CasualPostEffect {
     self.renderpass.write().set_viewport(Some(&viewport));
   }
 }
-fn apply_style(f_box: &prhtml::Pane) {
+fn apply_style(pane: &prhtml::Pane) {
   let gradation = prhtml::Gradation::Linear(
     0.0,
     vec![Vec4::new(0.4, 0.8, 0.9, 0.2), Vec4::new(0.4, 0.8, 0.9, 0.8)],
   );
-  f_box.set_padding(1.5);
-  f_box.set_align(prhtml::Align::Center);
-  f_box.set_filter(&vec![prhtml::Filter::Blur(0.1)]);
-  f_box.set_border_color(Vec4::new(0.4, 0.8, 0.9, 0.8));
-  f_box.set_border_radius(1.4);
-  f_box.set_border_width(0.4);
-  f_box.set_border_style(prhtml::BorderStyle::Solid);
-  f_box.set_background_shadow(0.5, 0.5, 0.5, Vec4::new(0.4, 0.8, 0.9, 0.4));
-  f_box.set_background_gradation(&gradation);
-  f_box.set_text_size(2.4);
-  f_box.set_text_line_height(2.5);
-  f_box.set_text_letter_spacing(0.1);
-  f_box.set_text_color(Vec4::new(0.1, 0.1, 0.1, 0.8));
-  f_box.set_text_shadow(0.5, 0.5, 1.0, Vec4::new(0.2, 0.4, 0.45, 0.8));
-  f_box.set_text_bold(true);
-  f_box.set_text_italic(true);
+  pane.set_padding(1.5);
+  pane.set_align(prhtml::Align::Center);
+  pane.set_filter(&vec![prhtml::Filter::Blur(0.1)]);
+  pane.set_border_color(Vec4::new(0.4, 0.8, 0.9, 0.8));
+  pane.set_border_radius(1.4);
+  pane.set_border_width(0.4);
+  pane.set_border_style(prhtml::BorderStyle::Solid);
+  pane.set_background_shadow(0.5, 0.5, 0.5, Vec4::new(0.4, 0.8, 0.9, 0.4));
+  pane.set_background_gradation(&gradation);
+  pane.set_text_size(2.4);
+  // pane.set_text_line_height(2.5);
+  // pane.set_text_letter_spacing(0.1);
+  pane.set_text_color(Vec4::new(0.1, 0.1, 0.1, 0.8));
+  pane.set_text_shadow(0.5, 0.5, 1.0, Vec4::new(0.2, 0.4, 0.45, 0.8));
+  pane.set_text_bold(true);
+  // pane.set_text_italic(true);
+  pane.set_cursor(prhtml::Cursor::Pointer);
 }
 struct Float1 {
   pane: prhtml::Pane,
