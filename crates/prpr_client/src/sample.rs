@@ -218,9 +218,13 @@ struct Float2 {
 }
 impl Updatable for Float2 {
   fn update(&mut self) {
+    let mut super_text = String::from("");
+    for _ in 0..100 {
+      super_text += "aaaaaaaaaaaaaaaaaaaaaa ";
+    }
     self
       .pane
-      .set_text_debug(&format!("hello! {} frame", Time::frame()));
+      .set_text_debug(&format!("hello! {} frame\n {}", Time::frame(), super_text));
     self.pane.update();
   }
 }

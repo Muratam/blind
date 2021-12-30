@@ -112,7 +112,7 @@ impl EventHolderImpl {
   }
   fn setup_wheel_events(&mut self, elem: &web_sys::HtmlElement, tx: mpsc::Sender<WheelEventInfo>) {
     let tx = Arc::new(tx);
-    let setup_callback = |event_name: &str, prevent_default: bool| {
+    let setup_callback = |event_name: &str| {
       let tx = tx.clone();
       let closure = Closure::wrap(Box::new(move |event: web_sys::WheelEvent| {
         tx.send(WheelEventInfo {
@@ -120,18 +120,18 @@ impl EventHolderImpl {
           delta_y: event.delta_y() as i32,
         })
         .ok();
-        if prevent_default {
+        // なぜかコントロールキー＋Wheelがピンチインらしいので消しておく
+        if event.ctrl_key() {
           event.prevent_default();
         }
+        log::info(event);
       }) as Box<dyn FnMut(_)>);
       elem
         .add_event_listener_with_callback(event_name, closure.as_ref().unchecked_ref())
         .ok();
       closure.forget();
     };
-    // NOTE: ここでprevent_default にするとブラウザズームも消える
-    //       なぜか代わりにスクロールもできなくなる
-    setup_callback("wheel", true);
+    setup_callback("wheel");
   }
   fn setup_prevent_defaults(&mut self, elem: &web_sys::HtmlElement) {
     let setup_callback = |event_name: &str| {
