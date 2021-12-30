@@ -45,6 +45,10 @@ impl Layers {
       .style()
       .set_property("pointer-events", "none")
       .ok();
+    overlay_3d_layer // とりあえず使わないので消しておく
+      .style()
+      .set_property("display", "none")
+      .ok();
     setup_layer(&overlay_3d_layer, i32::MAX as i64);
     let html_layer = Arc::new(html_layer);
     let mut result = Self {
