@@ -191,6 +191,10 @@ pub fn sample_world() {
 /* TODO:
 - ShaderTemplate -> void main()
 - pipeline.add で同じUniformBufferな時に気をつけたい(Camera)
+- Async Computeしたい
+  - transform feedback
+  - draw instanced
+
 - texture2darray, texture3d 対応する
   - texture として扱いたい？
     - https://ics.media/web3d-maniacs/webgl2_texture2darray/
@@ -202,9 +206,6 @@ pub fn sample_world() {
 - renderbuffer
   - MSAA: https://ics.media/web3d-maniacs/webgl2_renderbufferstoragemultisample/
   - mipmap がなぜかはいっている？
-- Async Computeしたい
-  - transform feedback
-  - draw instanced
 - State
   - Scissor
   - ReverseZ

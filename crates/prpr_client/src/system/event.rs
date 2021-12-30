@@ -129,7 +129,9 @@ impl EventHolderImpl {
         .ok();
       closure.forget();
     };
-    setup_callback("wheel", false);
+    // NOTE: ここでprevent_default にするとブラウザズームも消える
+    //       なぜか代わりにスクロールもできなくなる
+    setup_callback("wheel", true);
   }
   fn setup_prevent_defaults(&mut self, elem: &web_sys::HtmlElement) {
     let setup_callback = |event_name: &str| {
