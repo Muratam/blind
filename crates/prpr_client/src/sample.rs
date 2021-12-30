@@ -99,7 +99,7 @@ impl system::Updatable for CasualScene {
     self.camera.write().dolly(Vec3::new(
       input::Mouse::wheel_dx() as f32 * 0.005,
       0.0,
-      input::Mouse::wheel_dy() as f32 * 0.005,
+      -input::Mouse::wheel_dy() as f32 * 0.005,
     ));
 
     for object in &mut self.objects {
@@ -196,7 +196,7 @@ struct Float2 {
 }
 impl Updatable for Float2 {
   fn update(&mut self) {
-    self.elem.set_text_debug(&prpr::ai::sandbox_next());
+    self.elem.set_text_debug("hello");
     self.elem.update();
   }
 }
