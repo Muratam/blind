@@ -16,7 +16,7 @@ impl FloatingBox {
       is_dirty: true,
       raw_element,
     };
-    result.adjust().ok();
+    result.adjust();
     result
   }
   pub fn set_position(&mut self, position: Vec2) {
@@ -30,37 +30,36 @@ impl FloatingBox {
   pub fn set_text_debug(&mut self, text: &str) {
     self.raw_element.set_inner_text(&text);
   }
-  pub fn adjust(&mut self) -> Result<(), wasm_bindgen::JsValue> {
+  fn adjust(&mut self) {
     if !self.is_dirty {
       if !system::WholeScreen::is_size_changed() {
-        return Result::Ok(());
+        return;
       }
     }
+    // css animation?
     // style.set_property("text-decoration", "underline")?; // line-through
     // style.set_property("text-align", "center")?;
     let width = system::WholeScreen::width() as f32;
     let height = system::WholeScreen::height() as f32;
-    let style = self.raw_element.style();
     let expected_height = 1000.0;
-    style.set_property("cursor", "pointer")?; // move, wait, ...etc
-    style.set_property("overflow", "scroll")?;
-    style.set_property("position", "absolute")?;
+    self.set_by_name_impl("cursor", "pointer"); // move, wait, ...etc
+    self.set_by_name_impl("overflow", "scroll");
+    self.set_by_name_impl("position", "absolute");
     let scale = height / expected_height;
     // transform: trainlate, rotate
-    style.set_property("transform", &format!("scale({})", scale))?;
-    style.set_property("transform-origin", "center")?;
+    self.set_by_name_impl("transform", &format!("scale({})", scale));
+    self.set_by_name_impl("transform-origin", "center");
     let percent = |f: f32| format!("{}px", f * expected_height * 0.01);
-    style.set_property("width", &percent(self.size.x * 100.0))?;
-    style.set_property("height", &percent(self.size.y * 100.0))?;
+    self.set_by_name_impl("width", &percent(self.size.x * 100.0));
+    self.set_by_name_impl("height", &percent(self.size.y * 100.0));
     let y = -self.position.y * height + 0.5 * height - self.size.y * 0.5 * expected_height;
     let x = self.position.x * height + 0.5 * width - self.size.x * 0.5 * expected_height;
     let px = |f: f32| format!("{}px", f);
-    style.set_property("top", &px(y))?;
-    style.set_property("left", &px(x))?;
+    self.set_by_name_impl("top", &px(y));
+    self.set_by_name_impl("left", &px(x));
     // style.set_property("z-index", &z_index.to_string());
     // style.set_property("display", "none");
     self.is_dirty = false;
-    Result::Ok(())
   }
 }
 impl ContainerTrait for FloatingBox {
@@ -72,7 +71,7 @@ impl ContainerTrait for FloatingBox {
 
 impl Updatable for FloatingBox {
   fn update(&mut self) {
-    self.adjust().ok();
+    self.adjust();
   }
 }
 impl Drop for FloatingBox {
