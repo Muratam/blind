@@ -124,7 +124,6 @@ impl EventHolderImpl {
         if event.ctrl_key() {
           event.prevent_default();
         }
-        log::info(event);
       }) as Box<dyn FnMut(_)>);
       elem
         .add_event_listener_with_callback(event_name, closure.as_ref().unchecked_ref())
