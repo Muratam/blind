@@ -118,8 +118,8 @@ impl Pane {
       PaneFitPoint::Right => Vec2::new(0.5, 0.0),
       PaneFitPoint::RightBottom => Vec2::new(0.5, -0.5),
     };
-    let y = -position.y * height + 0.5 * height - h * 0.5 * expected_height;
-    let x = position.x * width + 0.5 * width - w * 0.5 * expected_height;
+    let y = (-position.y + 0.5) * height - h * 0.5 * expected_height + h * position.y * height;
+    let x = (position.x + 0.5) * width - w * 0.5 * expected_height - w * position.x * height;
     let px = |f: f32| format!("{}px", f);
     self.set_by_name_impl("top", &px(y));
     self.set_by_name_impl("left", &px(x));
