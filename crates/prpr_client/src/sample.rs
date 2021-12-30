@@ -94,11 +94,14 @@ impl system::Updatable for CasualScene {
         -input::Mouse::dy() as f32 * 0.01,
       ));
     }
-    self.camera.write().dolly(Vec3::new(
-      input::Mouse::wheel_dx() as f32 * 0.005,
-      0.0,
-      -input::Mouse::wheel_dy() as f32 * 0.005,
-    ));
+    self.camera.write().dolly_with_mask(
+      Vec3::new(
+        input::Mouse::wheel_dx() as f32 * 0.005,
+        0.0,
+        -input::Mouse::wheel_dy() as f32 * 0.005,
+      ),
+      [true, false, true],
+    );
 
     for object in &mut self.objects {
       object.transform.write().rotation *= Quat::from_rotation_y(0.0001_f32.to_degrees());
@@ -179,6 +182,7 @@ impl Updatable for CasualPostEffect {
     self.renderpass.write().set_viewport(Some(&viewport));
   }
 }
+
 fn apply_style(pane: &prhtml::Pane) {
   let gradation = prhtml::Gradation::Linear(
     0.0,
@@ -202,20 +206,43 @@ fn apply_style(pane: &prhtml::Pane) {
   // pane.set_text_italic(true);
   pane.set_cursor(prhtml::Cursor::Pointer);
 }
-struct Float1 {
+
+struct Pane1 {
   pane: prhtml::Pane,
 }
-impl Updatable for Float1 {
+impl Pane1 {
+  fn new() -> Self {
+    let mut pane = prhtml::Pane::new(prhtml::PaneFitPoint::LeftTop, 12.5, 12.5);
+    pane.set_max_width(Some(12.5));
+    pane.set_min_width(Some(12.5));
+    pane.set_offset(Vec2::new(1.0, 1.0));
+    apply_style(&pane);
+    Self { pane }
+  }
+}
+impl Updatable for Pane1 {
   fn update(&mut self) {
     let text = format!("{} ms", Time::processed_milli_sec());
     self.pane.set_text_debug(&text);
+    let f = Time::frame() as f32 * 0.1;
+    self.pane.set_scale(1.0 + 0.02 * f.sin());
     self.pane.update();
   }
 }
-struct Float2 {
+
+struct Pane2 {
   pane: prhtml::Pane,
 }
-impl Updatable for Float2 {
+impl Pane2 {
+  fn new() -> Self {
+    let mut pane = prhtml::Pane::new(prhtml::PaneFitPoint::Bottom, 80.0, 30.0);
+    pane.set_max_width(Some(120.0));
+    pane.set_offset(-Vec2::Y);
+    apply_style(&pane);
+    Self { pane }
+  }
+}
+impl Updatable for Pane2 {
   fn update(&mut self) {
     let mut super_text = String::from("");
     if Time::frame() < 50 {
@@ -233,6 +260,7 @@ impl Updatable for Float2 {
     self.pane.update();
   }
 }
+
 pub fn sample_world() {
   js::console::log("create prpr world !!");
   let scene = CasualScene::new();
@@ -241,21 +269,8 @@ pub fn sample_world() {
   Updater::own(scene);
   Updater::own(posteffect);
   Updater::own(surface);
-  {
-    let mut pane = prhtml::Pane::new(prhtml::PaneFitPoint::LeftTop, 12.5, 12.5);
-    pane.set_max_width(Some(12.5));
-    pane.set_min_width(Some(12.5));
-    pane.set_offset(Vec2::new(1.0, 1.0));
-    apply_style(&pane);
-    Updater::own(Float1 { pane });
-  }
-  {
-    let mut pane = prhtml::Pane::new(prhtml::PaneFitPoint::Bottom, 80.0, 30.0);
-    pane.set_max_width(Some(120.0));
-    pane.set_offset(-Vec2::Y);
-    apply_style(&pane);
-    Updater::own(Float2 { pane });
-  }
+  Updater::own(Pane1::new());
+  Updater::own(Pane2::new());
 }
 /* TODO:
 - ShaderTemplate -> void main()
@@ -265,7 +280,6 @@ pub fn sample_world() {
   - transform feedback
   - overlay
 - html
-  - box-based system
   - table? fontawesome? iframe?(map?) bulma input? / slider? tooltip?
   - top menu? chart.js?
   - API -  WebMIDI, WebAudio, Video
@@ -274,7 +288,6 @@ pub fn sample_world() {
 // style.set_property("text-decoration", "underline")?; // line-through
 // style.set_property("z-index", &z_index.to_string());
 // style.set_property("display", "none");
-
 
 - texture2darray, texture3d 対応する
   - texture として扱いたい？

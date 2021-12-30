@@ -5,9 +5,19 @@ pub struct Core {
   // audio
   // etc...
 }
+pub struct ClientRunConfig {
+  pub use_fontawesome: bool,
+}
+impl Default for ClientRunConfig {
+  fn default() -> Self {
+    Self {
+      use_fontawesome: true,
+    }
+  }
+}
 
 impl Core {
-  pub fn new() -> Self {
+  pub fn new(config: ClientRunConfig) -> Self {
     time::TimeImpl::initialize_global();
     rand::XorShift128::initialize_global(
       (Time::now_millisec() % (u32::MAX & 0xffffff) as f64) as u32,

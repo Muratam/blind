@@ -2,7 +2,7 @@ use super::*;
 
 pub struct Pane {
   scale: f32,
-  rotate_deg: f32,
+  rotate_degree: f32,
   offset: Vec2,
   height: f32,
   width_by_width: f32,
@@ -25,21 +25,12 @@ pub enum PaneFitPoint {
   RightBottom,
 }
 impl Pane {
-  // FloatingPaneはどこでも置ける＋ドラッグできる。ただし見切れることがある。嫌いなのでいらない。
-  // {Left, Center, Right} * {Top, Center, Bottom} のどこに吸着するかを指定する
-  // width, height は画面の何％かで指定する。x,y はoffsetを指定する。
-  // height は固定。widthは伸びる可能性がある。
-  // - 最大%(これ以上伸びない)(heightに対して)を指定可能
-  // - 最小%(これ以上縮まない)(heightに対して)も指定可能(ただし衝突する可能性がありそう)
-  // 回転・スケーリング・移動は差分を指定して可能。アニメーション向け
-  // - offsetはtransformで
-  // - サイズは固定。
   pub fn new(fit_point: PaneFitPoint, width_by_width: f32, height: f32) -> Self {
     let root = prhtml::Instance::root();
     let raw_element = js::html::append_div(root);
     let mut result = Self {
       scale: 1.0,
-      rotate_deg: 0.0,
+      rotate_degree: 0.0,
       offset: Vec2::ZERO,
       height,
       width_by_width,
@@ -64,8 +55,8 @@ impl Pane {
     self.scale = v;
     self.is_dirty = true;
   }
-  pub fn set_rotate_deg(&mut self, v: f32) {
-    self.rotate_deg = v;
+  pub fn set_rotate_degree(&mut self, v: f32) {
+    self.rotate_degree = v;
     self.is_dirty = true;
   }
   pub fn set_offset(&mut self, v: Vec2) {
@@ -95,7 +86,7 @@ impl Pane {
         convert_percent_str(self.offset.x),
         convert_percent_str(self.offset.y),
         scale,
-        self.rotate_deg
+        self.rotate_degree
       ),
     );
     let aspect = width as f32 / height as f32;

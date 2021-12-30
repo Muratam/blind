@@ -2,5 +2,5 @@ use prpr_client::*;
 
 #[entry_point(start)]
 pub fn start() {
-  system::run(sample::sample_world);
+  system::run(sample::sample_world, None);
 }
