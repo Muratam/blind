@@ -33,7 +33,6 @@ struct WheelEventInfo {
   delta_y: i32,
   id: Option<String>,
 }
-use once_cell::sync::OnceCell;
 static INSTANCE: OnceCell<RwLock<EventHolderImpl>> = OnceCell::new();
 unsafe impl Send for EventHolderImpl {}
 unsafe impl Sync for EventHolderImpl {}

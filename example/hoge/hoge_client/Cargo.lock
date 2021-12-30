@@ -107,6 +107,7 @@ version = "0.1.0"
 dependencies = [
  "glam",
  "num-traits",
+ "once_cell",
 ]
 
 [[package]]
@@ -115,7 +116,6 @@ version = "0.1.0"
 dependencies = [
  "assert-type-eq",
  "js-sys",
- "once_cell",
  "prpr",
  "wasm-bindgen",
  "web-sys",

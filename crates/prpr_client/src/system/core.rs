@@ -8,11 +8,14 @@ pub struct Core {
 
 impl Core {
   pub fn new() -> Self {
+    time::TimeImpl::initialize_global();
+    rand::XorShift128::initialize_global(
+      (Time::now_millisec() % (u32::MAX & 0xffffff) as f64) as u32,
+    );
     let layers = Layers::new();
     WholeScreen::initialize();
     prgl::Instance::set(layers.main_3d_context());
     prhtml::Instance::set(layers.html_layer());
-    time::TimeImpl::initialize_global();
     prgl::RenderPassExecuterImpl::initialize_global();
     UpdaterImpl::initialize_global();
     EventHolderImpl::initialize_global(layers.html_layer());

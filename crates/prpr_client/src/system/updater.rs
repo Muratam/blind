@@ -5,7 +5,6 @@ pub trait Updatable {
     false
   }
 }
-use once_cell::sync::OnceCell;
 static INSTANCE: OnceCell<RwLock<UpdaterImpl>> = OnceCell::new();
 unsafe impl Send for UpdaterImpl {}
 unsafe impl Sync for UpdaterImpl {}

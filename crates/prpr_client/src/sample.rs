@@ -58,7 +58,7 @@ impl CasualScene {
       for y in 0..COUNT {
         for z in 0..COUNT {
           let mut object = TransformObject::new();
-          if (x ^ y ^ z) & 1 == 0 {
+          if rand::XorShift128::global().uniform() < 0.5 {
             object.pipeline.write().add(&shape1);
           } else {
             object.pipeline.write().add(&shape2);
@@ -88,8 +88,6 @@ impl CasualScene {
 }
 impl system::Updatable for CasualScene {
   fn update(&mut self) {
-    let frame = Time::frame();
-    let f = (frame as f32) / 100.0;
     if input::Mouse::state(input::MouseState::IsDown) {
       self.camera.write().rotate_self_fixed(Vec2::new(
         input::Mouse::dx() as f32 * 0.01,
@@ -219,21 +217,19 @@ struct Float2 {
 }
 impl Updatable for Float2 {
   fn update(&mut self) {
-    if Time::frame() < 200 {
-      let mut super_text = String::from("");
-      for _ in 0..100 {
-        super_text += "aaaaaaaaaaaaaaaaaaaaaa ";
-      }
-      self.pane.set_text_debug(&format!(
-        "hello! {} frame\n mouse:({}, {}) \nwheel:({}, {}) \n {}",
-        Time::frame(),
-        input::Mouse::x(),
-        input::Mouse::y(),
-        input::Mouse::wheel_dx(),
-        input::Mouse::wheel_dy(),
-        super_text
-      ));
+    let mut super_text = String::from("");
+    if Time::frame() < 50 {
+      super_text += &rand::XorShift128::global().asciis(1000);
     }
+    self.pane.set_text_debug(&format!(
+      "hello! {} frame\n mouse:({}, {}) \nwheel:({}, {}) \n {}",
+      Time::frame(),
+      input::Mouse::x(),
+      input::Mouse::y(),
+      input::Mouse::wheel_dx(),
+      input::Mouse::wheel_dy(),
+      super_text
+    ));
     self.pane.update();
   }
 }
