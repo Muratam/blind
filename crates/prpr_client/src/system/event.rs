@@ -142,7 +142,6 @@ impl EventHolderImpl {
         if event.ctrl_key() {
           event.prevent_default();
         }
-        log::info(event);
       }) as Box<dyn FnMut(_)>);
       root
         .add_event_listener_with_callback(event_name, closure.as_ref().unchecked_ref())
@@ -163,11 +162,16 @@ impl EventHolderImpl {
     };
     let setup_callback_keyboard = |event_name: &str| {
       let closure = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
-        // allow reload
-        if event.key() == "r" || event.key() == "l" || event.key() == "F12" {
-          return;
+        // disallow zoom
+        let key = event.key();
+        if event.ctrl_key() || event.meta_key() {
+          match key.as_ref() {
+            "-" | ";" | "0" | "a" => {
+              event.prevent_default();
+            }
+            _ => {}
+          }
         }
-        event.prevent_default();
       }) as Box<dyn FnMut(_)>);
       js::html::body()
         .add_event_listener_with_callback(event_name, closure.as_ref().unchecked_ref())

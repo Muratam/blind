@@ -218,19 +218,21 @@ struct Float2 {
 }
 impl Updatable for Float2 {
   fn update(&mut self) {
-    let mut super_text = String::from("");
-    for _ in 0..100 {
-      super_text += "aaaaaaaaaaaaaaaaaaaaaa ";
+    if Time::frame() < 200 {
+      let mut super_text = String::from("");
+      for _ in 0..100 {
+        super_text += "aaaaaaaaaaaaaaaaaaaaaa ";
+      }
+      self.pane.set_text_debug(&format!(
+        "hello! {} frame\n mouse:({}, {}) \nwheel:({}, {}) \n {}",
+        Time::frame(),
+        input::Mouse::x(),
+        input::Mouse::y(),
+        input::Mouse::wheel_dx(),
+        input::Mouse::wheel_dy(),
+        super_text
+      ));
     }
-    self.pane.set_text_debug(&format!(
-      "hello! {} frame\n mouse:({}, {}) \nwheel:({}, {}) \n {}",
-      Time::frame(),
-      input::Mouse::x(),
-      input::Mouse::y(),
-      input::Mouse::wheel_dx(),
-      input::Mouse::wheel_dy(),
-      super_text
-    ));
     self.pane.update();
   }
 }
