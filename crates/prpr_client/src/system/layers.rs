@@ -24,9 +24,9 @@ fn setup_layer(elem: &web_sys::HtmlElement, z_index: i64) {
 }
 
 pub struct Layers {
-  // (下) 3D -> HTML (上)
+  // (下) 3D -> HTML-> 3D-overlay  (上)
   main_3d_layer: web_sys::HtmlCanvasElement,
-  // overlay3d_layer: web_sys::HtmlCanvasElement,
+  overlay_3d_layer: web_sys::HtmlCanvasElement,
   html_layer: Arc<web_sys::HtmlDivElement>,
   width: i32,
   height: i32,
@@ -40,10 +40,17 @@ impl Layers {
     setup_layer(&main_3d_layer, 0);
     let html_layer = js::html::append_div(&root_element);
     setup_layer(&html_layer, 1);
+    let overlay_3d_layer = js::html::append_canvas(&root_element);
+    overlay_3d_layer // TODO: prglに逃がす？(画像を一枚貼り付けるだけなのでcanvasは不要かも？)
+      .style()
+      .set_property("pointer-events", "none")
+      .ok();
+    setup_layer(&overlay_3d_layer, i32::MAX as i64);
     let html_layer = Arc::new(html_layer);
     let mut result = Self {
       main_3d_layer,
       html_layer,
+      overlay_3d_layer,
       width: 0,
       height: 0,
     };
@@ -78,6 +85,8 @@ impl Layers {
     }
     self.main_3d_layer.set_width(self.width as u32);
     self.main_3d_layer.set_height(self.height as u32);
+    self.overlay_3d_layer.set_width(self.width as u32);
+    self.overlay_3d_layer.set_height(self.height as u32);
   }
   pub fn width(&self) -> i32 {
     self.width
