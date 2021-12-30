@@ -22,15 +22,19 @@ impl CasualScene {
       ],
       vs_attr: ShapeVertex,
       vs_code: {
-        mat4 mvp_mat = view_proj_mat * model_mat;
-        gl_Position = mvp_mat * vec4(position, 1.0);
-        mat4 it_mvp_mat = transpose(inverse(mvp_mat));
-        in_normal = (it_mvp_mat * vec4(normal, 0.0)).xyz;
+        void main() {
+          mat4 mvp_mat = view_proj_mat * model_mat;
+          gl_Position = mvp_mat * vec4(position, 1.0);
+          mat4 it_mvp_mat = transpose(inverse(mvp_mat));
+          in_normal = (it_mvp_mat * vec4(normal, 0.0)).xyz;
+        }
       },
       fs_attr: { in_normal: vec3 },
       fs_code: {
-        // texture(normal_map, vec2(0.5, 0.5)).rgb
-        out_color = vec4(in_normal + 0.5, 1.0);
+        void main() {
+          // texture(normal_map, vec2(0.5, 0.5)).rgb
+          out_color = vec4(in_normal + 0.5, 1.0);
+        }
       }
       out_attr: { out_color: vec4 }
     }
@@ -128,30 +132,34 @@ impl CasualPostEffect {
       attrs: [CasualPostEffectMapping],
       vs_attr: FullScreenVertex,
       vs_code: {
-        gl_Position = vec4(position, 0.5, 1.0);
+        void main () {
+          gl_Position = vec4(position, 0.5, 1.0);
+        }
       },
       fs_attr: {},
       fs_code: {
-        ivec2 iuv = ivec2(gl_FragCoord.x, gl_FragCoord.y);
-        vec4 base = texelFetch(src_color, iuv, 0).rgba;
-        vec3 rgb = base.rgb;
-        if (base.a < 0.5) {
-          rgb = vec3(1.0, 1.0, 1.0);
-          for (int len = 1; len <= 5; len += 1) {
-            for (int dx = -1; dx <= 1; dx+=1) {
-              for (int dy = -1; dy <= 1; dy+=1) {
-                vec4 fetch = texelFetch(src_color, iuv + ivec2(dx, dy) * len, 0);
-                if (fetch.a > 0.5) {
-                  rgb = vec3(0.0, 0.0, 0.0);
+        void main() {
+          ivec2 iuv = ivec2(gl_FragCoord.x, gl_FragCoord.y);
+          vec4 base = texelFetch(src_color, iuv, 0).rgba;
+          vec3 rgb = base.rgb;
+          if (base.a < 0.5) {
+            rgb = vec3(1.0, 1.0, 1.0);
+            for (int len = 1; len <= 5; len += 1) {
+              for (int dx = -1; dx <= 1; dx+=1) {
+                for (int dy = -1; dy <= 1; dy+=1) {
+                  vec4 fetch = texelFetch(src_color, iuv + ivec2(dx, dy) * len, 0);
+                  if (fetch.a > 0.5) {
+                    rgb = vec3(0.0, 0.0, 0.0);
+                  }
                 }
               }
             }
+          } else {
+            float gray = (base.r + base.g + base.b) * 0.333;
+            rgb = vec3(1.0,1.0,1.0) * gray;
           }
-        } else {
-          float gray = (base.r + base.g + base.b) * 0.333;
-          rgb = vec3(1.0,1.0,1.0) * gray;
+          out_color = vec4(rgb, 1.0);
         }
-        out_color = vec4(rgb, 1.0);
       }
       out_attr: { out_color: vec4 }
     }
@@ -283,11 +291,11 @@ pub fn sample_world() {
   - table? fontawesome? iframe?(map?) bulma input? / slider? tooltip?
   - top menu? chart.js?
   - API -  WebMIDI, WebAudio, Video
-// css animation? <- 衝突するのでやめておきたい
-// ↓専用のTEXTクラスで実装
-// style.set_property("text-decoration", "underline")?; // line-through
-// style.set_property("z-index", &z_index.to_string());
-// style.set_property("display", "none");
+  // css animation? <- 衝突するのでやめておきたい
+  // ↓専用のTEXTクラスで実装
+  // style.set_property("text-decoration", "underline")?; // line-through
+  // style.set_property("z-index", &z_index.to_string());
+  // style.set_property("display", "none");
 
 - texture2darray, texture3d 対応する
   - texture として扱いたい？

@@ -216,6 +216,12 @@ macro_rules! shader_attr {
     $(shader_attr_by_type!{ $type $s { $( $k : $v )* } })*
   );
 }
+#[macro_export]
+macro_rules! shader_template_element_parse_code {
+  ( { $( $v: tt )* } ) => {
+    concat!($(stringify!($v)," ",)*).to_string()
+  };
+}
 
 #[macro_export]
 macro_rules! shader_template_element {
@@ -268,11 +274,11 @@ macro_rules! shader_template_element {
     )*
     (definitions, u_blocks, u_textures)
   }};
-  (vs_code: $v:tt) => {
-    concat!("void main() ", stringify!($v)).to_string()
+  (vs_code: $v:tt ) => {
+    shader_template_element_parse_code!($v)
   };
-  (fs_code: $v:tt) => {
-    concat!("void main() ", stringify!($v)).to_string()
+  (fs_code: $v:tt ) => {
+    shader_template_element_parse_code!($v)
   };
 }
 

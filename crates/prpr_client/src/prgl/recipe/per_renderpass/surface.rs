@@ -20,9 +20,9 @@ impl Surface {
     crate::shader_template! {
       attrs: [SurfaceMapping, SurfaceOffset],
       vs_attr: FullScreenVertex,
-      vs_code: { gl_Position = vec4(position, 0.5, 1.0); },
+      vs_code: { void main() {gl_Position = vec4(position, 0.5, 1.0);} },
       fs_attr: {},
-      fs_code: { out_color = texelFetch(src_color, ivec2(gl_FragCoord.xy + surface_offset.xy), 0); }
+      fs_code: { void main() {out_color = texelFetch(src_color, ivec2(gl_FragCoord.xy + surface_offset.xy), 0);} }
       out_attr: { out_color: vec4 }
     }
   }
