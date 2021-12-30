@@ -222,9 +222,15 @@ impl Updatable for Float2 {
     for _ in 0..100 {
       super_text += "aaaaaaaaaaaaaaaaaaaaaa ";
     }
-    self
-      .pane
-      .set_text_debug(&format!("hello! {} frame\n {}", Time::frame(), super_text));
+    self.pane.set_text_debug(&format!(
+      "hello! {} frame\n mouse:({}, {}) \nwheel:({}, {}) \n {}",
+      Time::frame(),
+      input::Mouse::x(),
+      input::Mouse::y(),
+      input::Mouse::wheel_dx(),
+      input::Mouse::wheel_dy(),
+      super_text
+    ));
     self.pane.update();
   }
 }

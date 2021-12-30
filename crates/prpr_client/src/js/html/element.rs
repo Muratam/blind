@@ -12,13 +12,20 @@ pub fn body() -> web_sys::HtmlElement {
 pub fn screen() -> web_sys::Screen {
   window().screen().expect("should have a screen on window")
 }
+use std::sync::atomic::{AtomicUsize, Ordering};
+static ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
 pub fn append_tag(parent: &web_sys::HtmlElement, tag: &str) -> web_sys::HtmlElement {
   let created = document().create_element(tag).unwrap();
   let elem = parent
     .append_child(&created)
     .expect(&format!("failed to append child ({})", tag));
-  wasm_bindgen::JsCast::dyn_into::<web_sys::HtmlElement>(elem).expect("failed cast to div")
+  let result =
+    wasm_bindgen::JsCast::dyn_into::<web_sys::HtmlElement>(elem).expect("failed cast to div");
+  let id = ID_COUNTER.fetch_add(1, Ordering::SeqCst) as u64;
+  result.set_id(&format!("prpr-id-{}", id));
+  result
 }
+
 pub fn append_div(parent: &web_sys::HtmlElement) -> web_sys::HtmlDivElement {
   let div = append_tag(parent, "div");
   wasm_bindgen::JsCast::dyn_into::<web_sys::HtmlDivElement>(div).expect("failed cast to div")
@@ -29,11 +36,7 @@ pub fn append_canvas(parent: &web_sys::HtmlElement) -> web_sys::HtmlCanvasElemen
     .expect("failed cast to canvas")
 }
 pub fn append_css(parent: &web_sys::HtmlElement, text: &str) -> web_sys::HtmlStyleElement {
-  let tag = "style";
-  let created = document().create_element(tag).unwrap();
-  created.set_text_content(Some(text));
-  let elem = parent
-    .append_child(&created)
-    .expect(&format!("failed to append child ({})", tag));
-  wasm_bindgen::JsCast::dyn_into::<web_sys::HtmlStyleElement>(elem).expect("failed cast to style")
+  let style = append_tag(parent, "style");
+  style.set_text_content(Some(text));
+  wasm_bindgen::JsCast::dyn_into::<web_sys::HtmlStyleElement>(style).expect("failed cast to style")
 }
