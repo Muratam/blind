@@ -231,18 +231,26 @@ impl Updatable for EventHolderImpl {
     while let Ok(info) = self.mouse_rx.try_recv() {
       self.mouse_x = Some(info.x);
       self.mouse_y = Some(info.y);
+      let mut is_mine = true;
       if let Some(id) = info.id {
         if id != self.root_id {
-          continue;
+          is_mine = false;
         }
       }
-      match info.event {
-        MouseEvent::Move => {}
-        MouseEvent::Down => self.set_mouse_state(MouseState::IsDown, true),
-        MouseEvent::Up => self.set_mouse_state(MouseState::IsDown, false),
-        MouseEvent::Click => self.set_mouse_state(MouseState::IsLeftClicked, true),
-        MouseEvent::ContextMenu => self.set_mouse_state(MouseState::IsRightClicked, true),
-        MouseEvent::DoubleClick => self.set_mouse_state(MouseState::IsDoubleClicked, true),
+      if is_mine {
+        match info.event {
+          MouseEvent::Move => {}
+          MouseEvent::Down => self.set_mouse_state(MouseState::IsDown, true),
+          MouseEvent::Up => self.set_mouse_state(MouseState::IsDown, false),
+          MouseEvent::Click => self.set_mouse_state(MouseState::IsLeftClicked, true),
+          MouseEvent::ContextMenu => self.set_mouse_state(MouseState::IsRightClicked, true),
+          MouseEvent::DoubleClick => self.set_mouse_state(MouseState::IsDoubleClicked, true),
+        }
+      } else {
+        match info.event {
+          MouseEvent::Up => self.set_mouse_state(MouseState::IsDown, false),
+          _ => {}
+        }
       }
     }
     // wheel state
