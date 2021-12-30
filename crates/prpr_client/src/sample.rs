@@ -181,6 +181,29 @@ impl Updatable for CasualPostEffect {
     self.renderpass.write().set_viewport(Some(&viewport));
   }
 }
+fn apply_style(f_box: &prhtml::FloatingBox) {
+  f_box.set_padding(1.5);
+  f_box.set_filter(&vec![prhtml::Filter::Blur(0.1)]);
+  f_box.set_border_color(prhtml::Color::Rgba(0.4, 0.8, 0.9, 0.8));
+  f_box.set_border_radius(1.4);
+  f_box.set_border_width(0.4);
+  f_box.set_border_style(prhtml::BorderStyle::Solid);
+  f_box.set_background_shadow(0.5, 0.5, 0.5, prhtml::Color::Rgba(0.4, 0.8, 0.9, 0.4));
+  f_box.set_background_gradation(&prhtml::Gradation::Linear(
+    0.0,
+    vec![
+      prhtml::Color::rgba(Vec4::new(0.4, 0.8, 0.9, 0.2)),
+      prhtml::Color::rgba(Vec4::new(0.4, 0.8, 0.9, 0.8)),
+    ],
+  ));
+  f_box.set_text_size(2.4);
+  f_box.set_text_line_height(2.5);
+  f_box.set_text_letter_spacing(0.1);
+  f_box.set_text_color(prhtml::Color::Rgba(0.1, 0.1, 0.1, 0.8));
+  f_box.set_text_shadow(0.5, 0.5, 1.0, prhtml::Color::Rgba(0.2, 0.4, 0.45, 0.8));
+  f_box.set_text_bold(true);
+  f_box.set_text_italic(true);
+}
 struct Float1 {
   elem: prhtml::FloatingBox,
 }
@@ -209,15 +232,17 @@ pub fn sample_world() {
   Updater::own(posteffect);
   Updater::own(surface);
   {
-    let mut elem = prhtml::FloatingBox::new(prhtml::Instance::root());
+    let mut elem = prhtml::FloatingBox::new();
     elem.set_position(math::Vec2::new(-0.35, 0.35));
     elem.set_size(math::Vec2::ONE * 0.125);
+    apply_style(&elem);
     Updater::own(Float1 { elem });
   }
   {
-    let mut elem = prhtml::FloatingBox::new(prhtml::Instance::root());
+    let mut elem = prhtml::FloatingBox::new();
     elem.set_position(math::Vec2::new(0.0, -0.25));
     elem.set_size(math::Vec2::new(0.8, 0.30));
+    apply_style(&elem);
     Updater::own(Float2 { elem });
   }
 }
