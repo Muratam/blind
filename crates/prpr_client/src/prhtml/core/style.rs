@@ -102,6 +102,23 @@ impl BorderStyle {
     }
   }
 }
+
+#[derive(Clone, Copy)]
+pub enum Align {
+  Left,
+  Right,
+  Center,
+}
+impl Align {
+  fn value(&self) -> &'static str {
+    match self {
+      Self::Left => "left",
+      Self::Right => "right",
+      Self::Center => "center",
+    }
+  }
+}
+
 pub trait ContainerTrait {
   fn get_raw_element(&self) -> &web_sys::HtmlElement;
   fn set_by_name_impl(&self, key: &str, value: &str) {
@@ -132,6 +149,9 @@ pub trait ContainerTrait {
   // OVERALL
   fn set_padding(&self, percent: f32) {
     self.set_float_percentage_parameter_impl("padding", percent);
+  }
+  fn set_align(&self, align: Align) {
+    self.set_by_name_impl("text-align", align.value());
   }
   fn set_filter(&self, filter: &Vec<Filter>) {
     if filter.len() == 0 {

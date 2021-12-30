@@ -1,5 +1,5 @@
 use super::*;
-mod floatingbox;
-pub use floatingbox::*;
+mod pane;
+pub use pane::*;
 mod style;
 pub use style::*;

@@ -1,12 +1,12 @@
 use super::*;
 
-pub struct FloatingBox {
+pub struct Pane {
   position: Vec2, // 中心の位置(正規化座標)
   size: Vec2,     // width,height(正規化座標)
   is_dirty: bool,
   raw_element: web_sys::HtmlDivElement,
 }
-impl FloatingBox {
+impl Pane {
   pub fn new() -> Self {
     let root = prhtml::Instance::root();
     let raw_element = js::html::append_div(root);
@@ -16,7 +16,7 @@ impl FloatingBox {
       is_dirty: true,
       raw_element,
     };
-    result.adjust();
+    result.setup();
     result
   }
   pub fn set_position(&mut self, position: Vec2) {
@@ -30,6 +30,12 @@ impl FloatingBox {
   pub fn set_text_debug(&mut self, text: &str) {
     self.raw_element.set_inner_text(&text);
   }
+  fn setup(&mut self) {
+    self.set_by_name_impl("overflow", "scroll");
+    self.set_by_name_impl("position", "absolute");
+    self.set_by_name_impl("transform-origin", "center");
+    self.adjust();
+  }
   fn adjust(&mut self) {
     if !self.is_dirty {
       if !system::WholeScreen::is_size_changed() {
@@ -38,17 +44,13 @@ impl FloatingBox {
     }
     // css animation?
     // style.set_property("text-decoration", "underline")?; // line-through
-    // style.set_property("text-align", "center")?;
     let width = system::WholeScreen::width() as f32;
     let height = system::WholeScreen::height() as f32;
     let expected_height = 1000.0;
     self.set_by_name_impl("cursor", "pointer"); // move, wait, ...etc
-    self.set_by_name_impl("overflow", "scroll");
-    self.set_by_name_impl("position", "absolute");
     let scale = height / expected_height;
     // transform: trainlate, rotate
     self.set_by_name_impl("transform", &format!("scale({})", scale));
-    self.set_by_name_impl("transform-origin", "center");
     let percent = |f: f32| format!("{}px", f * expected_height * 0.01);
     self.set_by_name_impl("width", &percent(self.size.x * 100.0));
     self.set_by_name_impl("height", &percent(self.size.y * 100.0));
@@ -62,19 +64,19 @@ impl FloatingBox {
     self.is_dirty = false;
   }
 }
-impl ContainerTrait for FloatingBox {
+impl ContainerTrait for Pane {
   fn get_raw_element(&self) -> &web_sys::HtmlElement {
     &wasm_bindgen::JsCast::dyn_ref::<web_sys::HtmlElement>(&self.raw_element)
       .expect("failed to cast to CanvasRenderingContext2d")
   }
 }
 
-impl Updatable for FloatingBox {
+impl Updatable for Pane {
   fn update(&mut self) {
     self.adjust();
   }
 }
-impl Drop for FloatingBox {
+impl Drop for Pane {
   fn drop(&mut self) {
     self.raw_element.remove();
   }

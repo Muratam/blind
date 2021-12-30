@@ -181,12 +181,13 @@ impl Updatable for CasualPostEffect {
     self.renderpass.write().set_viewport(Some(&viewport));
   }
 }
-fn apply_style(f_box: &prhtml::FloatingBox) {
+fn apply_style(f_box: &prhtml::Pane) {
   let gradation = prhtml::Gradation::Linear(
     0.0,
     vec![Vec4::new(0.4, 0.8, 0.9, 0.2), Vec4::new(0.4, 0.8, 0.9, 0.8)],
   );
   f_box.set_padding(1.5);
+  f_box.set_align(prhtml::Align::Center);
   f_box.set_filter(&vec![prhtml::Filter::Blur(0.1)]);
   f_box.set_border_color(Vec4::new(0.4, 0.8, 0.9, 0.8));
   f_box.set_border_radius(1.4);
@@ -203,22 +204,24 @@ fn apply_style(f_box: &prhtml::FloatingBox) {
   f_box.set_text_italic(true);
 }
 struct Float1 {
-  elem: prhtml::FloatingBox,
+  pane: prhtml::Pane,
 }
 impl Updatable for Float1 {
   fn update(&mut self) {
     let text = format!("{} ms", Time::processed_milli_sec());
-    self.elem.set_text_debug(&text);
-    self.elem.update();
+    self.pane.set_text_debug(&text);
+    self.pane.update();
   }
 }
 struct Float2 {
-  elem: prhtml::FloatingBox,
+  pane: prhtml::Pane,
 }
 impl Updatable for Float2 {
   fn update(&mut self) {
-    self.elem.set_text_debug("hello");
-    self.elem.update();
+    self
+      .pane
+      .set_text_debug(&format!("hello! {} frame", Time::frame()));
+    self.pane.update();
   }
 }
 pub fn sample_world() {
@@ -230,18 +233,18 @@ pub fn sample_world() {
   Updater::own(posteffect);
   Updater::own(surface);
   {
-    let mut elem = prhtml::FloatingBox::new();
-    elem.set_position(math::Vec2::new(-0.35, 0.35));
-    elem.set_size(math::Vec2::ONE * 0.125);
-    apply_style(&elem);
-    Updater::own(Float1 { elem });
+    let mut pane = prhtml::Pane::new();
+    pane.set_position(math::Vec2::new(-0.35, 0.35));
+    pane.set_size(math::Vec2::ONE * 0.125);
+    apply_style(&pane);
+    Updater::own(Float1 { pane });
   }
   {
-    let mut elem = prhtml::FloatingBox::new();
-    elem.set_position(math::Vec2::new(0.0, -0.25));
-    elem.set_size(math::Vec2::new(0.8, 0.30));
-    apply_style(&elem);
-    Updater::own(Float2 { elem });
+    let mut pane = prhtml::Pane::new();
+    pane.set_position(math::Vec2::new(0.0, -0.25));
+    pane.set_size(math::Vec2::new(0.8, 0.30));
+    apply_style(&pane);
+    Updater::own(Float2 { pane });
   }
 }
 /* TODO:
