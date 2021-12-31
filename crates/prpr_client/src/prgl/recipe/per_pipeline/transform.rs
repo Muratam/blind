@@ -5,21 +5,12 @@ crate::shader_attr! {
     model_mat: mat4
   }
 }
+#[derive(Clone)]
 pub struct TransformData {
   pub scale: Vec3,
   pub rotation: Quat,
   pub translate: Vec3,
 }
-impl WhyTrait for TransformData {
-  fn concat(&self, x: &Self) -> Self {
-    Self {
-      scale: self.scale * x.scale,
-      rotation: self.rotation * x.rotation,
-      translate: self.translate + x.translate,
-    }
-  }
-}
-
 impl Default for TransformData {
   fn default() -> Self {
     Self {
@@ -38,3 +29,41 @@ impl RefInto<TransformAttribute> for TransformData {
 }
 
 pub type Transform = IntoUniformBufferTemplate<TransformAttribute, TransformData>;
+
+// WHY
+#[derive(Clone)]
+pub struct TransformScaleData(pub Vec3);
+#[derive(Clone)]
+pub struct TransformRotationData(pub Quat);
+#[derive(Clone)]
+pub struct TransformTranslateData(pub Vec3);
+impl WhyTrait for TransformScaleData {
+  fn concat(&self, x: &Self) -> Self {
+    Self(self.0 * x.0)
+  }
+}
+impl WhyTrait for TransformRotationData {
+  fn concat(&self, x: &Self) -> Self {
+    Self(self.0 * x.0)
+  }
+}
+impl WhyTrait for TransformTranslateData {
+  fn concat(&self, x: &Self) -> Self {
+    Self(self.0 + x.0)
+  }
+}
+impl Default for TransformScaleData {
+  fn default() -> Self {
+    Self(Vec3::ONE)
+  }
+}
+impl Default for TransformRotationData {
+  fn default() -> Self {
+    Self(Quat::IDENTITY)
+  }
+}
+impl Default for TransformTranslateData {
+  fn default() -> Self {
+    Self(Vec3::ZERO)
+  }
+}

@@ -1,5 +1,4 @@
-// 複数の指定を受ける可能性があるもののための属性
-const WHY_COUNT: usize = 6;
+use super::*;
 // 後ろの方が優先度が高いがちにしている
 #[derive(Clone, Copy, PartialEq)]
 pub enum Why {
@@ -18,25 +17,18 @@ where
 }
 
 pub struct Whys<T: WhyTrait + Clone> {
-  whys: [Option<T>; WHY_COUNT],
+  whys: [Option<T>; 6],
+  calculated: Option<T>,
 }
 impl<T: WhyTrait + Clone> Whys<T> {
   pub fn new() -> Self {
     Self {
       whys: [None, None, None, None, None, None],
+      calculated: None,
     }
   }
   pub fn set(&mut self, data: Option<T>, why: Why) {
     self.whys[why as usize] = data;
-  }
-  pub fn get(&self, why: Why) -> Option<T> {
-    if let Some(got) = &self.whys[why as usize] {
-      Some(got.clone())
-    } else {
-      None
-    }
-  }
-  pub fn calc(&self) -> Option<T> {
     let mut result: Option<T> = None;
     for why in &self.whys {
       if let Some(a) = &result {
@@ -47,6 +39,25 @@ impl<T: WhyTrait + Clone> Whys<T> {
         result = why.clone();
       }
     }
-    result
+    self.calculated = result;
+  }
+  pub fn get(&self, why: Why) -> Option<T> {
+    if let Some(got) = &self.whys[why as usize] {
+      Some(got.clone())
+    } else {
+      None
+    }
+  }
+  pub fn calc(&self) -> Option<T> {
+    if let Some(calc) = &self.calculated {
+      Some(calc.clone())
+    } else {
+      None
+    }
+  }
+}
+impl<T: WhyTrait + Clone + Default> Whys<T> {
+  pub fn calc_or_default(&self) -> T {
+    self.calc().unwrap_or_default()
   }
 }

@@ -55,7 +55,7 @@ impl CasualScene {
     let shader = MayShader::new(CasualScene::shader());
     let material = PbrMaterial::new();
     let shape1 = Shape::new_cube();
-    let shape2 = Shape::new_sphere(5, 5);
+    let shape2 = Shape::new_sphere(20, 20);
     let mut objects = Vec::new();
     const COUNT: u32 = 5;
     for x in 0..COUNT {
@@ -69,12 +69,15 @@ impl CasualScene {
           }
           object.pipeline().add(&material);
           object.pipeline().add(&shader);
-          object.transform.write().translate = Vec3::new(
-            x as f32 - (COUNT as f32) * 0.5,
-            y as f32 - (COUNT as f32) * 0.5,
-            z as f32 - (COUNT as f32) * 0.5,
+          object.set_translate(
+            Vec3::new(
+              x as f32 - (COUNT as f32) * 0.5,
+              y as f32 - (COUNT as f32) * 0.5,
+              z as f32 - (COUNT as f32) * 0.5,
+            ),
+            Why::ByUser,
           );
-          object.transform.write().scale = Vec3::ONE * 0.72;
+          object.set_scale(Vec3::ONE * 0.72, Why::ByUser);
           renderpass.add(&object);
           objects.push(object);
         }
@@ -106,9 +109,14 @@ impl NeedUpdate for CasualScene {
       ),
       [true, false, true],
     );
-
+    let f = Time::frame() as f32;
     for object in &mut self.objects {
-      object.transform.write().rotation *= Quat::from_rotation_y(0.0001_f32.to_degrees());
+      object.set_rotation(Quat::from_rotation_y(f * 0.01), Why::ByAnimation);
+      object.set_translate(
+        Vec3::new(0.0, 0.15 * (f * 0.013).sin(), 0.0),
+        Why::ByAnimation,
+      );
+      object.set_scale(Vec3::ONE * (1.0 + 0.01 * (f * 0.1).sin()), Why::ByAnimation);
     }
     // adjust viewport
     let viewport = system::WholeScreen::viewport();
