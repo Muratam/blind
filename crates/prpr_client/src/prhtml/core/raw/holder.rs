@@ -118,15 +118,13 @@ impl HtmlElementHolder {
     }
     self.set_color_impl("text-decoration-color", rgba);
   }
-  fn set_background_textclip_impl(&self) {
-    // TODO: text clip
-    // to clip to gradation
-    // self.set_by_name_impl("background-clip", "text");
-    // self.set_by_name_impl("-webkit-background-clip", "text");
-    // self.set_by_name_impl("color", "transparent");
-    // self.set_by_name_impl("text-shadow", "none");
-    system::log::error("background textclop is not implemented");
-  }
+  // fn set_background_textclip_impl(&self) {
+  //   // TODO: text clip / to clip to gradation
+  //   // self.set_by_name_impl("background-clip", "text");
+  //   // self.set_by_name_impl("-webkit-background-clip", "text");
+  //   // self.set_by_name_impl("color", "transparent");
+  //   // self.set_by_name_impl("text-shadow", "none");
+  // }
 }
 
 // API
@@ -262,7 +260,11 @@ impl HtmlElementHolder {
       if let Some(pre) = &self.internal.read().unwrap().display {
         self.set_by_name_impl("display", &pre);
       } else {
-        self.raw_element.style().remove_property("display");
+        self
+          .raw_element
+          .style()
+          .remove_property("display")
+          .expect("failed to remove display");
       }
     }
   }
