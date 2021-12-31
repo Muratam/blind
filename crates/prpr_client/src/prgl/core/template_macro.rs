@@ -219,10 +219,87 @@ macro_rules! shader_attr {
 #[macro_export]
 macro_rules! shader_template_code {
   ( { $( $v: tt )* } ) => {
-    concat!($(stringify!($v)," ",)*).to_string()
-      .replace("+ +", "++")
-      .replace("+ +", "++")
-      .replace("    ", "  ")
+    {
+      fn format_shader_code(src: String) -> String {
+        if !$crate::prgl::FORMAT_SHADER_CODE {
+          return src;
+        }
+        let src = src.replace("(", " (");
+        let mut result: Vec<char> = Vec::new();
+        let mut pre_is_space = false;
+        const INDENT : usize = 2;
+        let mut indent = 0;
+        let mut for_c = 0;
+        for c in src.chars() {
+          let c = match c {
+            '\n' => ' ',
+            '\t' => ' ',
+            _ => c
+          };
+          if c == ' ' && pre_is_space {
+            continue;
+          }
+          if for_c == 7 && (c == '{' || c == ';') {
+            for_c = 0;
+          }
+          let for_c_matched = match for_c {
+            0 => c == 'f',
+            1 => c == 'o',
+            2 => c == 'r',
+            3 => c == ' ',
+            4 => c == '(',
+            5 => c == ';',
+            6 => c == ';',
+            _ => false
+          };
+          if for_c_matched {
+            for_c += 1
+          } else if for_c <= 4 {
+            for_c = 0;
+          }
+          let lf = match c {
+            '{' => {
+              indent += INDENT;
+              true
+            }
+            ';' => {
+              for_c < 5
+            }
+            '}' => {
+              indent -= INDENT;
+              for _ in 0..INDENT {
+                if let Some(last) = result.last() {
+                  if *last == ' ' {
+                    result.pop();
+                  }
+                }
+              }
+              true
+            }
+            _ => false
+          };
+          pre_is_space = c == ' ';
+          result.push(c);
+          if lf {
+            result.push('\n');
+            pre_is_space = true;
+            for _ in 0..indent {
+              result.push(' ');
+            }
+          }
+        }
+        let result : String = result.into_iter().collect();
+        result
+          .replace(" (", "(").replace(") ", ")")
+          .replace(" ;", ";").replace("){", ") {")
+          .replace("for(", "for (").replace("if(", "if (")
+      }
+      format_shader_code(
+        concat!($(stringify!($v)," ",)*).to_string()
+          .replace("+ +", "++")
+          .replace("+ +", "++")
+      )
+    }
   };
 }
 

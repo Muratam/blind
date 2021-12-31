@@ -4,6 +4,7 @@ pub use web_sys::WebGl2RenderingContext as gl;
 pub const MAX_OUTPUT_SLOT: usize = 8;
 pub type IndexBufferType = u32;
 const SET_BIND_NONE_AFTER_WORK: bool = false;
+pub const FORMAT_SHADER_CODE: bool = true;
 
 // raw not publish
 pub mod raw;
