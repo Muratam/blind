@@ -30,7 +30,6 @@ pub fn append_tag(parent: &web_sys::HtmlElement, tag: &str) -> web_sys::HtmlElem
     wasm_bindgen::JsCast::dyn_into::<web_sys::HtmlElement>(elem).expect("failed cast to div");
   result
 }
-
 pub fn append_div(parent: &web_sys::HtmlElement) -> web_sys::HtmlDivElement {
   let div = append_tag(parent, "div");
   wasm_bindgen::JsCast::dyn_into::<web_sys::HtmlDivElement>(div).expect("failed cast to div")

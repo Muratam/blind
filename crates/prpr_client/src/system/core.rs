@@ -18,6 +18,7 @@ impl Default for ClientRunConfig {
 
 impl Core {
   pub fn new(config: ClientRunConfig) -> Self {
+    console_error_panic_hook::set_once();
     time::TimeImpl::initialize_global();
     rand::XorShift128::initialize_global(
       (Time::now_millisec() % (u32::MAX & 0xffffff) as f64) as u32,
@@ -29,6 +30,7 @@ impl Core {
     prgl::RenderPassExecuterImpl::initialize_global();
     UpdaterImpl::initialize_global();
     EventHolderImpl::initialize_global(layers.html_layer());
+    eprintln!("Problem parsing arguments: {}", 22);
     Self { layers }
   }
   pub fn pre_update(&mut self) {
