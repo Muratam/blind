@@ -63,9 +63,6 @@ impl Pane {
     self.offset = v;
     self.is_dirty = true;
   }
-  pub fn set_text_debug(&mut self, text: &str) {
-    self.raw_element.set_inner_text(&text);
-  }
   fn setup(&mut self) {
     self.set_by_name_impl("overflow", "scroll");
     self.set_by_name_impl("position", "absolute");

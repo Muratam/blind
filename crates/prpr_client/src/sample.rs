@@ -219,6 +219,7 @@ fn apply_style(pane: &prhtml::Pane) {
 
 struct Pane1 {
   pane: prhtml::Pane,
+  text: prhtml::Text,
 }
 impl Pane1 {
   fn new() -> Self {
@@ -227,13 +228,14 @@ impl Pane1 {
     pane.set_min_width(Some(12.5));
     pane.set_offset(Vec2::new(1.0, 1.0));
     apply_style(&pane);
-    Self { pane }
+    let text = prhtml::Text::new(&pane, "");
+    Self { pane, text }
   }
 }
 impl NeedUpdate for Pane1 {
   fn update(&mut self) {
     let text = format!("{} ms", Time::processed_milli_sec());
-    self.pane.set_text_debug(&text);
+    self.text.set_text(&text);
     let f = Time::frame() as f32 * 0.1;
     self.pane.set_scale(1.0 + 0.02 * f.sin());
     self.pane.update();
@@ -242,6 +244,9 @@ impl NeedUpdate for Pane1 {
 
 struct Pane2 {
   pane: prhtml::Pane,
+  text1: prhtml::Text,
+  hr1: prhtml::Hr,
+  text2: prhtml::Text,
 }
 impl Pane2 {
   fn new() -> Self {
@@ -249,23 +254,27 @@ impl Pane2 {
     pane.set_max_width(Some(120.0));
     pane.set_offset(-Vec2::Y);
     apply_style(&pane);
-    Self { pane }
+    pane.set_padding_x(3.0);
+    let text1 = prhtml::Text::new(&pane, "");
+    let hr1 = prhtml::Hr::new(&pane, 2.4);
+    let text2 = prhtml::Text::new(&pane, &rand::XorShift128::global().asciis(1000));
+    Self {
+      pane,
+      hr1,
+      text1,
+      text2,
+    }
   }
 }
 impl NeedUpdate for Pane2 {
   fn update(&mut self) {
-    let mut super_text = String::from("");
-    if Time::frame() < 50 {
-      super_text += &rand::XorShift128::global().asciis(1000);
-    }
-    self.pane.set_text_debug(&format!(
-      "hello! {} frame\n mouse:({}, {}) \nwheel:({}, {}) \n {}",
+    self.text1.set_text(&format!(
+      "hello! {} frame\n mouse:({}, {}) \nwheel:({}, {})\n",
       Time::frame(),
       input::Mouse::x(),
       input::Mouse::y(),
       input::Mouse::wheel_dx(),
       input::Mouse::wheel_dy(),
-      super_text
     ));
     self.pane.update();
   }

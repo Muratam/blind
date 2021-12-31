@@ -11,7 +11,8 @@ fn setup_global_style(parent: &web_sys::HtmlElement) {
     overflow: hidden;
     word-break: break-all;
     font-family: BlinkMacSystemFont, -apple-system, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
-  }"###;
+  }
+  "###;
   let _ = js::html::append_css(parent, css);
 }
 

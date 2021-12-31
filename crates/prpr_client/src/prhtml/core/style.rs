@@ -182,10 +182,12 @@ pub trait HtmlElementHolderTrait {
     self.set_filter_impl(filter);
   }
   fn set_padding(&self, percent: f32) {
-    self.set_padding_left(percent);
-    self.set_padding_right(percent);
-    self.set_padding_top(percent);
-    self.set_padding_bottom(percent);
+    self.set_padding_x(percent);
+    self.set_padding_y(percent);
+  }
+  fn set_visibility(&self, visibility: bool) {
+    // レイアウトはそのまま
+    self.set_by_name_impl("visibility", if visibility { "visible" } else { "hidden" });
   }
 
   // BORDER
@@ -193,22 +195,16 @@ pub trait HtmlElementHolderTrait {
     self.set_float_percentage_parameter_impl("border-radius", percent);
   }
   fn set_border_color(&self, rgba: Vec4) {
-    self.set_border_left_color(rgba);
-    self.set_border_right_color(rgba);
-    self.set_border_bottom_color(rgba);
-    self.set_border_top_color(rgba);
+    self.set_border_x_color(rgba);
+    self.set_border_y_color(rgba);
   }
   fn set_border_width(&self, percent: f32) {
-    self.set_border_left_width(percent);
-    self.set_border_right_width(percent);
-    self.set_border_bottom_width(percent);
-    self.set_border_top_width(percent);
+    self.set_border_x_width(percent);
+    self.set_border_y_width(percent);
   }
   fn set_border_style(&self, border_style: BorderStyle) {
-    self.set_border_left_style(border_style);
-    self.set_border_right_style(border_style);
-    self.set_border_bottom_style(border_style);
-    self.set_border_top_style(border_style);
+    self.set_border_x_style(border_style);
+    self.set_border_y_style(border_style);
   }
 
   // BACKGROUND
@@ -219,7 +215,43 @@ pub trait HtmlElementHolderTrait {
     self.set_by_name_impl("background", &gradation.to_css());
   }
   fn set_background_shadow(&self, dx: f32, dy: f32, blur_radius: f32, rgba: Vec4) {
-    self.set_shadow_impl("box-shadow", dx, dy, blur_radius, rgba);
+    self.set_shadow_impl("box-shadow", dx, dy, blur_radius, rgba, false);
+  }
+  fn set_background_shadow_inset(&self, dx: f32, dy: f32, blur_radius: f32, rgba: Vec4) {
+    self.set_shadow_impl("box-shadow", dx, dy, blur_radius, rgba, true);
+  }
+  // XY
+  fn set_padding_x(&self, percent: f32) {
+    self.set_padding_left(percent);
+    self.set_padding_right(percent);
+  }
+  fn set_padding_y(&self, percent: f32) {
+    self.set_padding_top(percent);
+    self.set_padding_bottom(percent);
+  }
+  fn set_border_x_color(&self, rgba: Vec4) {
+    self.set_border_left_color(rgba);
+    self.set_border_right_color(rgba);
+  }
+  fn set_border_y_color(&self, rgba: Vec4) {
+    self.set_border_bottom_color(rgba);
+    self.set_border_top_color(rgba);
+  }
+  fn set_border_x_width(&self, percent: f32) {
+    self.set_border_left_width(percent);
+    self.set_border_right_width(percent);
+  }
+  fn set_border_y_width(&self, percent: f32) {
+    self.set_border_bottom_width(percent);
+    self.set_border_top_width(percent);
+  }
+  fn set_border_x_style(&self, border_style: BorderStyle) {
+    self.set_border_left_style(border_style);
+    self.set_border_right_style(border_style);
+  }
+  fn set_border_y_style(&self, border_style: BorderStyle) {
+    self.set_border_bottom_style(border_style);
+    self.set_border_top_style(border_style);
   }
 
   // LRTB
@@ -285,15 +317,24 @@ pub trait HtmlElementHolderTrait {
   fn set_color_impl(&self, key: &str, rgba: Vec4) {
     self.set_by_name_impl(key, &to_css(rgba));
   }
-  fn set_shadow_impl(&self, key: &str, dx: f32, dy: f32, blur_radius: f32, rgba: Vec4) {
+  fn set_shadow_impl(
+    &self,
+    key: &str,
+    dx: f32,
+    dy: f32,
+    blur_radius: f32,
+    rgba: Vec4,
+    inset: bool,
+  ) {
     self.set_by_name_impl(
       key,
       &format!(
-        "{} {} {} {}",
+        "{} {} {} {} {}",
         convert_percent_str(dx),
         convert_percent_str(dy),
         convert_percent_str(blur_radius),
-        &to_css(rgba)
+        &to_css(rgba),
+        if inset { "inset" } else { "" }
       ),
     );
   }
@@ -321,11 +362,6 @@ pub trait HtmlElementHolderTrait {
     self.set_color_impl("text-decoration-color", rgba);
   }
 }
-pub trait HtmlTextHolderTrait
-where
-  Self: HtmlElementHolderTrait,
-{
-}
 
 pub trait HtmlTextConfigurableTrait
 where
@@ -336,7 +372,7 @@ where
     self.set_color_impl("color", rgba);
   }
   fn set_text_shadow(&self, dx: f32, dy: f32, blur_radius: f32, rgba: Vec4) {
-    self.set_shadow_impl("text-shadow", dx, dy, blur_radius, rgba);
+    self.set_shadow_impl("text-shadow", dx, dy, blur_radius, rgba, false);
   }
   fn set_text_size(&self, percent: f32) {
     self.set_float_percentage_parameter_impl("font-size", percent);

@@ -34,10 +34,6 @@ pub fn append_div(parent: &web_sys::HtmlElement) -> web_sys::HtmlDivElement {
   let div = append_tag(parent, "div");
   wasm_bindgen::JsCast::dyn_into::<web_sys::HtmlDivElement>(div).expect("failed cast to div")
 }
-pub fn append_span(parent: &web_sys::HtmlElement) -> web_sys::HtmlElement {
-  let div = append_tag(parent, "span");
-  wasm_bindgen::JsCast::dyn_into::<web_sys::HtmlElement>(div).expect("failed cast span")
-}
 pub fn append_canvas(parent: &web_sys::HtmlElement) -> web_sys::HtmlCanvasElement {
   let canvas = append_tag(parent, "canvas");
   wasm_bindgen::JsCast::dyn_into::<web_sys::HtmlCanvasElement>(canvas)
