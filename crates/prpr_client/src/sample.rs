@@ -144,9 +144,9 @@ impl CasualPostEffect {
           vec3 rgb = base.rgb;
           if (base.a < 0.5) {
             rgb = vec3(1.0, 1.0, 1.0);
-            for (int len = 1; len <= 5; len += 1) {
-              for (int dx = -1; dx <= 1; dx+=1) {
-                for (int dy = -1; dy <= 1; dy+=1) {
+            for (int len = 1; len <= 5; ++len) {
+              for (int dx = -1; dx <= 1; dx++) {
+                for (int dy = -1; dy <= 1; dy++) {
                   vec4 fetch = texelFetch(src_color, iuv + ivec2(dx, dy) * len, 0);
                   if (fetch.a > 0.5) {
                     rgb = vec3(0.0, 0.0, 0.0);
@@ -167,7 +167,9 @@ impl CasualPostEffect {
   pub fn new(src_color: &dyn ReplicaTrait<Texture>) -> Self {
     let mut renderpass = RenderPass::new();
     let mut pipeline = FullScreen::new_pipeline();
-    pipeline.add(&MayShader::new(CasualPostEffect::shader()));
+    let shader = MayShader::new(CasualPostEffect::shader());
+    // system::log::info(format!("{}", shader));
+    pipeline.add(&shader);
     pipeline.add(&ArcOwner::new(TextureMapping::new(
       CasualPostEffectMapping {
         src_color: src_color.clone_reader(),

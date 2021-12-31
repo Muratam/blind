@@ -217,9 +217,12 @@ macro_rules! shader_attr {
   );
 }
 #[macro_export]
-macro_rules! shader_template_element_parse_code {
+macro_rules! shader_template_code {
   ( { $( $v: tt )* } ) => {
     concat!($(stringify!($v)," ",)*).to_string()
+      .replace("+ +", "++")
+      .replace("+ +", "++")
+      .replace("    ", "  ")
   };
 }
 
@@ -275,10 +278,10 @@ macro_rules! shader_template_element {
     (definitions, u_blocks, u_textures)
   }};
   (vs_code: $v:tt ) => {
-    shader_template_element_parse_code!($v)
+    shader_template_code!($v)
   };
   (fs_code: $v:tt ) => {
-    shader_template_element_parse_code!($v)
+    shader_template_code!($v)
   };
 }
 
