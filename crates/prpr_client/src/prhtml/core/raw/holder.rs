@@ -11,8 +11,7 @@ struct HtmlElementHolderInternal {
   filter_contrast: Whys<FilterContrast>,
   filter_grayscale: Whys<FilterGrayscale>,
   filter_opacity: Whys<FilterOpacity>,
-  transform: Whys<HtmlTransform>,
-  // skew(3次元に移す場合)
+  transform: Whys<HtmlTransform>, // skew(3次元に移す場合)
 }
 
 pub struct HtmlElementHolder {

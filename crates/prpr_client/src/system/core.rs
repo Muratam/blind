@@ -30,7 +30,11 @@ impl Core {
     prgl::RenderPassExecuterImpl::initialize_global();
     UpdaterImpl::initialize_global();
     EventHolderImpl::initialize_global(layers.html_layer());
-    eprintln!("Problem parsing arguments: {}", 22);
+    if config.use_fontawesome {
+      js::html::add_stylesheet_link(
+        "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css",
+      );
+    }
     Self { layers }
   }
   pub fn pre_update(&mut self) {

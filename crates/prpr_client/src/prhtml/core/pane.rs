@@ -8,6 +8,7 @@ pub struct Pane {
   holder: HtmlElementHolder,
   fit_point: PaneFitPoint,
   is_dirty: bool,
+  owns: Vec<Box<dyn HtmlElementHolderTrait>>,
 }
 #[derive(Clone, Copy)]
 pub enum PaneFitPoint {
@@ -33,6 +34,7 @@ impl Pane {
       holder,
       fit_point,
       is_dirty: true,
+      owns: vec![],
     };
     result.setup();
     result
@@ -108,6 +110,9 @@ impl HtmlElementHolderTrait for Pane {
 impl ElementHolderContainerTrait for Pane {
   fn holder_container(&self) -> &web_sys::HtmlElement {
     &self.holder.raw_element()
+  }
+  fn own(&mut self, elem: Box<dyn HtmlElementHolderTrait>) {
+    self.owns.push(elem);
   }
 }
 impl HtmlBackgroundTrait for Pane {}

@@ -208,7 +208,7 @@ fn apply_style(pane: &prhtml::Pane) {
   );
   pane.set_padding(1.5);
   pane.set_align(prhtml::Align::Center);
-  pane.set_filter_blur(Some(0.1), Why::ByUser);
+  // pane.set_filter_blur(Some(0.1), Why::ByUser);
   pane.set_border_color(Vec4::new(0.4, 0.8, 0.9, 0.8));
   pane.set_border_radius(1.4);
   pane.set_border_width(0.4);
@@ -222,7 +222,7 @@ fn apply_style(pane: &prhtml::Pane) {
   pane.set_text_shadow(0.5, 0.5, 1.0, Vec4::new(0.2, 0.4, 0.45, 0.8));
   pane.set_text_bold(true);
   // pane.set_text_italic(true);
-  pane.set_cursor(prhtml::Cursor::Pointer);
+  // pane.set_cursor(prhtml::Cursor::Pointer);
 }
 
 struct Pane1 {
@@ -255,7 +255,6 @@ struct Pane2 {
   pane: prhtml::Pane,
   text1: prhtml::Text,
   // hr1: prhtml::Hr,
-  text2: prhtml::Text,
 }
 impl Pane2 {
   fn new() -> Self {
@@ -264,15 +263,12 @@ impl Pane2 {
     pane.set_translate(-Vec2::Y, Why::ByStyle);
     apply_style(&pane);
     pane.set_padding_x(3.0);
+    prhtml::Fa::owned(&mut pane, "fab fa-twitter");
     let text1 = prhtml::Text::new(&pane, "");
-    // let hr1 = prhtml::Hr::new(&pane, 2.4);
-    let text2 = prhtml::Text::new(&pane, &rand::XorShift128::global().asciis(1000));
-    Self {
-      pane,
-      // hr1,
-      text1,
-      text2,
-    }
+    // text1.set_href(Some("https://example.com"));
+    // let hr1 = prhtml::Hr::new(&pane); //, 2.4);
+    prhtml::Text::owned(&mut pane, &rand::XorShift128::global().asciis(1000));
+    Self { pane, text1 }
   }
 }
 impl NeedUpdate for Pane2 {

@@ -12,6 +12,20 @@ pub fn body() -> web_sys::HtmlElement {
 pub fn screen() -> web_sys::Screen {
   window().screen().expect("should have a screen on window")
 }
+pub fn head() -> web_sys::HtmlElement {
+  let head = document()
+    .get_elements_by_tag_name("head")
+    .item(0)
+    .expect("failed to get head");
+  wasm_bindgen::JsCast::dyn_into::<web_sys::HtmlElement>(head).expect("failed cast head")
+}
+pub fn add_stylesheet_link(link: &str) {
+  let style = append_tag(&head(), "link");
+  style
+    .set_attribute("rel", "stylesheet")
+    .expect("failed to rel");
+  style.set_attribute("href", &link).expect("failed to href");
+}
 
 use std::sync::atomic::{AtomicUsize, Ordering};
 static ID_COUNTER: AtomicUsize = AtomicUsize::new(0);

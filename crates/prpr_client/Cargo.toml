@@ -37,6 +37,8 @@ features = [
   "HtmlStyleElement",
   "HtmlImageElement",
   "HtmlVideoElement",
+  "HtmlCollection",
+  "DomTokenList",
   # WebGL
   "WebGl2RenderingContext",
   "WebGlShader",

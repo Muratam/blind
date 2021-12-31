@@ -14,6 +14,11 @@ impl Text {
     result.set_text(text);
     result
   }
+
+  pub fn owned(parent: &mut dyn ElementHolderContainerTrait, text: &str) {
+    let owned = Self::new(parent, text);
+    parent.own(Box::new(owned));
+  }
   pub fn text(&self) -> &str {
     &self.text
   }
@@ -32,37 +37,31 @@ impl HtmlBackgroundTrait for Text {}
 impl HtmlBoxTrait for Text {}
 impl HtmlTextConfigurableTrait for Text {}
 
-// - H1~H6, BlockQuote, Hr, Li, Ol, Pre, Ul, A, Code,
+// - FitPane
 // - Table / FlexBox(Area)
 // - img, video, audio, iframe,
 // - button, input, textarea
 //   meter(slider, progress),
 //   select datalist fieldset optgroup+option
-// - other methods...
 // SVG(いろいろなコンテンツ用)
 // font-awesome / chart-js
+// - 文書用： Hr, A, H1~H6, BlockQuote, Li, Ol, Pre, Ul, Code
 
 // pub struct Hr {
-//   raw_element: web_sys::HtmlElement,
+//   holder: HtmlElementHolder,
 // }
 // impl Hr {
-//   pub fn new(parent: &dyn HtmlContainerTrait, height: f32) -> Self {
-//     let result = Self {
-//       raw_element: js::html::append_tag(parent.get_raw_element(), "hr"),
-//     };
-//     result.set_float_percentage_parameter_impl("margin-top", height * 0.5);
-//     result.set_float_percentage_parameter_impl("margin-bottom", height * 0.5);
-//     result.set_by_name_impl("border-top", "inherit");
+//   pub fn new(parent: &dyn ElementHolderContainerTrait) -> Self {
+//     let holder = HtmlElementHolder::new(parent.holder_container(), "hr");
+//     let mut result = Self { holder };
+//     // result.set_float_percentage_parameter_impl("margin-top", height * 0.5);
+//     // result.set_float_percentage_parameter_impl("margin-bottom", height * 0.5);
+//     // result.set_by_name_impl("border-top", "inherit");
 //     result
 //   }
 // }
 // impl HtmlElementHolderTrait for Hr {
-//   fn get_raw_element(&self) -> &web_sys::HtmlElement {
-//     &self.raw_element
-//   }
-// }
-// impl Drop for Hr {
-//   fn drop(&mut self) {
-//     self.raw_element.remove();
+//   fn holder(&self) -> &HtmlElementHolder {
+//     &self.holder
 //   }
 // }

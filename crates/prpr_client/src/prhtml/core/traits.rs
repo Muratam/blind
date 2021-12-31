@@ -210,7 +210,30 @@ where
   }
 }
 
+// href できるもの(Aタグがいりそう)
+pub trait HrefTrait
+where
+  Self: HtmlElementHolderTrait,
+{
+  fn set_href(&mut self, href: Option<&str>) {
+    if let Some(href) = href {
+      self
+        .holder()
+        .raw_element()
+        .set_attribute("href", href)
+        .expect("failed to set href");
+    } else {
+      self
+        .holder()
+        .raw_element()
+        .remove_attribute("href")
+        .expect("failed to set href");
+    }
+  }
+}
+
 // HTMLHolderの親になれるもの
 pub trait ElementHolderContainerTrait {
   fn holder_container(&self) -> &web_sys::HtmlElement;
+  fn own(&mut self, elem: Box<dyn HtmlElementHolderTrait>);
 }
