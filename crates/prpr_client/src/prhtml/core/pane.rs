@@ -121,7 +121,7 @@ impl Pane {
     self.is_dirty = false;
   }
 }
-impl Updatable for Pane {
+impl NeedUpdate for Pane {
   fn update(&mut self) {
     if system::WholeScreen::is_size_changed() || self.is_dirty {
       self.adjust();
@@ -129,15 +129,14 @@ impl Updatable for Pane {
   }
 }
 
-impl HtmlElementHolder for Pane {
-  fn get_raw_element(&self) -> &web_sys::HtmlElement {
-    &wasm_bindgen::JsCast::dyn_ref::<web_sys::HtmlElement>(&self.raw_element)
-      .expect("failed to cast to CanvasRenderingContext2d")
-  }
-}
 impl HtmlTextHolderTrait for Pane {}
 impl HtmlContainerTrait for Pane {}
-
+impl HtmlElementHolderTrait for Pane {
+  fn get_raw_element(&self) -> &web_sys::HtmlElement {
+    &wasm_bindgen::JsCast::dyn_ref::<web_sys::HtmlElement>(&self.raw_element)
+      .expect("failed to cast HtmlElementHolder")
+  }
+}
 impl Drop for Pane {
   fn drop(&mut self) {
     self.raw_element.remove();

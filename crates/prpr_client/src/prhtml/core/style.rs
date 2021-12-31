@@ -150,8 +150,16 @@ impl Cursor {
     }
   }
 }
-pub trait HtmlElementHolder {
+pub trait HtmlElementHolderTrait {
   fn get_raw_element(&self) -> &web_sys::HtmlElement;
+  // OVERALL ATTRIBUTE
+  fn set_cursor(&self, cursor: Cursor) {
+    self.set_by_name_impl("cursor", cursor.value());
+  }
+  fn set_filter(&self, filter: &Vec<Filter>) {
+    self.set_filter_impl(filter);
+  }
+
   fn set_by_name_impl(&self, key: &str, value: &str) {
     let style = self.get_raw_element().style();
     if style.set_property(key, value).is_err() {
@@ -193,16 +201,8 @@ pub trait HtmlElementHolder {
 }
 pub trait HtmlTextHolderTrait
 where
-  Self: HtmlElementHolder,
+  Self: HtmlElementHolderTrait,
 {
-  // OVERALL
-  fn set_cursor(&self, cursor: Cursor) {
-    self.set_by_name_impl("cursor", cursor.value());
-  }
-  fn set_filter(&self, filter: &Vec<Filter>) {
-    self.set_filter_impl(filter);
-  }
-
   // TEXT
   fn set_text_color(&self, rgba: Vec4) {
     self.set_color_impl("color", rgba);
@@ -228,28 +228,40 @@ where
 }
 pub trait HtmlContainerTrait
 where
-  Self: HtmlElementHolder,
+  Self: HtmlElementHolderTrait,
 {
   // OVERALL
-  fn set_padding(&self, percent: f32) {
-    self.set_float_percentage_parameter_impl("padding", percent);
-  }
   fn set_align(&self, align: Align) {
     self.set_by_name_impl("text-align", align.value());
   }
+  fn set_padding(&self, percent: f32) {
+    self.set_padding_left(percent);
+    self.set_padding_right(percent);
+    self.set_padding_top(percent);
+    self.set_padding_bottom(percent);
+  }
 
   // BORDER
-  fn set_border_color(&self, rgba: Vec4) {
-    self.set_color_impl("border-color", rgba);
-  }
   fn set_border_radius(&self, percent: f32) {
     self.set_float_percentage_parameter_impl("border-radius", percent);
   }
+  fn set_border_color(&self, rgba: Vec4) {
+    self.set_border_left_color(rgba);
+    self.set_border_right_color(rgba);
+    self.set_border_bottom_color(rgba);
+    self.set_border_top_color(rgba);
+  }
   fn set_border_width(&self, percent: f32) {
-    self.set_float_percentage_parameter_impl("border-width", percent);
+    self.set_border_left_width(percent);
+    self.set_border_right_width(percent);
+    self.set_border_bottom_width(percent);
+    self.set_border_top_width(percent);
   }
   fn set_border_style(&self, border_style: BorderStyle) {
-    self.set_by_name_impl("border-style", border_style.value());
+    self.set_border_left_style(border_style);
+    self.set_border_right_style(border_style);
+    self.set_border_bottom_style(border_style);
+    self.set_border_top_style(border_style);
   }
 
   // BACKGROUND
@@ -270,5 +282,55 @@ where
     self.set_by_name_impl("-webkit-background-clip", "text");
     self.set_by_name_impl("color", "transparent");
     self.set_by_name_impl("text-shadow", "none");
+  }
+
+  // LRTB
+  fn set_padding_left(&self, percent: f32) {
+    self.set_float_percentage_parameter_impl("padding-left", percent);
+  }
+  fn set_padding_right(&self, percent: f32) {
+    self.set_float_percentage_parameter_impl("padding-right", percent);
+  }
+  fn set_padding_top(&self, percent: f32) {
+    self.set_float_percentage_parameter_impl("padding-top", percent);
+  }
+  fn set_padding_bottom(&self, percent: f32) {
+    self.set_float_percentage_parameter_impl("padding-bottom", percent);
+  }
+  fn set_border_left_color(&self, rgba: Vec4) {
+    self.set_color_impl("border-left-color", rgba);
+  }
+  fn set_border_left_width(&self, percent: f32) {
+    self.set_float_percentage_parameter_impl("border-left-width", percent);
+  }
+  fn set_border_left_style(&self, border_style: BorderStyle) {
+    self.set_by_name_impl("border-left-style", border_style.value());
+  }
+  fn set_border_right_color(&self, rgba: Vec4) {
+    self.set_color_impl("border-right-color", rgba);
+  }
+  fn set_border_right_width(&self, percent: f32) {
+    self.set_float_percentage_parameter_impl("border-right-width", percent);
+  }
+  fn set_border_right_style(&self, border_style: BorderStyle) {
+    self.set_by_name_impl("border-right-style", border_style.value());
+  }
+  fn set_border_top_color(&self, rgba: Vec4) {
+    self.set_color_impl("border-top-color", rgba);
+  }
+  fn set_border_top_width(&self, percent: f32) {
+    self.set_float_percentage_parameter_impl("border-top-width", percent);
+  }
+  fn set_border_top_style(&self, border_style: BorderStyle) {
+    self.set_by_name_impl("border-top-style", border_style.value());
+  }
+  fn set_border_bottom_color(&self, rgba: Vec4) {
+    self.set_color_impl("border-bottom-color", rgba);
+  }
+  fn set_border_bottom_width(&self, percent: f32) {
+    self.set_float_percentage_parameter_impl("border-bottom-width", percent);
+  }
+  fn set_border_bottom_style(&self, border_style: BorderStyle) {
+    self.set_by_name_impl("border-bottom-style", border_style.value());
   }
 }

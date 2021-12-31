@@ -90,7 +90,7 @@ impl CasualScene {
     }
   }
 }
-impl Updatable for CasualScene {
+impl NeedUpdate for CasualScene {
   fn update(&mut self) {
     if input::Mouse::state(input::MouseState::IsDown) {
       self.camera.write().rotate_self_fixed(Vec2::new(
@@ -186,7 +186,7 @@ impl CasualPostEffect {
     }
   }
 }
-impl Updatable for CasualPostEffect {
+impl NeedUpdate for CasualPostEffect {
   fn update(&mut self) {
     let viewport = system::WholeScreen::viewport();
     self.renderpass.write().set_viewport(Some(&viewport));
@@ -230,7 +230,7 @@ impl Pane1 {
     Self { pane }
   }
 }
-impl Updatable for Pane1 {
+impl NeedUpdate for Pane1 {
   fn update(&mut self) {
     let text = format!("{} ms", Time::processed_milli_sec());
     self.pane.set_text_debug(&text);
@@ -252,7 +252,7 @@ impl Pane2 {
     Self { pane }
   }
 }
-impl Updatable for Pane2 {
+impl NeedUpdate for Pane2 {
   fn update(&mut self) {
     let mut super_text = String::from("");
     if Time::frame() < 50 {
@@ -298,6 +298,7 @@ pub fn sample_world() {
   // style.set_property("text-decoration", "underline")?; // line-through
   // style.set_property("z-index", &z_index.to_string());
   // style.set_property("display", "none");
+  - 3Dシーン上に配置したい
 
 - texture2darray, texture3d 対応する
   - texture として扱いたい？

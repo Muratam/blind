@@ -219,7 +219,7 @@ impl EventHolderImpl {
     self.wheel_delta_y
   }
 }
-impl Updatable for EventHolderImpl {
+impl NeedUpdate for EventHolderImpl {
   fn update(&mut self) {
     // mouse state
     let is_mouse_down = self.mouse_state(MouseState::IsDown);

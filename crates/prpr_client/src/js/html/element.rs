@@ -12,17 +12,22 @@ pub fn body() -> web_sys::HtmlElement {
 pub fn screen() -> web_sys::Screen {
   window().screen().expect("should have a screen on window")
 }
+
 use std::sync::atomic::{AtomicUsize, Ordering};
 static ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
-pub fn append_tag(parent: &web_sys::HtmlElement, tag: &str) -> web_sys::HtmlElement {
+pub fn create_tag(tag: &str) -> web_sys::Element {
+  let id = ID_COUNTER.fetch_add(1, Ordering::SeqCst) as u64;
   let created = document().create_element(tag).unwrap();
+  created.set_id(&format!("prpr-id-{}", id));
+  created
+}
+pub fn append_tag(parent: &web_sys::HtmlElement, tag: &str) -> web_sys::HtmlElement {
+  let created = create_tag(tag);
   let elem = parent
     .append_child(&created)
     .expect(&format!("failed to append child ({})", tag));
   let result =
     wasm_bindgen::JsCast::dyn_into::<web_sys::HtmlElement>(elem).expect("failed cast to div");
-  let id = ID_COUNTER.fetch_add(1, Ordering::SeqCst) as u64;
-  result.set_id(&format!("prpr-id-{}", id));
   result
 }
 

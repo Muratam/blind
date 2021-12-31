@@ -1,7 +1,7 @@
 use super::*;
-pub trait Updatable {
+pub trait NeedUpdate {
   fn update(&mut self);
-  fn is_dead(&self) -> bool {
+  fn is_destroyed(&self) -> bool {
     false
   }
 }
@@ -10,7 +10,7 @@ unsafe impl Send for UpdaterImpl {}
 unsafe impl Sync for UpdaterImpl {}
 
 struct UpdaterExecuteInfo {
-  updater: Box<dyn Updatable>,
+  updater: Box<dyn NeedUpdate>,
   order: Option<usize>, // asc
 }
 
@@ -35,10 +35,10 @@ impl UpdaterImpl {
       need_sort: false,
     }
   }
-  pub fn own<T: Updatable + 'static>(&mut self, updater: T) {
+  pub fn own<T: NeedUpdate + 'static>(&mut self, updater: T) {
     self.own_with_order(updater, None)
   }
-  pub fn own_with_order<T: Updatable + 'static>(&mut self, updater: T, order: Option<usize>) {
+  pub fn own_with_order<T: NeedUpdate + 'static>(&mut self, updater: T, order: Option<usize>) {
     self.updaters.push(UpdaterExecuteInfo {
       updater: Box::new(updater),
       order,
@@ -50,7 +50,7 @@ impl UpdaterImpl {
       self.updaters.sort_by(|a, b| a.order.cmp(&b.order));
       self.need_sort = false;
     }
-    self.updaters.retain(|u| !u.updater.is_dead());
+    self.updaters.retain(|u| !u.updater.is_destroyed());
     for u in &mut self.updaters {
       u.updater.update();
     }
@@ -58,10 +58,10 @@ impl UpdaterImpl {
 }
 pub struct Updater {}
 impl Updater {
-  pub fn own<T: Updatable + 'static>(updater: T) {
+  pub fn own<T: NeedUpdate + 'static>(updater: T) {
     UpdaterImpl::write_global().own(updater);
   }
-  pub fn own_with_order<T: Updatable + 'static>(updater: T, order: Option<usize>) {
+  pub fn own_with_order<T: NeedUpdate + 'static>(updater: T, order: Option<usize>) {
     UpdaterImpl::write_global().own_with_order(updater, order);
   }
 }
