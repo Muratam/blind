@@ -16,8 +16,7 @@ impl Text {
   }
 
   pub fn owned(parent: &mut dyn ElementHolderContainerTrait, text: &str) {
-    let owned = Self::new(parent, text);
-    parent.own(Box::new(owned));
+    parent.own(Box::new(Self::new(parent, text)));
   }
   pub fn text(&self) -> &str {
     &self.text

@@ -54,8 +54,24 @@ impl HtmlElementHolder {
       log::error(format!("failted to set_property: {} -> {}", key, value));
     }
   }
+  pub fn set_attribute_impl(&self, key: &str, value: Option<&str>) {
+    if let Some(value) = value {
+      self
+        .raw_element
+        .set_attribute(key, value)
+        .expect("failed to set attribute");
+    } else {
+      self
+        .raw_element
+        .remove_attribute(key)
+        .expect("failed to set attribute");
+    }
+  }
   pub fn set_float_percentage_parameter_impl(&self, key: &str, value: f32) {
     self.set_by_name_impl(key, &convert_percent_str(value));
+  }
+  pub fn set_float_percentage_attribute_impl(&self, key: &str, value: f32) {
+    self.set_attribute_impl(key, Some(&convert_percent_str(value)));
   }
   pub fn set_color_impl(&self, key: &str, rgba: Vec4) {
     self.set_by_name_impl(key, &rgba_to_css_value(rgba));

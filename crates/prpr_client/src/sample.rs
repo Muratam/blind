@@ -151,20 +151,24 @@ impl CasualPostEffect {
           vec4 base = texelFetch(src_color, iuv, 0).rgba;
           vec3 rgb = base.rgb;
           if (base.a < 0.5) {
-            rgb = vec3(1.0, 1.0, 1.0);
+            int ok = 0;
             for (int len = 1; len <= 5; ++len) {
               for (int dx = -1; dx <= 1; dx++) {
                 for (int dy = -1; dy <= 1; dy++) {
                   vec4 fetch = texelFetch(src_color, iuv + ivec2(dx, dy) * len, 0);
                   if (fetch.a > 0.5) {
                     rgb = vec3(0.0, 0.0, 0.0);
+                    ok = 1;
                   }
                 }
               }
             }
+            if (ok == 0) {
+              discard;
+            }
           } else {
             float gray = (base.r + base.g + base.b) * 0.333;
-            rgb = vec3(1.0,1.0,1.0) * gray;
+            rgb = vec3(0.7,1.2,1.8) * gray;
           }
           out_color = vec4(rgb, 1.0);
         }
@@ -185,6 +189,7 @@ impl CasualPostEffect {
     )));
     let out_color = TextureRecipe::new_fullscreen(PixelFormat::R8G8B8A8);
     renderpass.set_color_target(Some(&out_color));
+    renderpass.set_clear_color(Some(Vec4::new(0.3, 0.3, 0.3, 1.0)));
     renderpass.own_pipeline(pipeline);
     let renderpass = ArcOwner::new(renderpass);
     RenderPassExecuter::add(&renderpass, CasualRenderPassOrder::PostEffect as usize);
@@ -268,6 +273,8 @@ impl Pane2 {
     // text1.set_href(Some("https://example.com"));
     // let hr1 = prhtml::Hr::new(&pane); //, 2.4);
     prhtml::Text::owned(&mut pane, &rand::XorShift128::global().asciis(1000));
+    prhtml::Text::owned(&mut pane, "\n");
+    prhtml::IFrame::owned(&mut pane, None, Some(30.0), "https://www.openstreetmap.org/export/embed.html?bbox=-0.004017949104309083%2C51.47612752641776%2C0.00030577182769775396%2C51.478569861898606&layer=mapnik");
     Self { pane, text1 }
   }
 }
