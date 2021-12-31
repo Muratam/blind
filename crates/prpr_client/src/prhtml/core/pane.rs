@@ -39,6 +39,14 @@ impl Pane {
     result.setup();
     result
   }
+  pub fn set_width_by_width(&mut self, v: f32) {
+    self.width_by_width = v;
+    self.is_dirty = true;
+  }
+  pub fn set_height(&mut self, v: f32) {
+    self.height = v;
+    self.is_dirty = true;
+  }
   pub fn set_max_width(&mut self, v: Option<f32>) {
     self.max_width = v;
     self.is_dirty = true;

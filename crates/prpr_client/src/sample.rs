@@ -304,22 +304,37 @@ pub fn sample_world() {
   Updater::own(Pane2::new());
 }
 /* TODO:
-- ShaderTemplate -> void main()
 - pipeline.add で同じUniformBufferな時に気をつけたい(Camera)
 - particle
   - draw instanced
   - transform feedback
   - overlay
 - html
-  - table? fontawesome? iframe?(map?) bulma input? / slider? tooltip?
-  - top menu? chart.js?
   - API -  WebMIDI, WebAudio, Video
-  // css animation? <- 衝突するのでやめておきたい
-  // ↓専用のTEXTクラスで実装
   // style.set_property("z-index", &z_index.to_string());
-  // style.set_property("display", "none");
   - 3Dシーン上に配置したい
+  - Tween 実装したい（消える予定のUpdater）
+    - clicked ?
+- Condition-Variable でいい感じにイベントドリブンにもできないか
+  - NeedUpdateを消せないか
+  - Findできないのつらい
+- transform の子
+- transform-object にパイプラインが一つしかない
+  - shadow や selection で困る
+// - 9FitPane
+// - Table / FlexBox(Area)
+// - img, video, audio,
+// - button, input, textarea
+//   meter(slider, progress),
+//   select datalist fieldset optgroup+option
+//   bulma-input? / slider? tooltip?
+//   Material Design?
+// - menu / tab
+// SVG(いろいろなコンテンツ用)
+// - chart-js
+// - 文書用： Hr, A, H1~H6, BlockQuote, Li, Ol, Pre, Ul, Code
 
+- ShaderTemplate持ち運べるように
 - texture2darray, texture3d 対応する
   - texture として扱いたい？
     - https://ics.media/web3d-maniacs/webgl2_texture2darray/

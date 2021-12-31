@@ -2,12 +2,13 @@
 // 後ろの方が優先度が高いがちにしている
 #[derive(Clone, Copy, PartialEq)]
 pub enum Why {
-  ByUser,        // ユーザー操作
-  ByTrasition,   // 別の状態に切り替わるので
-  ByAnimation,   // (恒久的に)アニメーションするので
-  ByCustomStyle, // ここではそういうスタイルなので
-  ByStyle,       // そういうスタイルなので
-  ByOriginal,    // このオブジェクトを表現するために必要なので
+  ByUser,          // ユーザー操作
+  ByTrasition,     // 別の状態に切り替わるので
+  ByAnimation,     // (恒久的に)アニメーションするので
+  ByCustomStyle,   // ここではそういうスタイルなので
+  ByStyle,         // そういうスタイルなので
+  ByHierarchyRule, // 階層構造で必要なので
+  ByOriginal,      // このオブジェクトを表現するために必要なので
 }
 pub trait WhyTrait
 where
@@ -17,13 +18,13 @@ where
 }
 
 pub struct Whys<T: WhyTrait + Clone> {
-  whys: [Option<T>; 6],
+  whys: [Option<T>; 7],
   calculated: Option<T>,
 }
 impl<T: WhyTrait + Clone> Whys<T> {
   pub fn new() -> Self {
     Self {
-      whys: [None, None, None, None, None, None],
+      whys: [None, None, None, None, None, None, None],
       calculated: None,
     }
   }

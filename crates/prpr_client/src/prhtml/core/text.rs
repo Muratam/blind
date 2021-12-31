@@ -36,16 +36,6 @@ impl HtmlBackgroundTrait for Text {}
 impl HtmlBoxTrait for Text {}
 impl HtmlTextConfigurableTrait for Text {}
 
-// - FitPane
-// - Table / FlexBox(Area)
-// - img, video, audio, iframe,
-// - button, input, textarea
-//   meter(slider, progress),
-//   select datalist fieldset optgroup+option
-// SVG(いろいろなコンテンツ用)
-// font-awesome / chart-js
-// - 文書用： Hr, A, H1~H6, BlockQuote, Li, Ol, Pre, Ul, Code
-
 // pub struct Hr {
 //   holder: HtmlElementHolder,
 // }
