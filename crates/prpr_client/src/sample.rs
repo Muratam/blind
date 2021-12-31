@@ -90,7 +90,7 @@ impl CasualScene {
     }
   }
 }
-impl system::Updatable for CasualScene {
+impl Updatable for CasualScene {
   fn update(&mut self) {
     if input::Mouse::state(input::MouseState::IsDown) {
       self.camera.write().rotate_self_fixed(Vec2::new(
