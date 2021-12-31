@@ -1,9 +1,6 @@
 use super::*;
 
 pub struct Pane {
-  scale: f32,
-  rotate_degree: f32,
-  offset: Vec2,
   height: f32,
   width_by_width: f32,
   min_width: Option<f32>,
@@ -29,9 +26,6 @@ impl Pane {
     let root = prhtml::Instance::root();
     let holder = HtmlElementHolder::new(root, "div");
     let mut result = Self {
-      scale: 1.0,
-      rotate_degree: 0.0,
-      offset: Vec2::ZERO,
       height,
       width_by_width,
       min_width: None,
@@ -51,18 +45,6 @@ impl Pane {
     self.min_width = v;
     self.is_dirty = true;
   }
-  pub fn set_scale(&mut self, v: f32) {
-    self.scale = v;
-    self.is_dirty = true;
-  }
-  pub fn set_rotate_degree(&mut self, v: f32) {
-    self.rotate_degree = v;
-    self.is_dirty = true;
-  }
-  pub fn set_offset(&mut self, v: Vec2) {
-    self.offset = v;
-    self.is_dirty = true;
-  }
   fn setup(&mut self) {
     self.holder.set_by_name_impl("overflow", "scroll");
     self.holder.set_by_name_impl("position", "absolute");
@@ -72,19 +54,8 @@ impl Pane {
     let width = system::WholeScreen::width() as f32;
     let height = system::WholeScreen::height() as f32;
     let expected_height = EXPECTED_BROWSER_HEIGHT;
-    let scale = height / expected_height * self.scale;
-    // そのうち使うかも？
-    // self.set_by_name_impl("display", "flex");
-    self.holder.set_by_name_impl(
-      "transform",
-      &format!(
-        "translate({},{}) scale({}) rotate({}deg)",
-        convert_percent_str(self.offset.x),
-        convert_percent_str(self.offset.y),
-        scale,
-        self.rotate_degree
-      ),
-    );
+    let scale = height / expected_height;
+    self.set_scale(scale, Why::ByOriginal);
     let aspect = width as f32 / height as f32;
     let h = self.height;
     let mut w = self.width_by_width * aspect;

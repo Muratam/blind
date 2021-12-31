@@ -6,6 +6,21 @@ pub trait HtmlElementHolderTrait {
   fn set_cursor(&self, cursor: Cursor) {
     self.holder().set_cursor(cursor);
   }
+  fn set_translate(&self, translate: Vec2, why: Why) {
+    self.holder().set_translate(translate, why);
+  }
+  fn set_rotate_degree(&self, rotate_deg: f32, why: Why) {
+    self.holder().set_rotate_degree(rotate_deg, why);
+  }
+  fn set_scale(&self, scale: f32, why: Why) {
+    self.holder().set_scale(scale, why);
+  }
+  fn set_transform(&self, translate: Vec2, rotate_deg: f32, scale: f32, why: Why) {
+    self
+      .holder()
+      .set_transform(translate, rotate_deg, scale, why);
+  }
+
   fn set_filter_blur(&self, filter: Option<f32>, why: Why) {
     self.holder().set_filter_blur(filter, why);
   }

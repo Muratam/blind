@@ -73,32 +73,40 @@ impl HtmlElementHolder {
   }
   fn update_filter_impl(&self) {
     let mut text = String::from("");
-    let internal = self.internal.read().unwrap();
-    if let Some(calc) = internal.filter_dropshadow.calc() {
-      text += &calc.to_css_value();
-    }
-    if let Some(calc) = internal.filter_blur.calc() {
-      text += &calc.to_css_value();
-    }
-    if let Some(calc) = internal.filter_huerotate.calc() {
-      text += &calc.to_css_value();
-    }
-    if let Some(calc) = internal.filter_brightness.calc() {
-      text += &calc.to_css_value();
-    }
-    if let Some(calc) = internal.filter_contrast.calc() {
-      text += &calc.to_css_value();
-    }
-    if let Some(calc) = internal.filter_grayscale.calc() {
-      text += &calc.to_css_value();
-    }
-    if let Some(calc) = internal.filter_opacity.calc() {
-      text += &calc.to_css_value();
+    {
+      let internal = self.internal.read().unwrap();
+      if let Some(calc) = internal.filter_dropshadow.calc() {
+        text += &calc.to_css_value();
+      }
+      if let Some(calc) = internal.filter_blur.calc() {
+        text += &calc.to_css_value();
+      }
+      if let Some(calc) = internal.filter_huerotate.calc() {
+        text += &calc.to_css_value();
+      }
+      if let Some(calc) = internal.filter_brightness.calc() {
+        text += &calc.to_css_value();
+      }
+      if let Some(calc) = internal.filter_contrast.calc() {
+        text += &calc.to_css_value();
+      }
+      if let Some(calc) = internal.filter_grayscale.calc() {
+        text += &calc.to_css_value();
+      }
+      if let Some(calc) = internal.filter_opacity.calc() {
+        text += &calc.to_css_value();
+      }
     }
     if text == "" {
       self.set_by_name_impl("filter", "none");
     } else {
       self.set_by_name_impl("filter", &text);
+    }
+  }
+
+  fn update_transform_impl(&self) {
+    if let Some(calc) = self.internal.read().unwrap().transform.calc() {
+      self.set_by_name_impl("transform", &calc.to_css_value());
     }
   }
 
@@ -127,6 +135,56 @@ impl HtmlElementHolder {
   // OVERALL
   pub fn set_cursor(&self, cursor: Cursor) {
     self.set_by_name_impl("cursor", cursor.to_css_value());
+  }
+  pub fn set_translate(&self, translate: Vec2, why: Why) {
+    let mut pre = self
+      .internal
+      .read()
+      .unwrap()
+      .transform
+      .get(why)
+      .unwrap_or_default();
+    pre.translate = translate;
+    self.internal.write().unwrap().transform.set(Some(pre), why);
+    self.update_transform_impl();
+  }
+  pub fn set_rotate_degree(&self, rotate_deg: f32, why: Why) {
+    let mut pre = self
+      .internal
+      .read()
+      .unwrap()
+      .transform
+      .get(why)
+      .unwrap_or_default();
+    pre.rotate_deg = rotate_deg;
+    self.internal.write().unwrap().transform.set(Some(pre), why);
+    self.update_transform_impl();
+  }
+  pub fn set_scale(&self, scale: f32, why: Why) {
+    let mut pre = self
+      .internal
+      .read()
+      .unwrap()
+      .transform
+      .get(why)
+      .unwrap_or_default();
+    pre.scale = scale;
+    self.internal.write().unwrap().transform.set(Some(pre), why);
+    self.update_transform_impl();
+  }
+  pub fn set_transform(&self, translate: Vec2, rotate_deg: f32, scale: f32, why: Why) {
+    let transform = HtmlTransform {
+      translate,
+      rotate_deg,
+      scale,
+    };
+    self
+      .internal
+      .write()
+      .unwrap()
+      .transform
+      .set(Some(transform), why);
+    self.update_transform_impl();
   }
   pub fn set_filter_blur(&self, filter: Option<f32>, why: Why) {
     self

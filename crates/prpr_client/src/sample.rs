@@ -226,7 +226,7 @@ impl Pane1 {
     let mut pane = prhtml::Pane::new(prhtml::PaneFitPoint::LeftTop, 12.5, 12.5);
     pane.set_max_width(Some(12.5));
     pane.set_min_width(Some(12.5));
-    pane.set_offset(Vec2::new(1.0, 1.0));
+    pane.set_translate(Vec2::Y, Why::ByStyle);
     apply_style(&pane);
     let text = prhtml::Text::new(&pane, "");
     Self { pane, text }
@@ -237,7 +237,7 @@ impl NeedUpdate for Pane1 {
     let text = format!("{} ms", Time::processed_milli_sec());
     self.text.set_text(&text);
     let f = Time::frame() as f32 * 0.1;
-    self.pane.set_scale(1.0 + 0.02 * f.sin());
+    self.pane.set_scale(1.0 + 0.02 * f.sin(), Why::ByAnimation);
     self.pane.set_filter_huerotate(Some(f * 20.0), Why::ByUser);
     self.pane.update();
   }
@@ -253,7 +253,7 @@ impl Pane2 {
   fn new() -> Self {
     let mut pane = prhtml::Pane::new(prhtml::PaneFitPoint::Bottom, 80.0, 30.0);
     pane.set_max_width(Some(120.0));
-    pane.set_offset(-Vec2::Y);
+    pane.set_translate(-Vec2::Y, Why::ByStyle);
     apply_style(&pane);
     pane.set_padding_x(3.0);
     let text1 = prhtml::Text::new(&pane, "");
