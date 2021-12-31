@@ -10,6 +10,7 @@ fn setup_global_style(parent: &web_sys::HtmlElement) {
     overscroll-behavior-y: none;
     overflow: hidden;
     word-break: break-all;
+    transform-origin: center;
     font-family: BlinkMacSystemFont, -apple-system, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
   }
   "###;

@@ -200,12 +200,12 @@ fn apply_style(pane: &prhtml::Pane) {
   );
   pane.set_padding(1.5);
   pane.set_align(prhtml::Align::Center);
-  pane.set_filter(&vec![prhtml::Filter::Blur(0.1)]);
+  pane.set_filter_blur(Some(0.1), Why::ByUser);
   pane.set_border_color(Vec4::new(0.4, 0.8, 0.9, 0.8));
   pane.set_border_radius(1.4);
   pane.set_border_width(0.4);
   pane.set_border_style(prhtml::BorderStyle::Solid);
-  pane.set_background_shadow(0.5, 0.5, 0.5, Vec4::new(0.4, 0.8, 0.9, 0.4));
+  pane.set_box_shadow(0.5, 0.5, 0.5, Vec4::new(0.4, 0.8, 0.9, 0.4));
   pane.set_background_gradation(&gradation);
   pane.set_text_size(2.4);
   // pane.set_text_line_height(2.5);
@@ -238,6 +238,7 @@ impl NeedUpdate for Pane1 {
     self.text.set_text(&text);
     let f = Time::frame() as f32 * 0.1;
     self.pane.set_scale(1.0 + 0.02 * f.sin());
+    self.pane.set_filter_huerotate(Some(f * 20.0), Why::ByUser);
     self.pane.update();
   }
 }
@@ -245,7 +246,7 @@ impl NeedUpdate for Pane1 {
 struct Pane2 {
   pane: prhtml::Pane,
   text1: prhtml::Text,
-  hr1: prhtml::Hr,
+  // hr1: prhtml::Hr,
   text2: prhtml::Text,
 }
 impl Pane2 {
@@ -256,11 +257,11 @@ impl Pane2 {
     apply_style(&pane);
     pane.set_padding_x(3.0);
     let text1 = prhtml::Text::new(&pane, "");
-    let hr1 = prhtml::Hr::new(&pane, 2.4);
+    // let hr1 = prhtml::Hr::new(&pane, 2.4);
     let text2 = prhtml::Text::new(&pane, &rand::XorShift128::global().asciis(1000));
     Self {
       pane,
-      hr1,
+      // hr1,
       text1,
       text2,
     }

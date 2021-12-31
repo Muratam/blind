@@ -8,7 +8,7 @@ pub struct Pane {
   width_by_width: f32,
   min_width: Option<f32>,
   max_width: Option<f32>,
-  raw_element: web_sys::HtmlDivElement,
+  holder: HtmlElementHolder,
   fit_point: PaneFitPoint,
   is_dirty: bool,
 }
@@ -27,7 +27,7 @@ pub enum PaneFitPoint {
 impl Pane {
   pub fn new(fit_point: PaneFitPoint, width_by_width: f32, height: f32) -> Self {
     let root = prhtml::Instance::root();
-    let raw_element = js::html::append_div(root);
+    let holder = HtmlElementHolder::new(root, "div");
     let mut result = Self {
       scale: 1.0,
       rotate_degree: 0.0,
@@ -36,7 +36,7 @@ impl Pane {
       width_by_width,
       min_width: None,
       max_width: None,
-      raw_element,
+      holder,
       fit_point,
       is_dirty: true,
     };
@@ -64,11 +64,8 @@ impl Pane {
     self.is_dirty = true;
   }
   fn setup(&mut self) {
-    self.set_by_name_impl("overflow", "scroll");
-    self.set_by_name_impl("position", "absolute");
-    // そのうち使うかも？
-    // self.set_by_name_impl("display", "flex");
-    // self.set_by_name_impl("transform-origin", "center");
+    self.holder.set_by_name_impl("overflow", "scroll");
+    self.holder.set_by_name_impl("position", "absolute");
     self.adjust();
   }
   fn adjust(&mut self) {
@@ -76,7 +73,9 @@ impl Pane {
     let height = system::WholeScreen::height() as f32;
     let expected_height = EXPECTED_BROWSER_HEIGHT;
     let scale = height / expected_height * self.scale;
-    self.set_by_name_impl(
+    // そのうち使うかも？
+    // self.set_by_name_impl("display", "flex");
+    self.holder.set_by_name_impl(
       "transform",
       &format!(
         "translate({},{}) scale({}) rotate({}deg)",
@@ -95,8 +94,12 @@ impl Pane {
     if let Some(mw) = self.min_width {
       w = w.max(mw);
     }
-    self.set_by_name_impl("width", &convert_percent_str(w));
-    self.set_by_name_impl("height", &convert_percent_str(h));
+    self
+      .holder
+      .set_by_name_impl("width", &convert_percent_str(w));
+    self
+      .holder
+      .set_by_name_impl("height", &convert_percent_str(h));
     let position = match self.fit_point {
       PaneFitPoint::LeftTop => Vec2::new(-0.5, 0.5),
       PaneFitPoint::Left => Vec2::new(-0.5, 0.0),
@@ -113,8 +116,8 @@ impl Pane {
     let y = (-position.y + 0.5) * height - h * 0.5 * expected_height + h * position.y * height;
     let x = (position.x + 0.5) * width - w * 0.5 * expected_height - w * position.x * height;
     let px = |f: f32| format!("{}px", f);
-    self.set_by_name_impl("top", &px(y));
-    self.set_by_name_impl("left", &px(x));
+    self.holder.set_by_name_impl("top", &px(y));
+    self.holder.set_by_name_impl("left", &px(x));
     self.is_dirty = false;
   }
 }
@@ -126,16 +129,17 @@ impl NeedUpdate for Pane {
   }
 }
 
+impl HtmlElementHolderTrait for Pane {
+  fn holder(&self) -> &HtmlElementHolder {
+    &self.holder
+  }
+}
+impl ElementHolderContainerTrait for Pane {
+  fn holder_container(&self) -> &web_sys::HtmlElement {
+    &self.holder.raw_element()
+  }
+}
+impl HtmlBackgroundTrait for Pane {}
+impl HtmlBoxTrait for Pane {}
 impl HtmlTextConfigurableTrait for Pane {}
 impl HtmlContainerTrait for Pane {}
-impl HtmlElementHolderTrait for Pane {
-  fn get_raw_element(&self) -> &web_sys::HtmlElement {
-    &wasm_bindgen::JsCast::dyn_ref::<web_sys::HtmlElement>(&self.raw_element)
-      .expect("failed to cast HtmlElementHolder")
-  }
-}
-impl Drop for Pane {
-  fn drop(&mut self) {
-    self.raw_element.remove();
-  }
-}

@@ -13,6 +13,8 @@ mod event;
 pub use event::*;
 mod screen;
 pub use screen::*;
+mod why;
+pub use why::*;
 pub mod input;
 
 pub fn run(f: fn(), config: Option<ClientRunConfig>) {
