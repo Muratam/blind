@@ -226,7 +226,7 @@ impl Pane1 {
     let mut pane = prhtml::Pane::new(prhtml::PaneFitPoint::LeftTop, 12.5, 12.5);
     pane.set_max_width(Some(12.5));
     pane.set_min_width(Some(12.5));
-    pane.set_translate(Vec2::Y, Why::ByStyle);
+    pane.set_translate(Vec2::Y, Why::ByCustomStyle);
     apply_style(&pane);
     let text = prhtml::Text::new(&pane, "");
     Self { pane, text }
