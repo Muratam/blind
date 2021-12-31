@@ -15,7 +15,7 @@ pub fn screen() -> web_sys::Screen {
 
 use std::sync::atomic::{AtomicUsize, Ordering};
 static ID_COUNTER: AtomicUsize = AtomicUsize::new(0);
-pub fn create_tag(tag: &str) -> web_sys::Element {
+fn create_tag(tag: &str) -> web_sys::Element {
   let id = ID_COUNTER.fetch_add(1, Ordering::SeqCst) as u64;
   let created = document().create_element(tag).unwrap();
   created.set_id(&format!("prpr-id-{}", id));

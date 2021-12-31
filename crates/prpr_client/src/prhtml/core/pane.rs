@@ -129,7 +129,7 @@ impl NeedUpdate for Pane {
   }
 }
 
-impl HtmlTextHolderTrait for Pane {}
+impl HtmlTextConfigurableTrait for Pane {}
 impl HtmlContainerTrait for Pane {}
 impl HtmlElementHolderTrait for Pane {
   fn get_raw_element(&self) -> &web_sys::HtmlElement {

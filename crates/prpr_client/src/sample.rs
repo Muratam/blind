@@ -295,7 +295,6 @@ pub fn sample_world() {
   - API -  WebMIDI, WebAudio, Video
   // css animation? <- 衝突するのでやめておきたい
   // ↓専用のTEXTクラスで実装
-  // style.set_property("text-decoration", "underline")?; // line-through
   // style.set_property("z-index", &z_index.to_string());
   // style.set_property("display", "none");
   - 3Dシーン上に配置したい

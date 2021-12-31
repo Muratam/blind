@@ -150,6 +150,28 @@ impl Cursor {
     }
   }
 }
+#[derive(Clone, Copy, PartialEq)]
+pub enum TextDecorationStyle {
+  Solid,
+  Double,
+  Dotted,
+  Dashed,
+  Wavy,
+  None,
+}
+impl TextDecorationStyle {
+  fn value(&self) -> &'static str {
+    match self {
+      Self::Solid => "solid",
+      Self::Double => "double",
+      Self::Dotted => "dotted",
+      Self::Dashed => "dashed",
+      Self::Wavy => "wavy",
+      Self::None => "none",
+    }
+  }
+}
+
 pub trait HtmlElementHolderTrait {
   fn get_raw_element(&self) -> &web_sys::HtmlElement;
   // OVERALL ATTRIBUTE
@@ -158,81 +180,6 @@ pub trait HtmlElementHolderTrait {
   }
   fn set_filter(&self, filter: &Vec<Filter>) {
     self.set_filter_impl(filter);
-  }
-
-  fn set_by_name_impl(&self, key: &str, value: &str) {
-    let style = self.get_raw_element().style();
-    if style.set_property(key, value).is_err() {
-      log::error(format!("failted to set_property: {} -> {}", key, value));
-    }
-  }
-  fn set_float_percentage_parameter_impl(&self, key: &str, value: f32) {
-    self.set_by_name_impl(key, &convert_percent_str(value));
-  }
-  fn set_color_impl(&self, key: &str, rgba: Vec4) {
-    self.set_by_name_impl(key, &to_css(rgba));
-  }
-  fn set_shadow_impl(&self, key: &str, dx: f32, dy: f32, blur_radius: f32, rgba: Vec4) {
-    self.set_by_name_impl(
-      key,
-      &format!(
-        "{} {} {} {}",
-        convert_percent_str(dx),
-        convert_percent_str(dy),
-        convert_percent_str(blur_radius),
-        &to_css(rgba)
-      ),
-    );
-  }
-  fn set_filter_impl(&self, filter: &Vec<Filter>) {
-    if filter.len() == 0 {
-      self.set_by_name_impl("filter", "none");
-    } else {
-      self.set_by_name_impl(
-        "filter",
-        &filter
-          .iter()
-          .map(|x| x.value())
-          .collect::<Vec<_>>()
-          .join(" "),
-      );
-    }
-  }
-}
-pub trait HtmlTextHolderTrait
-where
-  Self: HtmlElementHolderTrait,
-{
-  // TEXT
-  fn set_text_color(&self, rgba: Vec4) {
-    self.set_color_impl("color", rgba);
-  }
-  fn set_text_shadow(&self, dx: f32, dy: f32, blur_radius: f32, rgba: Vec4) {
-    self.set_shadow_impl("text-shadow", dx, dy, blur_radius, rgba);
-  }
-  fn set_text_size(&self, percent: f32) {
-    self.set_float_percentage_parameter_impl("font-size", percent);
-  }
-  fn set_text_line_height(&self, percent: f32) {
-    self.set_float_percentage_parameter_impl("line-height", percent);
-  }
-  fn set_text_letter_spacing(&self, percent: f32) {
-    self.set_float_percentage_parameter_impl("letter-spacing", percent);
-  }
-  fn set_text_bold(&self, is_bold: bool) {
-    self.set_by_name_impl("font-weight", if is_bold { "bold" } else { "normal" });
-  }
-  fn set_text_italic(&self, is_italic: bool) {
-    self.set_by_name_impl("font-style", if is_italic { "italic" } else { "normal" });
-  }
-}
-pub trait HtmlContainerTrait
-where
-  Self: HtmlElementHolderTrait,
-{
-  // OVERALL
-  fn set_align(&self, align: Align) {
-    self.set_by_name_impl("text-align", align.value());
   }
   fn set_padding(&self, percent: f32) {
     self.set_padding_left(percent);
@@ -273,15 +220,6 @@ where
   }
   fn set_background_shadow(&self, dx: f32, dy: f32, blur_radius: f32, rgba: Vec4) {
     self.set_shadow_impl("box-shadow", dx, dy, blur_radius, rgba);
-  }
-
-  // EXPERIMENTAL
-  fn set_background_textclip(&self) {
-    // to clip to gradation
-    self.set_by_name_impl("background-clip", "text");
-    self.set_by_name_impl("-webkit-background-clip", "text");
-    self.set_by_name_impl("color", "transparent");
-    self.set_by_name_impl("text-shadow", "none");
   }
 
   // LRTB
@@ -332,5 +270,111 @@ where
   }
   fn set_border_bottom_style(&self, border_style: BorderStyle) {
     self.set_by_name_impl("border-bottom-style", border_style.value());
+  }
+
+  // IMPLS
+  fn set_by_name_impl(&self, key: &str, value: &str) {
+    let style = self.get_raw_element().style();
+    if style.set_property(key, value).is_err() {
+      log::error(format!("failted to set_property: {} -> {}", key, value));
+    }
+  }
+  fn set_float_percentage_parameter_impl(&self, key: &str, value: f32) {
+    self.set_by_name_impl(key, &convert_percent_str(value));
+  }
+  fn set_color_impl(&self, key: &str, rgba: Vec4) {
+    self.set_by_name_impl(key, &to_css(rgba));
+  }
+  fn set_shadow_impl(&self, key: &str, dx: f32, dy: f32, blur_radius: f32, rgba: Vec4) {
+    self.set_by_name_impl(
+      key,
+      &format!(
+        "{} {} {} {}",
+        convert_percent_str(dx),
+        convert_percent_str(dy),
+        convert_percent_str(blur_radius),
+        &to_css(rgba)
+      ),
+    );
+  }
+  fn set_filter_impl(&self, filter: &Vec<Filter>) {
+    if filter.len() == 0 {
+      self.set_by_name_impl("filter", "none");
+    } else {
+      self.set_by_name_impl(
+        "filter",
+        &filter
+          .iter()
+          .map(|x| x.value())
+          .collect::<Vec<_>>()
+          .join(" "),
+      );
+    }
+  }
+  fn set_text_decoration_impl(&self, line: &str, style: TextDecorationStyle, rgba: Vec4) {
+    if style == TextDecorationStyle::None {
+      self.set_by_name_impl("text-decoration-line", "none");
+    } else {
+      self.set_by_name_impl("text-decoration-line", line);
+      self.set_by_name_impl("text-decoration-style", style.value());
+    }
+    self.set_color_impl("text-decoration-color", rgba);
+  }
+}
+pub trait HtmlTextHolderTrait
+where
+  Self: HtmlElementHolderTrait,
+{
+}
+
+pub trait HtmlTextConfigurableTrait
+where
+  Self: HtmlElementHolderTrait,
+{
+  // TEXT
+  fn set_text_color(&self, rgba: Vec4) {
+    self.set_color_impl("color", rgba);
+  }
+  fn set_text_shadow(&self, dx: f32, dy: f32, blur_radius: f32, rgba: Vec4) {
+    self.set_shadow_impl("text-shadow", dx, dy, blur_radius, rgba);
+  }
+  fn set_text_size(&self, percent: f32) {
+    self.set_float_percentage_parameter_impl("font-size", percent);
+  }
+  fn set_text_line_height(&self, percent: f32) {
+    self.set_float_percentage_parameter_impl("line-height", percent);
+  }
+  fn set_text_letter_spacing(&self, percent: f32) {
+    self.set_float_percentage_parameter_impl("letter-spacing", percent);
+  }
+  fn set_text_bold(&self, is_bold: bool) {
+    self.set_by_name_impl("font-weight", if is_bold { "bold" } else { "normal" });
+  }
+  fn set_text_italic(&self, is_italic: bool) {
+    self.set_by_name_impl("font-style", if is_italic { "italic" } else { "normal" });
+  }
+  fn set_text_underline(&self, style: TextDecorationStyle, rgba: Vec4) {
+    self.set_text_decoration_impl("underline", style, rgba);
+  }
+  fn set_text_linethrough(&self, style: TextDecorationStyle, rgba: Vec4) {
+    self.set_text_decoration_impl("line-through", style, rgba);
+  }
+}
+pub trait HtmlContainerTrait
+where
+  Self: HtmlElementHolderTrait,
+{
+  // OVERALL
+  fn set_align(&self, align: Align) {
+    self.set_by_name_impl("text-align", align.value());
+  }
+
+  // EXPERIMENTAL
+  fn set_background_textclip(&self) {
+    // to clip to gradation
+    self.set_by_name_impl("background-clip", "text");
+    self.set_by_name_impl("-webkit-background-clip", "text");
+    self.set_by_name_impl("color", "transparent");
+    self.set_by_name_impl("text-shadow", "none");
   }
 }

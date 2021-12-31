@@ -10,11 +10,15 @@ impl Text {
     }
   }
 }
-
+impl HtmlTextConfigurableTrait for Text {}
 impl HtmlTextHolderTrait for Text {}
 impl HtmlElementHolderTrait for Text {
   fn get_raw_element(&self) -> &web_sys::HtmlElement {
-    &wasm_bindgen::JsCast::dyn_ref::<web_sys::HtmlElement>(&self.raw_element)
-      .expect("failed to cast HtmlElementHolder")
+    &self.raw_element
+  }
+}
+impl Drop for Text {
+  fn drop(&mut self) {
+    self.raw_element.remove();
   }
 }
