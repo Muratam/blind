@@ -7,7 +7,7 @@ pub struct HtmlTransform {
   pub translate: Vec2,
 }
 impl WhyTrait for HtmlTransform {
-  fn concat(&self, x: Self) -> Self {
+  fn concat(&self, x: &Self) -> Self {
     Self {
       scale: self.scale * x.scale,
       rotate_deg: self.rotate_deg + x.rotate_deg,

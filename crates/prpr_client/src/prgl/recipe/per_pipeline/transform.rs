@@ -10,6 +10,16 @@ pub struct TransformData {
   pub rotation: Quat,
   pub translate: Vec3,
 }
+impl WhyTrait for TransformData {
+  fn concat(&self, x: &Self) -> Self {
+    Self {
+      scale: self.scale * x.scale,
+      rotation: self.rotation * x.rotation,
+      translate: self.translate + x.translate,
+    }
+  }
+}
+
 impl Default for TransformData {
   fn default() -> Self {
     Self {

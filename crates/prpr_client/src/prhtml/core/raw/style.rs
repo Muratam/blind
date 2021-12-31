@@ -57,7 +57,7 @@ impl Gradation {
 #[derive(Clone, Copy)]
 pub struct FilterBlur(pub f32);
 impl WhyTrait for FilterBlur {
-  fn concat(&self, x: Self) -> Self {
+  fn concat(&self, x: &Self) -> Self {
     Self(self.0 + x.0)
   }
 }
@@ -75,7 +75,7 @@ pub struct FilterDropShadow {
   pub rgba: Vec4,
 }
 impl WhyTrait for FilterDropShadow {
-  fn concat(&self, x: Self) -> Self {
+  fn concat(&self, x: &Self) -> Self {
     Self {
       x: self.x + x.x,
       y: self.y + x.y,
@@ -99,7 +99,7 @@ impl FilterDropShadow {
 #[derive(Clone, Copy)]
 pub struct FilterHueRotate(pub f32);
 impl WhyTrait for FilterHueRotate {
-  fn concat(&self, x: Self) -> Self {
+  fn concat(&self, x: &Self) -> Self {
     Self(self.0 + x.0)
   }
 }
@@ -112,7 +112,7 @@ impl FilterHueRotate {
 #[derive(Clone, Copy)]
 pub struct FilterBrightness(pub f32);
 impl WhyTrait for FilterBrightness {
-  fn concat(&self, x: Self) -> Self {
+  fn concat(&self, x: &Self) -> Self {
     Self(self.0 * x.0)
   }
 }
@@ -125,7 +125,7 @@ impl FilterBrightness {
 #[derive(Clone, Copy)]
 pub struct FilterContrast(pub f32);
 impl WhyTrait for FilterContrast {
-  fn concat(&self, x: Self) -> Self {
+  fn concat(&self, x: &Self) -> Self {
     Self(self.0 * x.0)
   }
 }
@@ -138,7 +138,7 @@ impl FilterContrast {
 #[derive(Clone, Copy)]
 pub struct FilterGrayscale(pub f32);
 impl WhyTrait for FilterGrayscale {
-  fn concat(&self, x: Self) -> Self {
+  fn concat(&self, x: &Self) -> Self {
     Self(self.0 + x.0)
   }
 }
@@ -151,7 +151,7 @@ impl FilterGrayscale {
 #[derive(Clone, Copy)]
 pub struct FilterOpacity(pub f32);
 impl WhyTrait for FilterOpacity {
-  fn concat(&self, x: Self) -> Self {
+  fn concat(&self, x: &Self) -> Self {
     Self(self.0 * x.0)
   }
 }

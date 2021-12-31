@@ -63,19 +63,19 @@ impl CasualScene {
         for z in 0..COUNT {
           let mut object = TransformObject::new();
           if rand::XorShift128::global().uniform() < 0.5 {
-            object.pipeline.write().add(&shape1);
+            object.pipeline().add(&shape1);
           } else {
-            object.pipeline.write().add(&shape2);
+            object.pipeline().add(&shape2);
           }
-          object.pipeline.write().add(&material);
-          object.pipeline.write().add(&shader);
+          object.pipeline().add(&material);
+          object.pipeline().add(&shader);
           object.transform.write().translate = Vec3::new(
             x as f32 - (COUNT as f32) * 0.5,
             y as f32 - (COUNT as f32) * 0.5,
             z as f32 - (COUNT as f32) * 0.5,
           );
           object.transform.write().scale = Vec3::ONE * 0.72;
-          renderpass.add_pipeline(&object.pipeline);
+          renderpass.add(&object);
           objects.push(object);
         }
       }
