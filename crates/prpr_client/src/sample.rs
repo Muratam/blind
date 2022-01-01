@@ -64,6 +64,7 @@ impl CasualScene {
       for y in 0..COUNT {
         for z in 0..COUNT {
           let mut object: Object = Default::default();
+          object.pipeline.write().add(&object.transform);
           if rand::XorShift128::global().uniform() < 0.5 {
             object.pipeline.write().add(&shape1);
           } else {

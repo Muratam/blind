@@ -119,6 +119,11 @@ impl TransformWhy {
     self.transform.write().translate = self.translate_whys.calc_or_default().0;
   }
 }
+impl PipelineBindable for TransformWhy {
+  fn bind_pipeline(&self, pipeline: &mut Pipeline) {
+    pipeline.add(&self.transform);
+  }
+}
 impl Default for TransformWhy {
   fn default() -> Self {
     Self::new()
