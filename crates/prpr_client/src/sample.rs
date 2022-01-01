@@ -118,6 +118,7 @@ impl NeedUpdate for CasualScene {
       );
       object.set_scale(Vec3::ONE * (1.0 + 0.01 * (f * 0.1).sin()), Why::ByAnimation);
     }
+    // self.objects.retain(|_| input::Mouse::state(input::MouseState::IsDown));
     // adjust viewport
     let viewport = system::WholeScreen::viewport();
     self.camera.write().aspect_ratio = viewport.aspect_ratio();
