@@ -65,7 +65,7 @@ impl UpdaterImpl {
       u.updater.write().unwrap().update();
     }
   }
-  pub fn read_impl<T: 'static, F>(&self, mut f: F, is_any: bool)
+  pub fn read_impl<T: 'static, F>(&self, mut f: F, is_any: bool) -> bool
   where
     F: FnMut(&T),
   {
@@ -79,7 +79,7 @@ impl UpdaterImpl {
         if let Ok(r) = r.downcast_ref::<T>() {
           f(r);
           if is_any {
-            return;
+            return true;
           }
         }
       }
@@ -94,7 +94,7 @@ impl UpdaterImpl {
           if let Ok(r) = r.downcast_ref::<T>() {
             f(r);
             if is_any {
-              return;
+              return true;
             }
           }
         }
@@ -102,6 +102,7 @@ impl UpdaterImpl {
     } else {
       log::error("failed to read reserveds");
     }
+    return false;
   }
 }
 
@@ -113,16 +114,16 @@ impl Updater {
   pub fn own_with_order<T: NeedUpdate + 'static>(updater: T, order: Option<usize>) {
     UpdaterImpl::read_global().own_with_order(updater, order);
   }
-  pub fn read_all<T: 'static, F>(f: F)
+  pub fn read_all<T: 'static, F>(f: F) -> bool
   where
     F: FnMut(&T),
   {
-    UpdaterImpl::read_global().read_impl(f, false);
+    UpdaterImpl::read_global().read_impl(f, false)
   }
-  pub fn read_any<T: 'static, F>(f: F)
+  pub fn read_any<T: 'static, F>(f: F) -> bool
   where
     F: FnMut(&T),
   {
-    UpdaterImpl::read_global().read_impl(f, true);
+    UpdaterImpl::read_global().read_impl(f, true)
   }
 }
