@@ -112,8 +112,8 @@ impl NeedUpdate for CasualScene {
   fn update(&mut self) {
     if input::Mouse::state(input::MouseState::IsDown) {
       self.camera.write().rotate_self_fixed(Vec2::new(
-        input::Mouse::dx() as f32 * 0.01,
-        -input::Mouse::dy() as f32 * 0.01,
+        input::Mouse::dx().clamp(-10, 10) as f32 * 0.01,
+        -input::Mouse::dy().clamp(-10, 10) as f32 * 0.01,
       ));
     }
     self.camera.write().dolly_with_mask(
