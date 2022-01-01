@@ -350,6 +350,7 @@ pub fn sample_world() {
   - draw instanced
   - transform feedback
   - overlay
+  - https://qiita.com/tato_lol/items/5e07fbb3d1dd25719ab6
 - z-index
   - 正: Pane
   - 負: 3Dシーンのものよりは上だが Paneよりは下のもの
@@ -374,7 +375,10 @@ pub fn sample_world() {
 // SVG(いろいろなコンテンツ用)
 // - chart-js
 // - 文書用： Hr, A, H1~H6, BlockQuote, Li, Ol, Pre, Ul, Code
-
+- css design
+  - https://bulma.io/documentation/form/input/
+  - https://materializecss.com/color.html
+  - https://developer.mozilla.org/ja/docs/Web/CSS/CSS_Flexible_Box_Layout/Basic_Concepts_of_Flexbox
 - ShaderTemplate持ち運べるように
 - texture2darray, texture3d 対応する
   - texture として扱いたい？
