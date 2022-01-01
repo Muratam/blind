@@ -255,9 +255,6 @@ impl NeedUpdate for Pane1 {
     self.text.set_text(&text);
     let f = Time::now_milli_sec() as f32 * 3.141592 * 120.0 / 60000.0 * 2.0;
     self.pane.set_scale(1.0 + 0.02 * f.sin(), Why::ByAnimation);
-    self
-      .pane
-      .set_filter_huerotate(Some(f.to_degrees()), Why::ByUser);
     self.pane.update();
   }
 }
@@ -287,18 +284,24 @@ impl Pane2 {
 impl NeedUpdate for Pane2 {
   fn update(&mut self) {
     let mut camera_pos = Vec3::ZERO;
-    if let Some(scene) = Updater::find_any_in_whole::<CasualScene>() {
-      camera_pos = scene.read().camera.read().camera_pos;
-    }
+    Updater::find_any_whole(|scene: &CasualScene| {
+      camera_pos = scene.camera.read().camera_pos;
+    });
     self.text1.set_text(&format!(
-      "hello! {} frame\n mouse:({}, {}) \nwheel:({}, {})\ncamera:({})\n",
+      "hello! {} frame\n mouse:({}, {}) \nwheel:({}, {})\ncamera:({:.2}, {:.2}, {:.2})\n",
       Time::frame(),
       input::Mouse::x(),
       input::Mouse::y(),
       input::Mouse::wheel_dx(),
       input::Mouse::wheel_dy(),
-      camera_pos,
+      camera_pos.x,
+      camera_pos.y,
+      camera_pos.z,
     ));
+    self.pane.set_filter_huerotate(
+      Some(camera_pos.x.atan2(camera_pos.z).to_degrees()),
+      Why::ByUser,
+    );
     self.pane.update();
   }
 }
