@@ -1,10 +1,20 @@
 use super::*;
+use std::rc::Rc;
 pub trait NeedUpdate: downcast::Any {
   fn update(&mut self);
   fn is_destroyed(&self) -> bool {
     false
   }
 }
+impl<T: NeedUpdate> NeedUpdate for Rc<RwLock<T>> {
+  fn update(&mut self) {
+    self.write().unwrap().update()
+  }
+  fn is_destroyed(&self) -> bool {
+    self.read().unwrap().is_destroyed()
+  }
+}
+
 downcast::downcast!(dyn NeedUpdate);
 
 static INSTANCE: OnceCell<UpdaterImpl> = OnceCell::new();
@@ -12,6 +22,7 @@ unsafe impl Send for UpdaterImpl {}
 unsafe impl Sync for UpdaterImpl {}
 
 struct UpdaterOwner {
+  // 本当は RwLock<Box<Rc<RwLock<Impl>>>>,
   updater: RwLock<Box<dyn NeedUpdate>>,
   order: Option<usize>, // asc
   type_id: std::any::TypeId,
@@ -41,7 +52,7 @@ impl UpdaterImpl {
     // Update は次のフレームから実行される
     if let Ok(write) = &mut self.reserveds.write() {
       write.push(UpdaterOwner {
-        updater: RwLock::new(Box::new(updater)),
+        updater: RwLock::new(Box::new(Rc::new(RwLock::new(updater))) as Box<dyn NeedUpdate>),
         order,
         type_id: std::any::TypeId::of::<T>(),
       });
@@ -65,9 +76,10 @@ impl UpdaterImpl {
       u.updater.write().unwrap().update();
     }
   }
+
   pub fn read_impl<T: 'static, F>(&self, mut f: F, is_any: bool) -> bool
   where
-    F: FnMut(&T),
+    F: FnMut(&Rc<RwLock<T>>),
   {
     let type_id = std::any::TypeId::of::<T>();
     for r in self.updaters.read().unwrap().iter() {
@@ -75,8 +87,10 @@ impl UpdaterImpl {
         continue;
       }
       // 更新中である自身の情報は撮れない
+      // updater: RwLock<Box<dyn NeedUpdate>>,
+      // 本当は RwLock<Box<Rc<RwLock<Impl>>>>,
       if let Ok(r) = r.updater.try_read() {
-        if let Ok(r) = r.downcast_ref::<T>() {
+        if let Ok(r) = (*r).downcast_ref::<Rc<RwLock<T>>>() {
           f(r);
           if is_any {
             return true;
@@ -91,7 +105,7 @@ impl UpdaterImpl {
         }
         // 更新中である自身の情報は撮れない
         if let Ok(r) = r.updater.try_read() {
-          if let Ok(r) = r.downcast_ref::<T>() {
+          if let Ok(r) = (*r).downcast_ref::<Rc<RwLock<T>>>() {
             f(r);
             if is_any {
               return true;
@@ -116,13 +130,13 @@ impl Updater {
   }
   pub fn read_all<T: 'static, F>(f: F) -> bool
   where
-    F: FnMut(&T),
+    F: FnMut(&Rc<RwLock<T>>),
   {
     UpdaterImpl::read_global().read_impl(f, false)
   }
   pub fn read_any<T: 'static, F>(f: F) -> bool
   where
-    F: FnMut(&T),
+    F: FnMut(&Rc<RwLock<T>>),
   {
     UpdaterImpl::read_global().read_impl(f, true)
   }

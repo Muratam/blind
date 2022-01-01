@@ -304,13 +304,13 @@ impl Pane2 {
 impl NeedUpdate for Pane2 {
   fn update(&mut self) {
     let mut camera_pos = Vec3::ZERO;
-    if Updater::read_any(|scene: &CasualScene| {
+    if Updater::read_any(|scene: &std::rc::Rc<RwLock<CasualScene>>| {
       // 好きに参照を持てると容易に参照カウンタがループするのでこの形式で
-      camera_pos = scene.camera.read().camera_pos;
-      Updater::read_any(|scene: &CasualScene| {
-        // read_lock なのでread中にも読める
-        camera_pos = scene.camera.read().camera_pos;
-      });
+      camera_pos = scene.read().unwrap().camera.read().camera_pos;
+      // Updater::read_any(|scene: &CasualScene| {
+      //   // read_lock なのでread中にも読める
+      //   camera_pos = scene.camera.read().camera_pos;
+      // });
     }) {
       // カメラが見つかった
     }
