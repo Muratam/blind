@@ -61,7 +61,24 @@ impl UpdaterImpl {
       u.updater.write().unwrap().update();
     }
   }
-  pub fn find_any_whole<T: 'static, F>(&self, mut f: F)
+  pub fn read_all<T: 'static, F>(&self, mut f: F)
+  where
+    F: FnMut(&T),
+  {
+    let type_id = std::any::TypeId::of::<T>();
+    for r in self.updaters.read().unwrap().iter() {
+      if r.type_id != type_id {
+        continue;
+      }
+      // 更新中である自身の情報は撮れない
+      if let Ok(r) = r.updater.try_read() {
+        if let Ok(r) = r.downcast_ref::<T>() {
+          f(r);
+        }
+      }
+    }
+  }
+  pub fn read_any<T: 'static, F>(&self, mut f: F)
   where
     F: FnMut(&T),
   {
@@ -89,10 +106,16 @@ impl Updater {
   pub fn own_with_order<T: NeedUpdate + 'static>(updater: T, order: Option<usize>) {
     UpdaterImpl::read_global().own_with_order(updater, order);
   }
-  pub fn find_any_whole<T: 'static, F>(f: F)
+  pub fn read_all<T: 'static, F>(f: F)
   where
     F: FnMut(&T),
   {
-    UpdaterImpl::read_global().find_any_whole(f);
+    UpdaterImpl::read_global().read_all(f);
+  }
+  pub fn read_any<T: 'static, F>(f: F)
+  where
+    F: FnMut(&T),
+  {
+    UpdaterImpl::read_global().read_any(f);
   }
 }

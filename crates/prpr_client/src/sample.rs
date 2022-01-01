@@ -284,7 +284,7 @@ impl Pane2 {
 impl NeedUpdate for Pane2 {
   fn update(&mut self) {
     let mut camera_pos = Vec3::ZERO;
-    Updater::find_any_whole(|scene: &CasualScene| {
+    Updater::read_any(|scene: &CasualScene| {
       camera_pos = scene.camera.read().camera_pos;
     });
     self.text1.set_text(&format!(
