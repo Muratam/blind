@@ -303,10 +303,9 @@ impl Pane2 {
 }
 impl NeedUpdate for Pane2 {
   fn update(&mut self) {
-    let mut camera_pos = Vec3::ZERO;
-    if let Some(scene) = Updater::read_any::<CasualScene>() {
-      camera_pos = scene.read().camera.read().camera_pos;
-    }
+    let camera_pos = Updater::read_any::<CasualScene>()
+      .map(|x| x.read().camera.read().camera_pos)
+      .unwrap_or(Vec3::ZERO);
     self.text1.set_text(&format!(
       "hello! {} frame\n mouse:({}, {}) \nwheel:({}, {})\ncamera:({:.2}, {:.2}, {:.2})\n",
       Time::frame(),
