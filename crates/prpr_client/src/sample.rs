@@ -12,6 +12,7 @@ pub struct CasualObject {
   // - Selection ができる
   // - オフスクリーンやUI上に書くときは？
   // リアルな描画を目指しているわけではないので、影はいらない！（まるぽちでいい）
+  // - 真横からの光の影はちょっとY軸で曲げればそれっぽくみえる気がする
   // pub bounding_sphere: Option<Sphere>,  // 設定できると効率アップ
 }
 
@@ -125,12 +126,13 @@ impl NeedUpdate for CasualScene {
       [true, false, true],
     );
     let f = Time::frame() as f32;
-    for object in &mut self.objects {
-      object
-        .transform
-        .set_rotation(Quat::from_rotation_y(f * 0.01), Why::ByAnimation);
+    for (i, object) in &mut self.objects.iter_mut().enumerate() {
+      object.transform.set_rotation(
+        Quat::from_rotation_y(f * 0.01 + (i as f32).sin() * 0.02 * f),
+        Why::ByAnimation,
+      );
       object.transform.set_translate(
-        Vec3::new(0.0, 0.15 * (f * 0.013).sin(), 0.0),
+        Vec3::new(0.0, 0.15 * (f * 0.013 + i as f32).sin(), 0.0),
         Why::ByAnimation,
       );
       object
@@ -338,6 +340,7 @@ pub fn sample_world() {
   Updater::own(Pane2::new());
 }
 /* TODO:
+- Parallel (Web Worker)
 - particle
   - draw instanced
   - transform feedback
