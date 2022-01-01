@@ -236,9 +236,9 @@ struct Pane1 {
 }
 impl Pane1 {
   fn new() -> Self {
-    let mut pane = prhtml::Pane::new(prhtml::PaneFitPoint::LeftTop, 18.0, 12.5);
-    pane.set_max_width(Some(18.0));
-    pane.set_min_width(Some(18.0));
+    let mut pane = prhtml::Pane::new(prhtml::PaneFitPoint::LeftTop, 12.5, 12.5);
+    pane.set_max_width(Some(12.5));
+    pane.set_min_width(Some(12.5));
     pane.set_translate(Vec2::Y, Why::ByCustomStyle);
     apply_style(&pane);
     let text = prhtml::Text::new(&pane, "");
@@ -248,9 +248,9 @@ impl Pane1 {
 impl NeedUpdate for Pane1 {
   fn update(&mut self) {
     let text = format!(
-      "{} ms\n {}ms",
+      "{} ms\n {} s",
       Time::processed_milli_sec(),
-      Time::now_milli_sec()
+      (Time::now_milli_sec() / 1000.0) as i32,
     );
     self.text.set_text(&text);
     let f = Time::now_milli_sec() as f32 * 3.141592 * 120.0 / 60000.0 * 2.0;
