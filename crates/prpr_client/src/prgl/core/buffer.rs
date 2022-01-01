@@ -54,6 +54,7 @@ impl<T: BufferAttribute> VertexBuffer<T> {
 
 pub trait UniformBufferTrait {
   fn bind(&self, cmd: &mut Command);
+  fn key(&self) -> &str;
 }
 pub struct UniformBuffer<T: BufferAttribute> {
   raw_buffer: RawBuffer,
@@ -100,15 +101,24 @@ impl<T: BufferAttribute> UniformBufferTrait for UniformBuffer<T> {
       }
     }
   }
+  fn key(&self) -> &str {
+    self.name
+  }
 }
 impl<T: BufferAttribute> UniformBufferTrait for ArcOwner<UniformBuffer<T>> {
   fn bind(&self, cmd: &mut Command) {
     self.read().bind(cmd);
   }
+  fn key(&self) -> &str {
+    self.read().name
+  }
 }
 impl<T: BufferAttribute> UniformBufferTrait for ArcReader<UniformBuffer<T>> {
   fn bind(&self, cmd: &mut Command) {
     self.read().bind(cmd);
+  }
+  fn key(&self) -> &str {
+    self.read().name
   }
 }
 impl<T: BufferAttribute + 'static> PipelineBindable for ArcOwner<UniformBuffer<T>> {
@@ -173,15 +183,24 @@ impl<T: BufferAttribute, I: RefInto<T>> UniformBufferTrait for IntoUniformBuffer
       }
     }
   }
+  fn key(&self) -> &str {
+    self.name
+  }
 }
 impl<T: BufferAttribute, I: RefInto<T>> UniformBufferTrait for ArcOwner<IntoUniformBuffer<T, I>> {
   fn bind(&self, cmd: &mut Command) {
     self.read().bind(cmd);
   }
+  fn key(&self) -> &str {
+    self.read().name
+  }
 }
 impl<T: BufferAttribute, I: RefInto<T>> UniformBufferTrait for ArcReader<IntoUniformBuffer<T, I>> {
   fn bind(&self, cmd: &mut Command) {
     self.read().bind(cmd);
+  }
+  fn key(&self) -> &str {
+    self.read().name
   }
 }
 impl<T: BufferAttribute + 'static, I: RefInto<T> + 'static> PipelineBindable

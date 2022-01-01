@@ -83,7 +83,6 @@ impl ShaderPrimitiveType {
     }
   }
 }
-use std::collections::HashMap;
 pub type UniformTextureLocation = (web_sys::WebGlUniformLocation, i32);
 pub struct ShaderTemplate {
   vs_code_definitions: String,

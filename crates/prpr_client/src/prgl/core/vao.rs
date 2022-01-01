@@ -1,5 +1,4 @@
 use super::*;
-use std::collections::HashMap;
 pub struct Vao<T: BufferAttribute> {
   v_buffer: VertexBuffer<T>,
   i_buffer: Option<IndexBuffer>,

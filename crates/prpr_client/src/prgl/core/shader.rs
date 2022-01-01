@@ -1,6 +1,5 @@
 use super::*;
 
-use std::collections::HashMap;
 pub struct Shader {
   template: ShaderTemplate,
   uniform_block_indices: HashMap<String, u32>,

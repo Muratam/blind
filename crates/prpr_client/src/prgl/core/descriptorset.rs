@@ -6,14 +6,14 @@ use super::*;
 
 pub struct Descriptor {
   vao: Option<Box<dyn VaoTrait>>,
-  u_buffers: Vec<Box<dyn UniformBufferTrait>>,
+  u_buffers: HashMap<String, Box<dyn UniformBufferTrait>>,
   u_mappings: Vec<Box<dyn TextureMappingTrait>>,
 }
 impl Descriptor {
   pub fn new() -> Descriptor {
     Self {
       vao: None,
-      u_buffers: Vec::new(),
+      u_buffers: HashMap::new(),
       u_mappings: Vec::new(),
     }
   }
@@ -21,7 +21,11 @@ impl Descriptor {
     self.vao = Some(vao);
   }
   pub fn add_uniform_buffer(&mut self, buffer: Box<dyn UniformBufferTrait>) {
-    self.u_buffers.push(buffer);
+    let key = buffer.key();
+    if self.u_buffers.contains_key(key) {
+      log::warning(format!("{} is already bound", key));
+    }
+    self.u_buffers.insert(String::from(key), buffer);
   }
   pub fn add_texture_mapping(&mut self, mapping: Box<dyn TextureMappingTrait>) {
     self.u_mappings.push(mapping);
@@ -49,7 +53,7 @@ impl DescriptorContext {
     if let Self::Cons { prior, others } = self {
       others.bind(cmd);
       let prior = prior.read();
-      for u_buffer in &prior.u_buffers {
+      for u_buffer in prior.u_buffers.values() {
         u_buffer.bind(cmd);
       }
       for u_mapping in &prior.u_mappings {

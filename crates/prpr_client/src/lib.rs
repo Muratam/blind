@@ -1,4 +1,5 @@
 use prpr::*;
+use std::collections::HashMap;
 use std::sync::{Arc, Mutex, RwLock, RwLockReadGuard, RwLockWriteGuard};
 #[macro_use]
 extern crate assert_type_eq;

@@ -70,19 +70,23 @@ impl UpdaterImpl {
     F: FnMut(&T),
   {
     let type_id = std::any::TypeId::of::<T>();
-    for r in self.updaters.read().unwrap().iter() {
-      if r.type_id != type_id {
-        continue;
-      }
-      // 更新中である自身の情報は撮れない
-      if let Ok(r) = r.updater.try_read() {
-        if let Ok(r) = r.downcast_ref::<T>() {
-          f(r);
-          if is_any {
-            return;
+    if let Ok(updaters) = self.updaters.read() {
+      for r in updaters.iter() {
+        if r.type_id != type_id {
+          continue;
+        }
+        // 更新中である自身の情報は撮れない
+        if let Ok(r) = r.updater.try_read() {
+          if let Ok(r) = r.downcast_ref::<T>() {
+            f(r);
+            if is_any {
+              return;
+            }
           }
         }
       }
+    } else {
+      log::error("failed to read updaters (recursive read)");
     }
     if let Ok(reserveds) = self.reserveds.read() {
       for r in reserveds.iter() {
@@ -100,7 +104,7 @@ impl UpdaterImpl {
         }
       }
     } else {
-      log::error("failed to read reserveds");
+      log::error("failed to read reserveds (recursive read)");
     }
   }
 }
