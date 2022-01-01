@@ -57,7 +57,7 @@ impl CasualScene {
     let shape1 = Shape::new_cube();
     let shape2 = Shape::new_sphere(20, 20);
     let mut objects = Vec::new();
-    const COUNT: u32 = 5;
+    const COUNT: u32 = 10;
     for x in 0..COUNT {
       for y in 0..COUNT {
         for z in 0..COUNT {
@@ -236,9 +236,9 @@ struct Pane1 {
 }
 impl Pane1 {
   fn new() -> Self {
-    let mut pane = prhtml::Pane::new(prhtml::PaneFitPoint::LeftTop, 12.5, 12.5);
-    pane.set_max_width(Some(12.5));
-    pane.set_min_width(Some(12.5));
+    let mut pane = prhtml::Pane::new(prhtml::PaneFitPoint::LeftTop, 18.0, 12.5);
+    pane.set_max_width(Some(18.0));
+    pane.set_min_width(Some(18.0));
     pane.set_translate(Vec2::Y, Why::ByCustomStyle);
     apply_style(&pane);
     let text = prhtml::Text::new(&pane, "");
@@ -247,11 +247,17 @@ impl Pane1 {
 }
 impl NeedUpdate for Pane1 {
   fn update(&mut self) {
-    let text = format!("{} ms", Time::processed_milli_sec());
+    let text = format!(
+      "{} ms\n {}ms",
+      Time::processed_milli_sec(),
+      Time::now_milli_sec()
+    );
     self.text.set_text(&text);
-    let f = Time::frame() as f32 * 0.1;
+    let f = Time::now_milli_sec() as f32 * 3.141592 * 120.0 / 60000.0 * 2.0;
     self.pane.set_scale(1.0 + 0.02 * f.sin(), Why::ByAnimation);
-    self.pane.set_filter_huerotate(Some(f * 20.0), Why::ByUser);
+    self
+      .pane
+      .set_filter_huerotate(Some(f.to_degrees()), Why::ByUser);
     self.pane.update();
   }
 }
@@ -272,7 +278,7 @@ impl Pane2 {
     let text1 = prhtml::Text::new(&pane, "");
     // text1.set_href(Some("https://example.com"));
     // let hr1 = prhtml::Hr::new(&pane); //, 2.4);
-    prhtml::Text::owned(&mut pane, &rand::XorShift128::global().asciis(1000));
+    prhtml::Text::owned(&mut pane, &rand::XorShift128::global().asciis(40));
     prhtml::Text::owned(&mut pane, "\n");
     prhtml::IFrame::owned(&mut pane, None, Some(30.0), "https://www.openstreetmap.org/export/embed.html?bbox=-0.004017949104309083%2C51.47612752641776%2C0.00030577182769775396%2C51.478569861898606&layer=mapnik");
     Self { pane, text1 }
@@ -305,16 +311,23 @@ pub fn sample_world() {
 }
 /* TODO:
 - pipeline.add で同じUniformBufferな時に気をつけたい(Camera)
+  - dummy texture 作っておきたい(bindが変わるので)
 - particle
   - draw instanced
   - transform feedback
   - overlay
+- z-index
+  - 正: Pane
+  - 負: 3Dシーンのものよりは上だが Paneよりは下のもの
 - html
   - API -  WebMIDI, WebAudio, Video
-  // style.set_property("z-index", &z_index.to_string());
   - 3Dシーン上に配置したい
   - Tween 実装したい（消える予定のUpdater）
     - clicked ?
+  - cssの力は頼らない
+    - 実態と乖離するので。
+    - 本当に必要なのは hover + click + mousedown + scroll
+    - 3Dシーンでも同じものが同じ仕組みで設定できるように
 - Condition-Variable でいい感じにイベントドリブンにもできないか
   - NeedUpdateを消せないか
   - Findできないのつらい
@@ -350,7 +363,6 @@ pub fn sample_world() {
   - https://webglreport.com/?v=2 (MAX INFO)
 - State
   - Scissor
-  - ReverseZ
   - Coverage Dither
   - Alpha Blend
 - client_wait_sync ?

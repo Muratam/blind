@@ -21,7 +21,7 @@ impl Core {
     console_error_panic_hook::set_once();
     time::TimeImpl::initialize_global();
     rand::XorShift128::initialize_global(
-      (Time::now_millisec() % (u32::MAX & 0xffffff) as f64) as u32,
+      (js_sys::Date::now() % (u32::MAX & 0xffffff) as f64) as u32,
     );
     let layers = Layers::new();
     WholeScreen::initialize();
