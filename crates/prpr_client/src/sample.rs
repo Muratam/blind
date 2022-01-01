@@ -286,7 +286,12 @@ impl NeedUpdate for Pane2 {
   fn update(&mut self) {
     let mut camera_pos = Vec3::ZERO;
     Updater::read_any(|scene: &CasualScene| {
+      // 好きに参照を持てると容易に参照カウンタがループするのでこの形式で
       camera_pos = scene.camera.read().camera_pos;
+      Updater::read_any(|scene: &CasualScene| {
+        // read_lock なのでread中にも読める
+        camera_pos = scene.camera.read().camera_pos;
+      });
     });
     self.text1.set_text(&format!(
       "hello! {} frame\n mouse:({}, {}) \nwheel:({}, {})\ncamera:({:.2}, {:.2}, {:.2})\n",
