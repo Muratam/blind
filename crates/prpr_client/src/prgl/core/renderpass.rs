@@ -288,6 +288,11 @@ impl RenderPass {
     self.renderpass_id
   }
 }
+impl Default for RenderPass {
+  fn default() -> Self {
+    Self::new()
+  }
+}
 
 pub trait RenderPassBindable {
   fn bind_renderpass(&self, renderpass: &mut RenderPass);

@@ -80,3 +80,9 @@ impl<T> Clone for ArcReader<T> {
     self.clone_reader()
   }
 }
+
+impl<T: Default> Default for ArcOwner<T> {
+  fn default() -> Self {
+    Self::new(Default::default())
+  }
+}

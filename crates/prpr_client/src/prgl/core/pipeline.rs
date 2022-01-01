@@ -123,7 +123,22 @@ impl Pipeline {
     bindable.bind_pipeline(self);
   }
 }
+impl Default for Pipeline {
+  fn default() -> Self {
+    Self::new()
+  }
+}
 
 pub trait PipelineBindable {
   fn bind_pipeline(&self, pipeline: &mut Pipeline);
+}
+impl RenderPassBindable for ArcReader<Pipeline> {
+  fn bind_renderpass(&self, renderpass: &mut RenderPass) {
+    renderpass.add_pipeline(self);
+  }
+}
+impl RenderPassBindable for ArcOwner<Pipeline> {
+  fn bind_renderpass(&self, renderpass: &mut RenderPass) {
+    renderpass.add_pipeline(self);
+  }
 }

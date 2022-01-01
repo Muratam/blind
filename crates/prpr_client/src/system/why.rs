@@ -24,7 +24,7 @@ pub struct Whys<T: WhyTrait + Clone> {
 impl<T: WhyTrait + Clone> Whys<T> {
   pub fn new() -> Self {
     Self {
-      whys: [None, None, None, None, None, None, None],
+      whys: Default::default(),
       calculated: None,
     }
   }

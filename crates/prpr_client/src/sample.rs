@@ -4,7 +4,7 @@ use prgl::*;
 use prhtml;
 
 struct CasualScene {
-  objects: Vec<TransformObject>,
+  objects: Vec<Object>,
   renderpass: ArcOwner<RenderPass>,
   camera: Camera,
   out_color: ArcOwner<Texture>,
@@ -32,7 +32,7 @@ impl CasualScene {
       fs_attr: { in_normal: vec3 },
       fs_code: {
         void main() {
-          // texture(normal_map, vec2(0.5, 0.5)).rgb
+          // texture(normal_map, vec2(0.5, 0.5)).rgb;
           out_color = vec4(in_normal + 0.5, 1.0);
         }
       }
@@ -52,7 +52,9 @@ impl CasualScene {
     let src_depth = TextureRecipe::new_fullscreen_depth();
     renderpass.set_depth_target(Some(&src_depth));
     // objects
+    // shader を1000個作ってもコンパイルに時間はかかるがそれ以降はサクサク
     let shader = MayShader::new(CasualScene::shader());
+    // 切り替えても速度はほぼ変わらず！
     let material = PbrMaterial::new();
     let shape1 = Shape::new_cube();
     let shape2 = Shape::new_sphere(20, 20);
@@ -61,15 +63,15 @@ impl CasualScene {
     for x in 0..COUNT {
       for y in 0..COUNT {
         for z in 0..COUNT {
-          let mut object = TransformObject::new();
+          let mut object: Object = Default::default();
           if rand::XorShift128::global().uniform() < 0.5 {
-            object.pipeline().add(&shape1);
+            object.pipeline.write().add(&shape1);
           } else {
-            object.pipeline().add(&shape2);
+            object.pipeline.write().add(&shape2);
           }
-          object.pipeline().add(&material);
-          object.pipeline().add(&shader);
-          object.set_translate(
+          object.pipeline.write().add(&material);
+          object.pipeline.write().add(&shader);
+          object.transform.set_translate(
             Vec3::new(
               x as f32 - (COUNT as f32) * 0.5,
               y as f32 - (COUNT as f32) * 0.5,
@@ -77,8 +79,8 @@ impl CasualScene {
             ),
             Why::ByUser,
           );
-          object.set_scale(Vec3::ONE * 0.72, Why::ByUser);
-          renderpass.add(&object);
+          object.transform.set_scale(Vec3::ONE * 0.72, Why::ByUser);
+          renderpass.add(&object.pipeline);
           objects.push(object);
         }
       }
@@ -111,12 +113,16 @@ impl NeedUpdate for CasualScene {
     );
     let f = Time::frame() as f32;
     for object in &mut self.objects {
-      object.set_rotation(Quat::from_rotation_y(f * 0.01), Why::ByAnimation);
-      object.set_translate(
+      object
+        .transform
+        .set_rotation(Quat::from_rotation_y(f * 0.01), Why::ByAnimation);
+      object.transform.set_translate(
         Vec3::new(0.0, 0.15 * (f * 0.013).sin(), 0.0),
         Why::ByAnimation,
       );
-      object.set_scale(Vec3::ONE * (1.0 + 0.01 * (f * 0.1).sin()), Why::ByAnimation);
+      object
+        .transform
+        .set_scale(Vec3::ONE * (1.0 + 0.01 * (f * 0.1).sin()), Why::ByAnimation);
     }
     // self.objects.retain(|_| input::Mouse::state(input::MouseState::IsDown));
     // adjust viewport
@@ -327,8 +333,6 @@ pub fn sample_world() {
   Updater::own(Pane2::new());
 }
 /* TODO:
-- pipeline.add で同じUniformBufferな時に気をつけたい(Camera)
-  - dummy texture 作っておきたい(bindが変わるので)
 - particle
   - draw instanced
   - transform feedback
@@ -337,19 +341,14 @@ pub fn sample_world() {
   - 正: Pane
   - 負: 3Dシーンのものよりは上だが Paneよりは下のもの
 - html
-  - API -  WebMIDI, WebAudio, Video
   - 3Dシーン上に配置したい
   - Tween 実装したい（消える予定のUpdater）
-    - clicked ?
   - cssの力は頼らない
     - 実態と乖離するので。
     - 本当に必要なのは hover + click + mousedown + scroll
     - 3Dシーンでも同じものが同じ仕組みで設定できるように
-- Condition-Variable でいい感じにイベントドリブンにもできないか
-  - NeedUpdateを消せないか
 - transform の子
-- transform-object にパイプラインが一つしかない
-  - shadow や selection で困る
+- API -  WebMIDI, WebAudio, Video
 // - 9FitPane
 // - Table / FlexBox(Area)
 // - img, video, audio,
@@ -381,6 +380,8 @@ pub fn sample_world() {
   - Scissor
   - Coverage Dither
   - Alpha Blend
+- pipeline.add で同じUniformBufferな時に気をつけたい(Camera)
+  - ↑そういうことはしないのでは？
 - client_wait_sync ?
   - https://ics.media/entry/19043/
   - https://inside.pixiv.blog/petamoriken/5853
