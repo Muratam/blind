@@ -3,8 +3,20 @@ use super::*;
 use prgl::*;
 use prhtml;
 
+#[derive(Default)]
+pub struct CasualObject {
+  // Transformは親子関係をつけたい
+  pub transform: TransformWhy,
+  pub pipeline: ArcOwner<Pipeline>,
+  // gl_Position は書くので、それをTransformFeedbackする
+  // - Selection ができる
+  // - オフスクリーンやUI上に書くときは？
+  // リアルな描画を目指しているわけではないので、影はいらない！（まるぽちでいい）
+  // pub bounding_sphere: Option<Sphere>,  // 設定できると効率アップ
+}
+
 struct CasualScene {
-  objects: Vec<Object>,
+  objects: Vec<CasualObject>,
   renderpass: ArcOwner<RenderPass>,
   camera: Camera,
   out_color: ArcOwner<Texture>,
@@ -63,7 +75,7 @@ impl CasualScene {
     for x in 0..COUNT {
       for y in 0..COUNT {
         for z in 0..COUNT {
-          let mut object: Object = Default::default();
+          let mut object: CasualObject = Default::default();
           object.pipeline.write().add(&object.transform);
           if rand::XorShift128::global().uniform() < 0.5 {
             object.pipeline.write().add(&shape1);
