@@ -21,4 +21,12 @@ impl TextureRecipe {
       mipmap: false,
     }))
   }
+  pub fn new_dummy() -> ArcOwner<Texture> {
+    ArcOwner::new(Texture::new_uninitialized(&Texture2dDescriptor {
+      width: 1,
+      height: 1,
+      format: PixelFormat::R8G8B8A8,
+      mipmap: true,
+    }))
+  }
 }

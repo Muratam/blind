@@ -308,11 +308,12 @@ impl NeedUpdate for Pane2 {
 
 pub fn sample_world() {
   js::console::log("create prpr world !!");
+  let mut surface = Surface::new();
   let scene = CasualScene::new();
-  let posteffect = CasualPostEffect::new(&scene.out_color);
-  let surface = Surface::new(&posteffect.out_color);
+  let post_effect = CasualPostEffect::new(&scene.out_color);
+  surface.set_texture(&post_effect.out_color);
   Updater::own(scene);
-  Updater::own(posteffect);
+  Updater::own(post_effect);
   Updater::own(surface);
   Updater::own(Pane1::new());
   Updater::own(Pane2::new());
@@ -338,7 +339,6 @@ pub fn sample_world() {
     - 3Dシーンでも同じものが同じ仕組みで設定できるように
 - Condition-Variable でいい感じにイベントドリブンにもできないか
   - NeedUpdateを消せないか
-  - Findできないのつらい
 - transform の子
 - transform-object にパイプラインが一つしかない
   - shadow や selection で困る

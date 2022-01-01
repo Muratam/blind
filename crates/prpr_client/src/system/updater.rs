@@ -17,7 +17,7 @@ struct UpdaterOwner {
   type_id: std::any::TypeId,
 }
 pub struct UpdaterImpl {
-  reserveds: Mutex<Vec<UpdaterOwner>>,
+  reserveds: RwLock<Vec<UpdaterOwner>>,
   updaters: RwLock<Vec<UpdaterOwner>>,
 }
 
@@ -30,7 +30,7 @@ impl UpdaterImpl {
   }
   pub fn new() -> Self {
     Self {
-      reserveds: Mutex::new(Vec::new()),
+      reserveds: RwLock::new(Vec::new()),
       updaters: RwLock::new(Vec::new()),
     }
   }
@@ -39,16 +39,20 @@ impl UpdaterImpl {
   }
   pub fn own_with_order<T: NeedUpdate + 'static>(&self, updater: T, order: Option<usize>) {
     // Update は次のフレームから実行される
-    self.reserveds.lock().unwrap().push(UpdaterOwner {
-      updater: RwLock::new(Box::new(updater)),
-      order,
-      type_id: std::any::TypeId::of::<T>(),
-    });
+    if let Ok(write) = &mut self.reserveds.write() {
+      write.push(UpdaterOwner {
+        updater: RwLock::new(Box::new(updater)),
+        order,
+        type_id: std::any::TypeId::of::<T>(),
+      });
+    } else {
+      log::error("Updater failed to own... ignored!!");
+    }
   }
   pub fn execute(&self) {
     {
       let mut updater_lock = self.updaters.write().unwrap();
-      let mut reserved_lock = self.reserveds.lock().unwrap();
+      let mut reserved_lock = self.reserveds.write().unwrap();
       if reserved_lock.len() > 0 {
         while let Some(popped) = reserved_lock.pop() {
           updater_lock.push(popped);
@@ -61,7 +65,7 @@ impl UpdaterImpl {
       u.updater.write().unwrap().update();
     }
   }
-  pub fn read_all<T: 'static, F>(&self, mut f: F)
+  pub fn read_impl<T: 'static, F>(&self, mut f: F, is_any: bool)
   where
     F: FnMut(&T),
   {
@@ -74,26 +78,29 @@ impl UpdaterImpl {
       if let Ok(r) = r.updater.try_read() {
         if let Ok(r) = r.downcast_ref::<T>() {
           f(r);
+          if is_any {
+            return;
+          }
         }
       }
     }
-  }
-  pub fn read_any<T: 'static, F>(&self, mut f: F)
-  where
-    F: FnMut(&T),
-  {
-    let type_id = std::any::TypeId::of::<T>();
-    for r in self.updaters.read().unwrap().iter() {
-      if r.type_id != type_id {
-        continue;
-      }
-      // 更新中である自身の情報は撮れない
-      if let Ok(r) = r.updater.try_read() {
-        if let Ok(r) = r.downcast_ref::<T>() {
-          f(r);
-          return;
+    if let Ok(reserveds) = self.reserveds.read() {
+      for r in reserveds.iter() {
+        if r.type_id != type_id {
+          continue;
+        }
+        // 更新中である自身の情報は撮れない
+        if let Ok(r) = r.updater.try_read() {
+          if let Ok(r) = r.downcast_ref::<T>() {
+            f(r);
+            if is_any {
+              return;
+            }
+          }
         }
       }
+    } else {
+      log::error("failed to read reserveds");
     }
   }
 }
@@ -110,12 +117,12 @@ impl Updater {
   where
     F: FnMut(&T),
   {
-    UpdaterImpl::read_global().read_all(f);
+    UpdaterImpl::read_global().read_impl(f, false);
   }
   pub fn read_any<T: 'static, F>(f: F)
   where
     F: FnMut(&T),
   {
-    UpdaterImpl::read_global().read_any(f);
+    UpdaterImpl::read_global().read_impl(f, true);
   }
 }

@@ -122,7 +122,7 @@ impl Texture {
 // ShaderTemplateで生成したmappingを引数に取ってバインドに使う
 pub struct TextureMapping<T: TextureMappingAttribute> {
   keys: Vec<&'static str>,
-  mapping: T,
+  pub mapping: T,
 }
 pub trait TextureMappingTrait {
   fn bind(&self, cmd: &mut Command);
@@ -133,6 +133,17 @@ impl<T: TextureMappingAttribute> TextureMapping<T> {
       keys: mapping.keys(),
       mapping: mapping,
     }
+  }
+}
+impl<T: TextureMappingAttribute> std::ops::Deref for TextureMapping<T> {
+  type Target = T;
+  fn deref(&self) -> &Self::Target {
+    return &self.mapping;
+  }
+}
+impl<T: TextureMappingAttribute> std::ops::DerefMut for TextureMapping<T> {
+  fn deref_mut(&mut self) -> &mut Self::Target {
+    return &mut self.mapping;
   }
 }
 
