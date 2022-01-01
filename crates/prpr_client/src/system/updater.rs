@@ -77,10 +77,7 @@ impl UpdaterImpl {
     }
   }
 
-  pub fn read_impl<T: 'static, F>(&self, mut f: F, is_any: bool) -> bool
-  where
-    F: FnMut(&Rc<RwLock<T>>),
-  {
+  pub fn read_any<T: 'static>(&self) -> Option<Rc<RwLock<T>>> {
     let type_id = std::any::TypeId::of::<T>();
     for r in self.updaters.read().unwrap().iter() {
       if r.type_id != type_id {
@@ -90,11 +87,8 @@ impl UpdaterImpl {
       // updater: RwLock<Box<dyn NeedUpdate>>,
       // 本当は RwLock<Box<Rc<RwLock<Impl>>>>,
       if let Ok(r) = r.updater.try_read() {
-        if let Ok(r) = (*r).downcast_ref::<Rc<RwLock<T>>>() {
-          f(r);
-          if is_any {
-            return true;
-          }
+        if let Ok(r) = r.downcast_ref::<Rc<RwLock<T>>>() {
+          return Some(r.clone());
         }
       }
     }
@@ -105,18 +99,15 @@ impl UpdaterImpl {
         }
         // 更新中である自身の情報は撮れない
         if let Ok(r) = r.updater.try_read() {
-          if let Ok(r) = (*r).downcast_ref::<Rc<RwLock<T>>>() {
-            f(r);
-            if is_any {
-              return true;
-            }
+          if let Ok(r) = r.downcast_ref::<Rc<RwLock<T>>>() {
+            return Some(r.clone());
           }
         }
       }
     } else {
       log::error("failed to read reserveds");
     }
-    return false;
+    return None;
   }
 }
 
@@ -128,16 +119,7 @@ impl Updater {
   pub fn own_with_order<T: NeedUpdate + 'static>(updater: T, order: Option<usize>) {
     UpdaterImpl::read_global().own_with_order(updater, order);
   }
-  pub fn read_all<T: 'static, F>(f: F) -> bool
-  where
-    F: FnMut(&Rc<RwLock<T>>),
-  {
-    UpdaterImpl::read_global().read_impl(f, false)
-  }
-  pub fn read_any<T: 'static, F>(f: F) -> bool
-  where
-    F: FnMut(&Rc<RwLock<T>>),
-  {
-    UpdaterImpl::read_global().read_impl(f, true)
+  pub fn read_any<T: 'static>() -> Option<Rc<RwLock<T>>> {
+    UpdaterImpl::read_global().read_any()
   }
 }
