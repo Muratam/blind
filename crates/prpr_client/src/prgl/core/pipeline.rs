@@ -49,11 +49,11 @@ impl Pipeline {
   pub fn set_shader(&mut self, shader: &Arc<Shader>) {
     self.shader = Some(Arc::clone(shader));
   }
-  pub fn set_vao<T: BufferAttribute + 'static>(&mut self, vao: &dyn ReplicaTrait<Vao<T>>) {
+  pub fn set_vao<T: BufferAttribute + 'static>(&mut self, vao: &dyn ArcReaderTrait<Vao<T>>) {
     let mut descriptor = self.descriptor.write();
     descriptor.set_vao(Box::new(vao.clone_reader()) as Box<dyn VaoTrait>);
   }
-  pub fn set_draw_vao<T: BufferAttribute + 'static>(&mut self, vao: &dyn ReplicaTrait<Vao<T>>) {
+  pub fn set_draw_vao<T: BufferAttribute + 'static>(&mut self, vao: &dyn ArcReaderTrait<Vao<T>>) {
     self.set_vao(vao);
     self.set_draw_command(vao.read().draw_command());
   }
@@ -63,7 +63,7 @@ impl Pipeline {
   }
   pub fn add_uniform_buffer<T: BufferAttribute + 'static>(
     &mut self,
-    buffer: &dyn ReplicaTrait<UniformBuffer<T>>,
+    buffer: &dyn ArcReaderTrait<UniformBuffer<T>>,
   ) {
     self.add_uniform_buffer_trait(Box::new(buffer.clone_reader()) as Box<dyn UniformBufferTrait>);
   }
@@ -76,7 +76,7 @@ impl Pipeline {
 
   pub fn add_into_uniform_buffer<T: BufferAttribute + 'static, I: RefInto<T> + 'static>(
     &mut self,
-    buffer: &dyn ReplicaTrait<IntoUniformBuffer<T, I>>,
+    buffer: &dyn ArcReaderTrait<IntoUniformBuffer<T, I>>,
   ) {
     self.add_uniform_buffer_trait(Box::new(buffer.clone_reader()) as Box<dyn UniformBufferTrait>);
   }
@@ -88,7 +88,7 @@ impl Pipeline {
   }
   pub fn add_texture_mapping<T: TextureMappingAttribute + 'static>(
     &mut self,
-    mapping: &dyn ReplicaTrait<TextureMapping<T>>,
+    mapping: &dyn ArcReaderTrait<TextureMapping<T>>,
   ) {
     let mut descriptor = self.descriptor.write();
     descriptor

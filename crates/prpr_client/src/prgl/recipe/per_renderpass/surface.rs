@@ -26,7 +26,7 @@ impl Surface {
       out_attr: { out_color: vec4 }
     }
   }
-  pub fn new(src_color: &dyn ReplicaTrait<Texture>) -> Self {
+  pub fn new(src_color: &dyn ArcReaderTrait<Texture>) -> Self {
     let mut renderpass = RenderPass::new();
     renderpass.set_use_default_buffer(true);
     let mut pipeline = FullScreen::new_pipeline();

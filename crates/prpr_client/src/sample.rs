@@ -176,7 +176,7 @@ impl CasualPostEffect {
       out_attr: { out_color: vec4 }
     }
   }
-  pub fn new(src_color: &dyn ReplicaTrait<Texture>) -> Self {
+  pub fn new(src_color: &dyn ArcReaderTrait<Texture>) -> Self {
     let mut renderpass = RenderPass::new();
     let mut pipeline = FullScreen::new_pipeline();
     let shader = MayShader::new(CasualPostEffect::shader());
@@ -286,13 +286,18 @@ impl Pane2 {
 }
 impl NeedUpdate for Pane2 {
   fn update(&mut self) {
+    let mut camera_pos = Vec3::ZERO;
+    if let Some(scene) = Updater::find_any_in_whole::<CasualScene>() {
+      camera_pos = scene.read().camera.read().camera_pos;
+    }
     self.text1.set_text(&format!(
-      "hello! {} frame\n mouse:({}, {}) \nwheel:({}, {})\n",
+      "hello! {} frame\n mouse:({}, {}) \nwheel:({}, {})\ncamera:({})\n",
       Time::frame(),
       input::Mouse::x(),
       input::Mouse::y(),
       input::Mouse::wheel_dx(),
       input::Mouse::wheel_dy(),
+      camera_pos,
     ));
     self.pane.update();
   }

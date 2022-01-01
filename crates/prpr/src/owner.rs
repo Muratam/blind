@@ -12,7 +12,7 @@ pub struct ArcReader<T> {
 pub struct ArcWeakReader<T> {
   data: Weak<RwLock<T>>,
 }
-pub trait ReplicaTrait<T> {
+pub trait ArcReaderTrait<T> {
   fn read(&self) -> RwLockReadGuard<'_, T>;
   fn clone_reader(&self) -> ArcReader<T>;
   fn clone_weak_reader(&self) -> ArcWeakReader<T>;
@@ -43,7 +43,7 @@ impl<T> ArcWeakReader<T> {
   }
 }
 
-impl<T> ReplicaTrait<T> for ArcOwner<T> {
+impl<T> ArcReaderTrait<T> for ArcOwner<T> {
   fn read(&self) -> RwLockReadGuard<'_, T> {
     self.data.read().unwrap()
   }
@@ -59,7 +59,7 @@ impl<T> ReplicaTrait<T> for ArcOwner<T> {
   }
 }
 
-impl<T> ReplicaTrait<T> for ArcReader<T> {
+impl<T> ArcReaderTrait<T> for ArcReader<T> {
   fn read(&self) -> RwLockReadGuard<'_, T> {
     self.data.read().unwrap()
   }

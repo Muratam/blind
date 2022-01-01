@@ -18,7 +18,7 @@ impl PipelineExecuter {
       owns: Vec::new(),
     }
   }
-  pub fn add(&mut self, pipeline: &dyn ReplicaTrait<Pipeline>, order: usize) {
+  pub fn add(&mut self, pipeline: &dyn ArcReaderTrait<Pipeline>, order: usize) {
     self.pipelines.push(PipelineExecuteInfo {
       pipeline: pipeline.clone_weak_reader(),
       order,
@@ -80,7 +80,7 @@ impl RenderPassExecuterImpl {
       need_sort: false,
     }
   }
-  pub fn add(&mut self, pass: &dyn ReplicaTrait<RenderPass>, order: usize) {
+  pub fn add(&mut self, pass: &dyn ArcReaderTrait<RenderPass>, order: usize) {
     self.passes.push(RenderPassExecuteInfo {
       pass: pass.clone_weak_reader(),
       order,
@@ -110,7 +110,7 @@ impl RenderPassExecuterImpl {
 }
 pub struct RenderPassExecuter {}
 impl RenderPassExecuter {
-  pub fn add(pass: &dyn ReplicaTrait<RenderPass>, order: usize) {
+  pub fn add(pass: &dyn ArcReaderTrait<RenderPass>, order: usize) {
     RenderPassExecuterImpl::write_global().add(pass, order);
   }
   pub fn own(pass: RenderPass, order: usize) {

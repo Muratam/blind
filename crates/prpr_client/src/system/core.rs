@@ -44,7 +44,7 @@ impl Core {
     EventHolderImpl::write_global().update();
   }
   pub fn update(&mut self) {
-    UpdaterImpl::write_global().execute();
+    UpdaterImpl::read_global().execute();
   }
   pub fn post_update(&mut self) {
     prgl::RenderPassExecuterImpl::write_global().execute();

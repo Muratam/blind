@@ -193,7 +193,7 @@ impl RenderPass {
     self.executer.lock().unwrap().execute(cmd, &outer_ctx);
   }
 
-  pub fn set_color_target(&mut self, target: Option<&dyn ReplicaTrait<Texture>>) {
+  pub fn set_color_target(&mut self, target: Option<&dyn ArcReaderTrait<Texture>>) {
     self.set_color_target_by_slot(target, 0);
   }
   pub fn set_clear_color(&mut self, value: Option<Vec4>) {
@@ -212,13 +212,13 @@ impl RenderPass {
     let mut info = self.buffer_setup_info.write().unwrap();
     info.use_default_buffer = use_default_buffer;
   }
-  pub fn set_depth_target(&mut self, target: Option<&dyn ReplicaTrait<Texture>>) {
+  pub fn set_depth_target(&mut self, target: Option<&dyn ArcReaderTrait<Texture>>) {
     self.depth_target = target.map(|target| target.clone_reader());
     self.buffer_setup_info.write().unwrap().is_dirty = true;
   }
   pub fn set_color_target_by_slot(
     &mut self,
-    target: Option<&dyn ReplicaTrait<Texture>>,
+    target: Option<&dyn ArcReaderTrait<Texture>>,
     slot: i32,
   ) {
     if slot < 0 || slot >= MAX_OUTPUT_SLOT as i32 {
@@ -240,19 +240,19 @@ impl RenderPass {
   }
   pub fn add_uniform_buffer<T: BufferAttribute + 'static>(
     &mut self,
-    buffer: &dyn ReplicaTrait<UniformBuffer<T>>,
+    buffer: &dyn ArcReaderTrait<UniformBuffer<T>>,
   ) {
     self.add_uniform_buffer_trait(Box::new(buffer.clone_reader()) as Box<dyn UniformBufferTrait>);
   }
   pub fn add_into_uniform_buffer<T: BufferAttribute + 'static, I: RefInto<T> + 'static>(
     &mut self,
-    buffer: &dyn ReplicaTrait<IntoUniformBuffer<T, I>>,
+    buffer: &dyn ArcReaderTrait<IntoUniformBuffer<T, I>>,
   ) {
     self.add_uniform_buffer_trait(Box::new(buffer.clone_reader()) as Box<dyn UniformBufferTrait>);
   }
   pub fn add_texture_mapping<T: TextureMappingAttribute + 'static>(
     &mut self,
-    mapping: &dyn ReplicaTrait<TextureMapping<T>>,
+    mapping: &dyn ArcReaderTrait<TextureMapping<T>>,
   ) {
     let mut descriptor = self.descriptor.write();
     descriptor
@@ -267,12 +267,12 @@ impl RenderPass {
   pub fn own_pipeline_with_priority(&mut self, pipeline: Pipeline, priority: usize) {
     self.executer.lock().unwrap().own(pipeline, priority);
   }
-  pub fn add_pipeline(&mut self, pipeline: &dyn ReplicaTrait<Pipeline>) {
+  pub fn add_pipeline(&mut self, pipeline: &dyn ArcReaderTrait<Pipeline>) {
     self.executer.lock().unwrap().add(pipeline, 0);
   }
   pub fn add_pipeline_with_priority(
     &mut self,
-    pipeline: &dyn ReplicaTrait<Pipeline>,
+    pipeline: &dyn ArcReaderTrait<Pipeline>,
     priority: usize,
   ) {
     self.executer.lock().unwrap().add(pipeline, priority);
