@@ -5,12 +5,12 @@ pub trait NeedUpdate: downcast::Any {
     false
   }
 }
-impl<T: NeedUpdate> NeedUpdate for Arc<RwLock<T>> {
+impl<T: NeedUpdate> NeedUpdate for ArcOwner<T> {
   fn update(&mut self) {
-    self.write().unwrap().update()
+    self.write().update()
   }
   fn is_destroyed(&self) -> bool {
-    self.read().unwrap().is_destroyed()
+    self.read().is_destroyed()
   }
 }
 
@@ -51,7 +51,7 @@ impl UpdaterImpl {
     // Update は次のフレームから実行される
     if let Ok(write) = &mut self.reserveds.write() {
       write.push(UpdaterOwner {
-        updater: RwLock::new(Box::new(Arc::new(RwLock::new(updater))) as Box<dyn NeedUpdate>),
+        updater: RwLock::new(Box::new(ArcOwner::new(updater)) as Box<dyn NeedUpdate>),
         order,
         type_id: std::any::TypeId::of::<T>(),
       });
@@ -76,7 +76,7 @@ impl UpdaterImpl {
     }
   }
 
-  pub fn read_any<T: 'static>(&self) -> Option<Arc<RwLock<T>>> {
+  pub fn read_any<T: 'static>(&self) -> Option<ArcReader<T>> {
     let type_id = std::any::TypeId::of::<T>();
     for r in self.updaters.read().unwrap().iter() {
       if r.type_id != type_id {
@@ -86,8 +86,8 @@ impl UpdaterImpl {
       // updater: RwLock<Box<dyn NeedUpdate>>,
       // 本当は RwLock<Box<Rc<RwLock<Impl>>>>,
       if let Ok(r) = r.updater.try_read() {
-        if let Ok(r) = r.downcast_ref::<Arc<RwLock<T>>>() {
-          return Some(r.clone());
+        if let Ok(r) = r.downcast_ref::<ArcReader<T>>() {
+          return Some(r.clone_reader());
         }
       }
     }
@@ -98,8 +98,8 @@ impl UpdaterImpl {
         }
         // 更新中である自身の情報は撮れない
         if let Ok(r) = r.updater.try_read() {
-          if let Ok(r) = r.downcast_ref::<Arc<RwLock<T>>>() {
-            return Some(r.clone());
+          if let Ok(r) = r.downcast_ref::<ArcReader<T>>() {
+            return Some(r.clone_reader());
           }
         }
       }
@@ -118,7 +118,7 @@ impl Updater {
   pub fn own_with_order<T: NeedUpdate + 'static>(updater: T, order: Option<usize>) {
     UpdaterImpl::read_global().own_with_order(updater, order);
   }
-  pub fn read_any<T: 'static>() -> Option<Arc<RwLock<T>>> {
+  pub fn read_any<T: 'static>() -> Option<ArcReader<T>> {
     UpdaterImpl::read_global().read_any()
   }
 }

@@ -305,7 +305,7 @@ impl NeedUpdate for Pane2 {
   fn update(&mut self) {
     let mut camera_pos = Vec3::ZERO;
     if let Some(scene) = Updater::read_any::<CasualScene>() {
-      camera_pos = scene.read().unwrap().camera.read().camera_pos;
+      camera_pos = scene.read().camera.read().camera_pos;
     }
     self.text1.set_text(&format!(
       "hello! {} frame\n mouse:({}, {}) \nwheel:({}, {})\ncamera:({:.2}, {:.2}, {:.2})\n",
