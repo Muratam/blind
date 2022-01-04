@@ -72,7 +72,7 @@ impl CasualScene {
     let shape1 = Shape::new_cube();
     let shape2 = Shape::new_sphere(20, 20);
     let mut objects = Vec::new();
-    const COUNT: u32 = 10;
+    const COUNT: u32 = 20;
     for x in 0..COUNT {
       for y in 0..COUNT {
         for z in 0..COUNT {
@@ -269,7 +269,7 @@ impl NeedUpdate for Pane1 {
   fn update(&mut self) {
     let text = format!(
       "{} ms\n {} s",
-      Time::processed_milli_sec(),
+      Time::processed_milli_sec_avg(),
       (Time::now_milli_sec() / 1000.0) as i32,
     );
     self.text.set_text(&text);

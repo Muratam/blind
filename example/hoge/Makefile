@@ -10,7 +10,7 @@ setup:
 .PHONY: client
 client:
 	cd $(root_name)_client &&\
-	wasm-pack build  --target web --no-typescript --out-dir ../$(root_name)_server/dist/js --out-name prpr
+	wasm-pack build  --release --target web --no-typescript --out-dir ../$(root_name)_server/dist/js --out-name prpr
   #  --profiling / --release
 
 .PHONY: server

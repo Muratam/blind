@@ -10,6 +10,7 @@ crate-type = ["cdylib"]
 hoge = { path = "../hoge" }
 prpr-client = { path = "../../../crates/prpr_client" }
 
+
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = false
 
@@ -20,4 +21,8 @@ wasm-opt = false
 # [dev-dependencies]
 # wasm-bindgen-test = "0.3.13"
 [profile.release]
-opt-level = "s"
+lto = true
+opt-level = 2
+# opt-level = "z"
+# opt-level = "s"
+# overflow-checks = false
