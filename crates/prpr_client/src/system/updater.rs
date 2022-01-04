@@ -82,7 +82,7 @@ impl UpdaterImpl {
       // updater: SRwLock<Box<dyn NeedUpdate>>,
       // 本当は SRwLock<Box<SOwner<Impl>>,
       if let Some(r) = r.updater.try_read() {
-        if let Ok(r) = r.downcast_ref::<SReader<T>>() {
+        if let Ok(r) = r.downcast_ref::<SOwner<T>>() {
           return Some(r.clone_reader());
         }
       }
@@ -94,7 +94,7 @@ impl UpdaterImpl {
       }
       // 更新中である自身の情報は撮れない
       if let Some(r) = r.updater.try_read() {
-        if let Ok(r) = r.downcast_ref::<SReader<T>>() {
+        if let Ok(r) = r.downcast_ref::<SOwner<T>>() {
           return Some(r.clone_reader());
         }
       }
