@@ -8,12 +8,11 @@ pub extern crate wasm_bindgen;
 
 // for publish
 pub mod js;
-mod owner;
 pub mod prgl;
 pub mod prhtml;
 pub mod sample;
 pub mod system;
-pub use owner::*;
 pub use prhtml::traits::*;
+pub use prpr::owner::*;
 pub use system::{input, NeedUpdate, Time, Updater};
 pub use system::{Why, WhyTrait, Whys};

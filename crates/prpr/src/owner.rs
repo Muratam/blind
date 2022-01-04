@@ -153,23 +153,23 @@ impl<T: Default> Default for SOwner<T> {
 }
 
 // not implemented
-pub struct MOwner<T> {
-  data: MRc<MRwLock<T>>,
-}
-pub struct MReader<T> {
-  data: MRc<MRwLock<T>>,
-}
-pub struct MWeakReader<T> {
-  data: MWeak<MRwLock<T>>,
-}
-pub trait MReaderTrait<T> {
-  fn read(&self) -> MDerefable<T>;
-  fn clone_reader(&self) -> MReader<T>;
-  fn clone_weak_reader(&self) -> MWeakReader<T>;
-}
-unsafe impl<T: Send> Send for MOwner<T> {}
-unsafe impl<T: Send + Sync> Sync for MOwner<T> {}
-unsafe impl<T: Send> Send for MReader<T> {}
-unsafe impl<T: Send + Sync> Sync for MReader<T> {}
-unsafe impl<T: Send> Send for MWeakReader<T> {}
-unsafe impl<T: Send + Sync> Sync for MWeakReader<T> {}
+// pub struct MOwner<T> {
+//   data: MRc<MRwLock<T>>,
+// }
+// pub struct MReader<T> {
+//   data: MRc<MRwLock<T>>,
+// }
+// pub struct MWeakReader<T> {
+//   data: MWeak<MRwLock<T>>,
+// }
+// pub trait MReaderTrait<T> {
+//   fn read(&self) -> MDerefable<T>;
+//   fn clone_reader(&self) -> MReader<T>;
+//   fn clone_weak_reader(&self) -> MWeakReader<T>;
+// }
+// unsafe impl<T: Send> Send for MOwner<T> {}
+// unsafe impl<T: Send + Sync> Sync for MOwner<T> {}
+// unsafe impl<T: Send> Send for MReader<T> {}
+// unsafe impl<T: Send + Sync> Sync for MReader<T> {}
+// unsafe impl<T: Send> Send for MWeakReader<T> {}
+// unsafe impl<T: Send + Sync> Sync for MWeakReader<T> {}
