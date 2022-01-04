@@ -33,7 +33,7 @@ impl XorShift128Impl {
 }
 
 pub struct XorShift128 {
-  data: std::sync::Mutex<XorShift128Impl>,
+  data: MRwLock<XorShift128Impl>,
 }
 impl XorShift128 {
   pub fn initialize_global(seed: u32) {
@@ -44,22 +44,22 @@ impl XorShift128 {
   }
   pub fn new_fixed() -> Self {
     Self {
-      data: std::sync::Mutex::new(XorShift128Impl::new_fixed()),
+      data: MRwLock::new(XorShift128Impl::new_fixed()),
     }
   }
   pub fn new(seed: u32) -> Self {
     Self {
-      data: std::sync::Mutex::new(XorShift128Impl::new(seed)),
+      data: MRwLock::new(XorShift128Impl::new(seed)),
     }
   }
   pub fn next(&self) -> u32 {
-    self.data.lock().unwrap().next()
+    self.data.write().next()
   }
   pub fn uniform(&self) -> f64 {
     self.next() as f64 / u32::MAX as f64
   }
   pub fn asciis(&self, len: usize) -> String {
-    let mut data = self.data.lock().unwrap();
+    let mut data = self.data.write();
     let mut result: Vec<u8> = Vec::new();
     for _ in 0..len {
       let n = data.next();

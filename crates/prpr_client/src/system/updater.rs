@@ -21,7 +21,7 @@ unsafe impl Send for UpdaterImpl {}
 unsafe impl Sync for UpdaterImpl {}
 
 struct UpdaterSOwner {
-  // 本当は RwLock<Box<SOwner<Impl>>>,
+  // 本当は SRwLock<Box<SOwner<Impl>>>,
   updater: SRwLock<Box<dyn NeedUpdate>>,
   order: Option<usize>, // asc
   type_id: std::any::TypeId,
@@ -79,8 +79,8 @@ impl UpdaterImpl {
         continue;
       }
       // 更新中である自身の情報は撮れない
-      // updater: RwLock<Box<dyn NeedUpdate>>,
-      // 本当は RwLock<Box<SOwner<Impl>>,
+      // updater: SRwLock<Box<dyn NeedUpdate>>,
+      // 本当は SRwLock<Box<SOwner<Impl>>,
       if let Some(r) = r.updater.try_read() {
         if let Ok(r) = r.downcast_ref::<SReader<T>>() {
           return Some(r.clone_reader());
