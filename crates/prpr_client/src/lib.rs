@@ -1,5 +1,4 @@
 use prpr::*;
-use std::sync::{Arc, Mutex, RwLock, RwLockReadGuard, RwLockWriteGuard, Weak};
 #[macro_use]
 extern crate assert_type_eq;
 extern crate downcast;

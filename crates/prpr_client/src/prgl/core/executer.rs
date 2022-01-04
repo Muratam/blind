@@ -1,12 +1,12 @@
 use super::*;
 
 struct PipelineExecuteInfo {
-  pipeline: ArcWeakReader<Pipeline>,
+  pipeline: SWeakReader<Pipeline>,
   order: usize, // asc
 }
 pub struct PipelineExecuter {
   pipelines: Vec<PipelineExecuteInfo>,
-  owns: Vec<ArcOwner<Pipeline>>,
+  owns: Vec<SOwner<Pipeline>>,
   need_sort: bool,
 }
 
@@ -18,7 +18,7 @@ impl PipelineExecuter {
       owns: Vec::new(),
     }
   }
-  pub fn add(&mut self, pipeline: &dyn ArcReaderTrait<Pipeline>, order: usize) {
+  pub fn add(&mut self, pipeline: &dyn SReaderTrait<Pipeline>, order: usize) {
     self.pipelines.push(PipelineExecuteInfo {
       pipeline: pipeline.clone_weak_reader(),
       order,
@@ -26,11 +26,11 @@ impl PipelineExecuter {
     self.need_sort = true;
   }
   pub fn own(&mut self, pipeline: Pipeline, order: usize) {
-    let pipeline = ArcOwner::new(pipeline);
+    let pipeline = SOwner::new(pipeline);
     self.add(&pipeline, order);
     self.owns.push(pipeline);
   }
-  pub fn execute(&mut self, cmd: &mut Command, outer_ctx: &Arc<DescriptorContext>) {
+  pub fn execute(&mut self, cmd: &mut Command, outer_ctx: &SRc<DescriptorContext>) {
     if self.need_sort {
       self.pipelines.sort_by(|a, b| a.order.cmp(&b.order));
       self.need_sort = false;
@@ -46,32 +46,30 @@ impl PipelineExecuter {
   }
 }
 
-// WARN: 多分別スレッドから実行できない
-static INSTANCE: OnceCell<RwLock<RenderPassExecuterImpl>> = OnceCell::new();
+static INSTANCE: OnceCell<MRwLock<RenderPassExecuterImpl>> = OnceCell::new();
 unsafe impl Send for RenderPassExecuterImpl {}
 unsafe impl Sync for RenderPassExecuterImpl {}
 
 struct RenderPassExecuteInfo {
-  pass: ArcWeakReader<RenderPass>,
+  pass: SWeakReader<RenderPass>,
   order: usize, // asc
 }
 pub struct RenderPassExecuterImpl {
   passes: Vec<RenderPassExecuteInfo>,
-  owns: Vec<ArcOwner<RenderPass>>,
+  owns: Vec<SOwner<RenderPass>>,
   need_sort: bool,
 }
 impl RenderPassExecuterImpl {
   pub fn initialize_global() {
     INSTANCE
-      .set(RwLock::new(RenderPassExecuterImpl::new()))
+      .set(MRwLock::new(RenderPassExecuterImpl::new()))
       .ok();
   }
-  pub fn write_global() -> RwLockWriteGuard<'static, Self> {
+  pub fn write_global() -> MDerefMutable<'static, Self> {
     INSTANCE
       .get()
       .expect("RenderPassExecuter global not initialized")
       .write()
-      .unwrap()
   }
   pub fn new() -> Self {
     Self {
@@ -80,7 +78,7 @@ impl RenderPassExecuterImpl {
       need_sort: false,
     }
   }
-  pub fn add(&mut self, pass: &dyn ArcReaderTrait<RenderPass>, order: usize) {
+  pub fn add(&mut self, pass: &dyn SReaderTrait<RenderPass>, order: usize) {
     self.passes.push(RenderPassExecuteInfo {
       pass: pass.clone_weak_reader(),
       order,
@@ -88,7 +86,7 @@ impl RenderPassExecuterImpl {
     self.need_sort = true;
   }
   pub fn own(&mut self, pass: RenderPass, order: usize) {
-    let pass = ArcOwner::new(pass);
+    let pass = SOwner::new(pass);
     self.add(&pass, order);
     self.owns.push(pass);
   }
@@ -110,7 +108,7 @@ impl RenderPassExecuterImpl {
 }
 pub struct RenderPassExecuter {}
 impl RenderPassExecuter {
-  pub fn add(pass: &dyn ArcReaderTrait<RenderPass>, order: usize) {
+  pub fn add(pass: &dyn SReaderTrait<RenderPass>, order: usize) {
     RenderPassExecuterImpl::write_global().add(pass, order);
   }
   pub fn own(pass: RenderPass, order: usize) {

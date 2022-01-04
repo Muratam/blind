@@ -6,7 +6,7 @@ crate::shader_attr! {
   }
 }
 pub struct FullScreen {
-  vao: ArcOwner<Vao<FullScreenVertex>>,
+  vao: SOwner<Vao<FullScreenVertex>>,
 }
 impl FullScreen {
   pub fn new() -> Self {
@@ -27,7 +27,7 @@ impl FullScreen {
       },
     ]);
     Self {
-      vao: ArcOwner::new(Vao::new(v_buffer, i_buffer)),
+      vao: SOwner::new(Vao::new(v_buffer, i_buffer)),
     }
   }
   pub fn new_pipeline() -> Pipeline {

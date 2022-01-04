@@ -164,23 +164,23 @@ impl<T: TextureMappingAttribute> TextureMappingTrait for TextureMapping<T> {
     }
   }
 }
-impl<T: TextureMappingAttribute> TextureMappingTrait for ArcOwner<TextureMapping<T>> {
+impl<T: TextureMappingAttribute> TextureMappingTrait for SOwner<TextureMapping<T>> {
   fn bind(&self, cmd: &mut Command) {
     self.read().bind(cmd);
   }
 }
-impl<T: TextureMappingAttribute> TextureMappingTrait for ArcReader<TextureMapping<T>> {
+impl<T: TextureMappingAttribute> TextureMappingTrait for SReader<TextureMapping<T>> {
   fn bind(&self, cmd: &mut Command) {
     self.read().bind(cmd);
   }
 }
 
-impl<T: TextureMappingAttribute + 'static> PipelineBindable for ArcOwner<TextureMapping<T>> {
+impl<T: TextureMappingAttribute + 'static> PipelineBindable for SOwner<TextureMapping<T>> {
   fn bind_pipeline(&self, pipeline: &mut Pipeline) {
     pipeline.add_texture_mapping_reader(&self.clone_reader());
   }
 }
-impl<T: TextureMappingAttribute + 'static> PipelineBindable for ArcReader<TextureMapping<T>> {
+impl<T: TextureMappingAttribute + 'static> PipelineBindable for SReader<TextureMapping<T>> {
   fn bind_pipeline(&self, pipeline: &mut Pipeline) {
     pipeline.add_texture_mapping_reader(&self);
   }

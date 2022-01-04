@@ -3,7 +3,7 @@ use std::collections::HashMap;
 pub struct Vao<T: BufferAttribute> {
   v_buffer: VertexBuffer<T>,
   i_buffer: Option<IndexBuffer>,
-  shader_id_to_raw_vao: Mutex<HashMap<u64, RawVao>>,
+  shader_id_to_raw_vao: SRwLock<HashMap<u64, RawVao>>,
 }
 pub trait VaoTrait {
   fn bind(&self, cmd: &mut Command);
@@ -13,14 +13,14 @@ impl<T: BufferAttribute> Vao<T> {
     Self {
       v_buffer,
       i_buffer: Some(i_buffer),
-      shader_id_to_raw_vao: Mutex::new(HashMap::new()),
+      shader_id_to_raw_vao: SRwLock::new(HashMap::new()),
     }
   }
   pub fn new_without_index_buffer(v_buffer: VertexBuffer<T>) -> Self {
     Self {
       v_buffer,
       i_buffer: None,
-      shader_id_to_raw_vao: Mutex::new(HashMap::new()),
+      shader_id_to_raw_vao: SRwLock::new(HashMap::new()),
     }
   }
   pub fn draw_command(&self) -> DrawCommand {
@@ -42,7 +42,7 @@ impl<T: BufferAttribute> VaoTrait for Vao<T> {
   fn bind(&self, cmd: &mut Command) {
     if let Some(shader) = cmd.current_shader() {
       let id = shader.id();
-      let mut lock = self.shader_id_to_raw_vao.lock().unwrap();
+      let mut lock = self.shader_id_to_raw_vao.write();
       if let Some(raw_vao) = lock.get(&id) {
         cmd.set_vao(&raw_vao);
         return;
@@ -58,12 +58,12 @@ impl<T: BufferAttribute> VaoTrait for Vao<T> {
     }
   }
 }
-impl<T: BufferAttribute> VaoTrait for ArcOwner<Vao<T>> {
+impl<T: BufferAttribute> VaoTrait for SOwner<Vao<T>> {
   fn bind(&self, cmd: &mut Command) {
     self.read().bind(cmd);
   }
 }
-impl<T: BufferAttribute> VaoTrait for ArcReader<Vao<T>> {
+impl<T: BufferAttribute> VaoTrait for SReader<Vao<T>> {
   fn bind(&self, cmd: &mut Command) {
     self.read().bind(cmd);
   }

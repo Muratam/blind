@@ -33,7 +33,7 @@ struct WheelEventInfo {
   delta_y: i32,
   id: Option<String>,
 }
-static INSTANCE: OnceCell<RwLock<EventHolderImpl>> = OnceCell::new();
+static INSTANCE: OnceCell<MRwLock<EventHolderImpl>> = OnceCell::new();
 unsafe impl Send for EventHolderImpl {}
 unsafe impl Sync for EventHolderImpl {}
 pub struct EventHolderImpl {
@@ -49,22 +49,20 @@ pub struct EventHolderImpl {
   wheel_rx: mpsc::Receiver<WheelEventInfo>,
 }
 impl EventHolderImpl {
-  pub fn read_global() -> RwLockReadGuard<'static, Self> {
+  pub fn read_global() -> MDerefable<'static, Self> {
     INSTANCE
       .get()
       .expect("event holder is not initialized")
       .read()
-      .unwrap()
   }
-  pub fn write_global() -> RwLockWriteGuard<'static, Self> {
+  pub fn write_global() -> MDerefMutable<'static, Self> {
     INSTANCE
       .get()
       .expect("event holder is not initialized")
       .write()
-      .unwrap()
   }
   pub fn initialize_global(root: &web_sys::HtmlElement) {
-    INSTANCE.set(RwLock::new(Self::new(root))).ok();
+    INSTANCE.set(MRwLock::new(Self::new(root))).ok();
   }
   pub fn new(root: &web_sys::HtmlElement) -> Self {
     let (mouse_tx, mouse_rx) = mpsc::channel::<MouseEventInfo>();
@@ -87,7 +85,7 @@ impl EventHolderImpl {
     result
   }
   fn setup_mouse_events(&mut self, root: &web_sys::HtmlElement, tx: mpsc::Sender<MouseEventInfo>) {
-    let tx = Arc::new(tx);
+    let tx = SRc::new(tx);
     let setup_callback = |event_type: MouseEvent, event_name: &str, prevent_default: bool| {
       let tx = tx.clone();
       let closure = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
@@ -121,7 +119,7 @@ impl EventHolderImpl {
     setup_callback(MouseEvent::ContextMenu, "contextmenu", true);
   }
   fn setup_wheel_events(&mut self, root: &web_sys::HtmlElement, tx: mpsc::Sender<WheelEventInfo>) {
-    let tx = Arc::new(tx);
+    let tx = SRc::new(tx);
     let setup_callback = |event_name: &str| {
       let tx = tx.clone();
       let closure = Closure::wrap(Box::new(move |event: web_sys::WheelEvent| {

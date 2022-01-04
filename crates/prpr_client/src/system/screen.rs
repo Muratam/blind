@@ -1,6 +1,5 @@
 use super::*;
 
-// WARN: 多分別スレッドから実行できない
 static INSTANCE: OnceCell<WholeScreen> = OnceCell::new();
 unsafe impl Send for WholeScreen {}
 unsafe impl Sync for WholeScreen {}
@@ -8,9 +7,9 @@ unsafe impl Sync for WholeScreen {}
 pub struct WholeScreen {
   max_width: i32,
   max_height: i32,
-  width: RwLock<i32>,
-  height: RwLock<i32>,
-  is_size_changed: RwLock<bool>,
+  width: SRwLock<i32>,
+  height: SRwLock<i32>,
+  is_size_changed: SRwLock<bool>,
 }
 impl WholeScreen {
   pub fn get() -> &'static Self {
@@ -24,9 +23,9 @@ impl WholeScreen {
     let instance = Self {
       max_width: screen.width().unwrap(),
       max_height: screen.height().unwrap(),
-      width: RwLock::new(1),
-      height: RwLock::new(1),
-      is_size_changed: RwLock::new(true),
+      width: SRwLock::new(1),
+      height: SRwLock::new(1),
+      is_size_changed: SRwLock::new(true),
     };
     INSTANCE.set(instance).ok();
   }
@@ -37,13 +36,13 @@ impl WholeScreen {
     Self::get().max_height
   }
   pub fn width() -> i32 {
-    *Self::get().width.read().unwrap()
+    *Self::get().width.read()
   }
   pub fn height() -> i32 {
-    *Self::get().height.read().unwrap()
+    *Self::get().height.read()
   }
   pub fn is_size_changed() -> bool {
-    *Self::get().is_size_changed.read().unwrap()
+    *Self::get().is_size_changed.read()
   }
   pub fn viewport() -> math::Rect<i32> {
     let width = Self::width();
@@ -64,8 +63,8 @@ impl WholeScreen {
     if pre_width == width && pre_height == height {
       return;
     }
-    *Self::get().width.write().unwrap() = width;
-    *Self::get().height.write().unwrap() = height;
-    *Self::get().is_size_changed.write().unwrap() = true;
+    *Self::get().width.write() = width;
+    *Self::get().height.write() = height;
+    *Self::get().is_size_changed.write() = true;
   }
 }

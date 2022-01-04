@@ -66,11 +66,11 @@ impl std::fmt::Display for Shader {
 }
 
 pub struct MayShader {
-  shader: Option<Arc<Shader>>,
+  shader: Option<SRc<Shader>>,
 }
 impl MayShader {
   pub fn new(template: ShaderTemplate) -> Self {
-    let shader = Shader::new(template).map(|x| Arc::new(x));
+    let shader = Shader::new(template).map(|x| SRc::new(x));
     Self { shader }
   }
 }

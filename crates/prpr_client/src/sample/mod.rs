@@ -7,7 +7,7 @@ use prhtml;
 pub struct CasualObject {
   // Transformは親子関係をつけたい
   pub transform: TransformWhy,
-  pub pipeline: ArcOwner<Pipeline>,
+  pub pipeline: SOwner<Pipeline>,
   // gl_Position は書くので、それをTransformFeedbackする
   // - Selection ができる
   // - オフスクリーンやUI上に書くときは？
@@ -18,9 +18,9 @@ pub struct CasualObject {
 
 struct CasualScene {
   objects: Vec<CasualObject>,
-  renderpass: ArcOwner<RenderPass>,
+  renderpass: SOwner<RenderPass>,
   camera: Camera,
-  out_color: ArcOwner<Texture>,
+  out_color: SOwner<Texture>,
 }
 enum CasualRenderPassOrder {
   Scene,
@@ -99,7 +99,7 @@ impl CasualScene {
         }
       }
     }
-    let renderpass = ArcOwner::new(renderpass);
+    let renderpass = SOwner::new(renderpass);
     RenderPassExecuter::add(&renderpass, CasualRenderPassOrder::Scene as usize);
     Self {
       objects,
@@ -153,8 +153,8 @@ crate::shader_attr! {
   }
 }
 struct CasualPostEffect {
-  renderpass: ArcOwner<RenderPass>,
-  out_color: ArcOwner<Texture>,
+  renderpass: SOwner<RenderPass>,
+  out_color: SOwner<Texture>,
 }
 impl CasualPostEffect {
   pub fn shader() -> ShaderTemplate {
@@ -198,22 +198,20 @@ impl CasualPostEffect {
       out_attr: { out_color: vec4 }
     }
   }
-  pub fn new(src_color: &dyn ArcReaderTrait<Texture>) -> Self {
+  pub fn new(src_color: &dyn SReaderTrait<Texture>) -> Self {
     let mut renderpass = RenderPass::new();
     let mut pipeline = FullScreen::new_pipeline();
     let shader = MayShader::new(CasualPostEffect::shader());
     // system::log::info(format!("{}", shader));
     pipeline.add(&shader);
-    pipeline.add(&ArcOwner::new(TextureMapping::new(
-      CasualPostEffectMapping {
-        src_color: src_color.clone_reader(),
-      },
-    )));
+    pipeline.add(&SOwner::new(TextureMapping::new(CasualPostEffectMapping {
+      src_color: src_color.clone_reader(),
+    })));
     let out_color = TextureRecipe::new_fullscreen(PixelFormat::R8G8B8A8);
     renderpass.set_color_target(Some(&out_color));
     renderpass.set_clear_color(Some(Vec4::new(0.3, 0.3, 0.3, 1.0)));
     renderpass.own_pipeline(pipeline);
-    let renderpass = ArcOwner::new(renderpass);
+    let renderpass = SOwner::new(renderpass);
     RenderPassExecuter::add(&renderpass, CasualRenderPassOrder::PostEffect as usize);
     Self {
       renderpass,

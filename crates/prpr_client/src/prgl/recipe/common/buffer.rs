@@ -1,18 +1,18 @@
 use super::*;
 
 pub struct UniformBufferTemplate<T: BufferAttribute + Default> {
-  data: ArcOwner<UniformBuffer<T>>,
+  data: SOwner<UniformBuffer<T>>,
 }
 impl<T: BufferAttribute + Default> UniformBufferTemplate<T> {
   pub fn new() -> Self {
     Self {
-      data: ArcOwner::new(UniformBuffer::new(Default::default())),
+      data: SOwner::new(UniformBuffer::new(Default::default())),
     }
   }
-  pub fn write(&mut self) -> RwLockWriteGuard<'_, UniformBuffer<T>> {
+  pub fn write(&mut self) -> SDerefMutable<'_, UniformBuffer<T>> {
     self.data.write()
   }
-  pub fn read(&self) -> RwLockReadGuard<'_, UniformBuffer<T>> {
+  pub fn read(&self) -> SDerefable<'_, UniformBuffer<T>> {
     self.data.read()
   }
 }
@@ -28,18 +28,18 @@ impl<T: BufferAttribute + Default + 'static> RenderPassBindable for UniformBuffe
 }
 
 pub struct IntoUniformBufferTemplate<T: BufferAttribute, I: RefInto<T> + Default> {
-  data: ArcOwner<IntoUniformBuffer<T, I>>,
+  data: SOwner<IntoUniformBuffer<T, I>>,
 }
 impl<T: BufferAttribute, I: RefInto<T> + Default> IntoUniformBufferTemplate<T, I> {
   pub fn new() -> Self {
     Self {
-      data: ArcOwner::new(IntoUniformBuffer::new(Default::default())),
+      data: SOwner::new(IntoUniformBuffer::new(Default::default())),
     }
   }
-  pub fn write(&mut self) -> RwLockWriteGuard<'_, IntoUniformBuffer<T, I>> {
+  pub fn write(&mut self) -> SDerefMutable<'_, IntoUniformBuffer<T, I>> {
     self.data.write()
   }
-  pub fn read(&self) -> RwLockReadGuard<'_, IntoUniformBuffer<T, I>> {
+  pub fn read(&self) -> SDerefable<'_, IntoUniformBuffer<T, I>> {
     self.data.read()
   }
 }

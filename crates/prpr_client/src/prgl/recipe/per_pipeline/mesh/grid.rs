@@ -6,7 +6,7 @@ crate::shader_attr! {
   }
 }
 pub struct Grid {
-  vao: ArcOwner<Vao<FullScreenVertex>>,
+  vao: SOwner<Vao<FullScreenVertex>>,
 }
 impl Grid {
   pub fn new(x: f32, y: f32, z: f32, interval: f32) -> Self {
@@ -43,7 +43,7 @@ impl Grid {
       },
     ]);
     Self {
-      vao: ArcOwner::new(Vao::new(v_buffer, i_buffer)),
+      vao: SOwner::new(Vao::new(v_buffer, i_buffer)),
     }
   }
   pub fn new_pipeline() -> Pipeline {

@@ -5,7 +5,7 @@ pub trait NeedUpdate: downcast::Any {
     false
   }
 }
-impl<T: NeedUpdate> NeedUpdate for ArcOwner<T> {
+impl<T: NeedUpdate> NeedUpdate for SOwner<T> {
   fn update(&mut self) {
     self.write().update()
   }
@@ -20,15 +20,15 @@ static INSTANCE: OnceCell<UpdaterImpl> = OnceCell::new();
 unsafe impl Send for UpdaterImpl {}
 unsafe impl Sync for UpdaterImpl {}
 
-struct UpdaterOwner {
-  // 本当は RwLock<Box<ArcOwner<Impl>>>,
-  updater: RwLock<Box<dyn NeedUpdate>>,
+struct UpdaterSOwner {
+  // 本当は RwLock<Box<SOwner<Impl>>>,
+  updater: SRwLock<Box<dyn NeedUpdate>>,
   order: Option<usize>, // asc
   type_id: std::any::TypeId,
 }
 pub struct UpdaterImpl {
-  reserveds: RwLock<Vec<UpdaterOwner>>,
-  updaters: RwLock<Vec<UpdaterOwner>>,
+  reserveds: SRwLock<Vec<UpdaterSOwner>>,
+  updaters: SRwLock<Vec<UpdaterSOwner>>,
 }
 
 impl UpdaterImpl {
@@ -40,8 +40,8 @@ impl UpdaterImpl {
   }
   pub fn new() -> Self {
     Self {
-      reserveds: RwLock::new(Vec::new()),
-      updaters: RwLock::new(Vec::new()),
+      reserveds: SRwLock::new(Vec::new()),
+      updaters: SRwLock::new(Vec::new()),
     }
   }
   pub fn own<T: NeedUpdate + 'static>(&self, updater: T) {
@@ -49,62 +49,55 @@ impl UpdaterImpl {
   }
   pub fn own_with_order<T: NeedUpdate + 'static>(&self, updater: T, order: Option<usize>) {
     // Update は次のフレームから実行される
-    if let Ok(write) = &mut self.reserveds.write() {
-      write.push(UpdaterOwner {
-        updater: RwLock::new(Box::new(ArcOwner::new(updater)) as Box<dyn NeedUpdate>),
-        order,
-        type_id: std::any::TypeId::of::<T>(),
-      });
-    } else {
-      log::error("Updater failed to own... ignored!!");
-    }
+    self.reserveds.write().push(UpdaterSOwner {
+      updater: SRwLock::new(Box::new(SOwner::new(updater)) as Box<dyn NeedUpdate>),
+      order,
+      type_id: std::any::TypeId::of::<T>(),
+    })
   }
   pub fn execute(&self) {
     {
-      let mut updater_lock = self.updaters.write().unwrap();
-      let mut reserved_lock = self.reserveds.write().unwrap();
+      let mut updater_lock = self.updaters.write();
+      let mut reserved_lock = self.reserveds.write();
       if reserved_lock.len() > 0 {
         while let Some(popped) = reserved_lock.pop() {
           updater_lock.push(popped);
         }
         updater_lock.sort_by(|a, b| a.order.cmp(&b.order));
       }
-      updater_lock.retain(|u| !u.updater.read().unwrap().is_destroyed());
+      updater_lock.retain(|u| !u.updater.read().is_destroyed());
     }
-    for u in &mut self.updaters.read().unwrap().iter() {
-      u.updater.write().unwrap().update();
+    for u in &mut self.updaters.read().iter() {
+      u.updater.write().update();
     }
   }
 
-  pub fn read_any<T: 'static>(&self) -> Option<ArcReader<T>> {
+  pub fn read_any<T: 'static>(&self) -> Option<SReader<T>> {
     let type_id = std::any::TypeId::of::<T>();
-    for r in self.updaters.read().unwrap().iter() {
+    for r in self.updaters.read().iter() {
       if r.type_id != type_id {
         continue;
       }
       // 更新中である自身の情報は撮れない
       // updater: RwLock<Box<dyn NeedUpdate>>,
-      // 本当は RwLock<Box<ArcOwner<Impl>>,
-      if let Ok(r) = r.updater.try_read() {
-        if let Ok(r) = r.downcast_ref::<ArcReader<T>>() {
+      // 本当は RwLock<Box<SOwner<Impl>>,
+      if let Some(r) = r.updater.try_read() {
+        if let Ok(r) = r.downcast_ref::<SReader<T>>() {
           return Some(r.clone_reader());
         }
       }
     }
-    if let Ok(reserveds) = self.reserveds.read() {
-      for r in reserveds.iter() {
-        if r.type_id != type_id {
-          continue;
-        }
-        // 更新中である自身の情報は撮れない
-        if let Ok(r) = r.updater.try_read() {
-          if let Ok(r) = r.downcast_ref::<ArcReader<T>>() {
-            return Some(r.clone_reader());
-          }
+    let reserveds = self.reserveds.read();
+    for r in reserveds.iter() {
+      if r.type_id != type_id {
+        continue;
+      }
+      // 更新中である自身の情報は撮れない
+      if let Some(r) = r.updater.try_read() {
+        if let Ok(r) = r.downcast_ref::<SReader<T>>() {
+          return Some(r.clone_reader());
         }
       }
-    } else {
-      log::error("failed to read reserveds");
     }
     return None;
   }
@@ -118,7 +111,7 @@ impl Updater {
   pub fn own_with_order<T: NeedUpdate + 'static>(updater: T, order: Option<usize>) {
     UpdaterImpl::read_global().own_with_order(updater, order);
   }
-  pub fn read_any<T: 'static>() -> Option<ArcReader<T>> {
+  pub fn read_any<T: 'static>() -> Option<SReader<T>> {
     UpdaterImpl::read_global().read_any()
   }
 }

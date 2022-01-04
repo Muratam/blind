@@ -29,18 +29,18 @@ impl Descriptor {
 }
 pub enum DescriptorContext {
   Cons {
-    prior: ArcReader<Descriptor>,
-    others: Arc<Self>,
+    prior: SReader<Descriptor>,
+    others: SRc<Self>,
   },
   Nil,
 }
 
 impl DescriptorContext {
-  pub fn nil() -> Arc<Self> {
-    Arc::new(Self::Nil)
+  pub fn nil() -> SRc<Self> {
+    SRc::new(Self::Nil)
   }
-  pub fn cons(others: &Arc<Self>, prior: &dyn ArcReaderTrait<Descriptor>) -> Arc<Self> {
-    Arc::new(Self::Cons {
+  pub fn cons(others: &SRc<Self>, prior: &dyn SReaderTrait<Descriptor>) -> SRc<Self> {
+    SRc::new(Self::Cons {
       prior: prior.clone_reader(),
       others: others.clone(),
     })

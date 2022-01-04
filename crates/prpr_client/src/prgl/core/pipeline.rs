@@ -6,9 +6,9 @@ pub struct Pipeline {
   draw_command: Option<DrawCommand>,
   cull_mode: CullMode,
   primitive_topology: PrimitiveToporogy,
-  shader: Option<Arc<Shader>>,
+  shader: Option<SRc<Shader>>,
   invisible_reasons: collections::BitSet64,
-  descriptor: ArcOwner<Descriptor>,
+  descriptor: SOwner<Descriptor>,
 }
 
 impl Pipeline {
@@ -20,11 +20,11 @@ impl Pipeline {
       primitive_topology: PrimitiveToporogy::Triangles,
       shader: None,
       invisible_reasons: collections::BitSet64::new(),
-      descriptor: ArcOwner::new(Descriptor::new()),
+      descriptor: SOwner::new(Descriptor::new()),
     }
   }
 
-  pub fn draw(&self, cmd: &mut Command, outer_ctx: &Arc<DescriptorContext>) {
+  pub fn draw(&self, cmd: &mut Command, outer_ctx: &SRc<DescriptorContext>) {
     if self.invisible() {
       return;
     }
@@ -46,14 +46,14 @@ impl Pipeline {
   }
 
   // set resource
-  pub fn set_shader(&mut self, shader: &Arc<Shader>) {
-    self.shader = Some(Arc::clone(shader));
+  pub fn set_shader(&mut self, shader: &SRc<Shader>) {
+    self.shader = Some(SRc::clone(shader));
   }
-  pub fn set_vao<T: BufferAttribute + 'static>(&mut self, vao: &dyn ArcReaderTrait<Vao<T>>) {
+  pub fn set_vao<T: BufferAttribute + 'static>(&mut self, vao: &dyn SReaderTrait<Vao<T>>) {
     let mut descriptor = self.descriptor.write();
     descriptor.set_vao(Box::new(vao.clone_reader()) as Box<dyn VaoTrait>);
   }
-  pub fn set_draw_vao<T: BufferAttribute + 'static>(&mut self, vao: &dyn ArcReaderTrait<Vao<T>>) {
+  pub fn set_draw_vao<T: BufferAttribute + 'static>(&mut self, vao: &dyn SReaderTrait<Vao<T>>) {
     self.set_vao(vao);
     self.set_draw_command(vao.read().draw_command());
   }
@@ -63,32 +63,32 @@ impl Pipeline {
   }
   pub fn add_uniform_buffer<T: BufferAttribute + 'static>(
     &mut self,
-    buffer: &dyn ArcReaderTrait<UniformBuffer<T>>,
+    buffer: &dyn SReaderTrait<UniformBuffer<T>>,
   ) {
     self.add_uniform_buffer_trait(Box::new(buffer.clone_reader()) as Box<dyn UniformBufferTrait>);
   }
   pub fn add_uniform_buffer_reader<T: BufferAttribute + 'static>(
     &mut self,
-    buffer: &ArcReader<UniformBuffer<T>>,
+    buffer: &SReader<UniformBuffer<T>>,
   ) {
     self.add_uniform_buffer(buffer);
   }
 
   pub fn add_into_uniform_buffer<T: BufferAttribute + 'static, I: RefInto<T> + 'static>(
     &mut self,
-    buffer: &dyn ArcReaderTrait<IntoUniformBuffer<T, I>>,
+    buffer: &dyn SReaderTrait<IntoUniformBuffer<T, I>>,
   ) {
     self.add_uniform_buffer_trait(Box::new(buffer.clone_reader()) as Box<dyn UniformBufferTrait>);
   }
   pub fn add_into_uniform_buffer_reader<T: BufferAttribute + 'static, I: RefInto<T> + 'static>(
     &mut self,
-    buffer: &ArcReader<IntoUniformBuffer<T, I>>,
+    buffer: &SReader<IntoUniformBuffer<T, I>>,
   ) {
     self.add_into_uniform_buffer(buffer);
   }
   pub fn add_texture_mapping<T: TextureMappingAttribute + 'static>(
     &mut self,
-    mapping: &dyn ArcReaderTrait<TextureMapping<T>>,
+    mapping: &dyn SReaderTrait<TextureMapping<T>>,
   ) {
     let mut descriptor = self.descriptor.write();
     descriptor
@@ -96,7 +96,7 @@ impl Pipeline {
   }
   pub fn add_texture_mapping_reader<T: TextureMappingAttribute + 'static>(
     &mut self,
-    mapping: &ArcReader<TextureMapping<T>>,
+    mapping: &SReader<TextureMapping<T>>,
   ) {
     self.add_texture_mapping(mapping);
   }
@@ -132,12 +132,12 @@ impl Default for Pipeline {
 pub trait PipelineBindable {
   fn bind_pipeline(&self, pipeline: &mut Pipeline);
 }
-impl RenderPassBindable for ArcReader<Pipeline> {
+impl RenderPassBindable for SReader<Pipeline> {
   fn bind_renderpass(&self, renderpass: &mut RenderPass) {
     renderpass.add_pipeline(self);
   }
 }
-impl RenderPassBindable for ArcOwner<Pipeline> {
+impl RenderPassBindable for SOwner<Pipeline> {
   fn bind_renderpass(&self, renderpass: &mut RenderPass) {
     renderpass.add_pipeline(self);
   }

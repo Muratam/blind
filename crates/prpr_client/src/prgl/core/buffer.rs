@@ -59,14 +59,14 @@ pub struct UniformBuffer<T: BufferAttribute> {
   raw_buffer: RawBuffer,
   data: T,
   name: &'static str,
-  is_dirty: Mutex<bool>,
+  is_dirty: SRwLock<bool>,
 }
 impl<T: BufferAttribute> UniformBuffer<T> {
   pub fn new(data: T) -> Self {
     Self {
       name: data.name(),
       raw_buffer: RawBuffer::new_untyped(data.ub_data(), BufferUsage::Uniform),
-      is_dirty: Mutex::new(false),
+      is_dirty: SRwLock::new(false),
       data,
     }
   }
@@ -80,7 +80,7 @@ impl<T: BufferAttribute> std::ops::Deref for UniformBuffer<T> {
 }
 impl<T: BufferAttribute> std::ops::DerefMut for UniformBuffer<T> {
   fn deref_mut(&mut self) -> &mut T {
-    *self.is_dirty.lock().unwrap() = true;
+    *self.is_dirty.write() = true;
     &mut self.data
   }
 }
@@ -88,7 +88,7 @@ impl<T: BufferAttribute> std::ops::DerefMut for UniformBuffer<T> {
 impl<T: BufferAttribute> UniformBufferTrait for UniformBuffer<T> {
   fn bind(&self, cmd: &mut Command) {
     {
-      let mut is_dirty_lock = self.is_dirty.lock().unwrap();
+      let mut is_dirty_lock = self.is_dirty.write();
       if *is_dirty_lock {
         self.raw_buffer.write_untyped(0, self.data.ub_data());
         *is_dirty_lock = false;
@@ -101,22 +101,22 @@ impl<T: BufferAttribute> UniformBufferTrait for UniformBuffer<T> {
     }
   }
 }
-impl<T: BufferAttribute> UniformBufferTrait for ArcOwner<UniformBuffer<T>> {
+impl<T: BufferAttribute> UniformBufferTrait for SOwner<UniformBuffer<T>> {
   fn bind(&self, cmd: &mut Command) {
     self.read().bind(cmd);
   }
 }
-impl<T: BufferAttribute> UniformBufferTrait for ArcReader<UniformBuffer<T>> {
+impl<T: BufferAttribute> UniformBufferTrait for SReader<UniformBuffer<T>> {
   fn bind(&self, cmd: &mut Command) {
     self.read().bind(cmd);
   }
 }
-impl<T: BufferAttribute + 'static> PipelineBindable for ArcOwner<UniformBuffer<T>> {
+impl<T: BufferAttribute + 'static> PipelineBindable for SOwner<UniformBuffer<T>> {
   fn bind_pipeline(&self, pipeline: &mut Pipeline) {
     pipeline.add_uniform_buffer_reader(&self.clone_reader());
   }
 }
-impl<T: BufferAttribute + 'static> PipelineBindable for ArcReader<UniformBuffer<T>> {
+impl<T: BufferAttribute + 'static> PipelineBindable for SReader<UniformBuffer<T>> {
   fn bind_pipeline(&self, pipeline: &mut Pipeline) {
     pipeline.add_uniform_buffer_reader(&self);
   }
@@ -130,7 +130,7 @@ pub struct IntoUniformBuffer<T: BufferAttribute, I: RefInto<T>> {
   name: &'static str,
   phantom_data: std::marker::PhantomData<T>,
   into: I,
-  is_dirty: Mutex<bool>,
+  is_dirty: SRwLock<bool>,
 }
 impl<T: BufferAttribute, I: RefInto<T>> IntoUniformBuffer<T, I> {
   pub fn new(into: I) -> Self {
@@ -138,7 +138,7 @@ impl<T: BufferAttribute, I: RefInto<T>> IntoUniformBuffer<T, I> {
     Self {
       name: data.name(),
       raw_buffer: RawBuffer::new_untyped(data.ub_data(), BufferUsage::Uniform),
-      is_dirty: Mutex::new(true),
+      is_dirty: SRwLock::new(true),
       phantom_data: std::marker::PhantomData,
       into: into,
     }
@@ -152,7 +152,7 @@ impl<T: BufferAttribute, I: RefInto<T>> std::ops::Deref for IntoUniformBuffer<T,
 }
 impl<T: BufferAttribute, I: RefInto<T>> std::ops::DerefMut for IntoUniformBuffer<T, I> {
   fn deref_mut(&mut self) -> &mut I {
-    *self.is_dirty.lock().unwrap() = true;
+    *self.is_dirty.write() = true;
     &mut self.into
   }
 }
@@ -160,7 +160,7 @@ impl<T: BufferAttribute, I: RefInto<T>> std::ops::DerefMut for IntoUniformBuffer
 impl<T: BufferAttribute, I: RefInto<T>> UniformBufferTrait for IntoUniformBuffer<T, I> {
   fn bind(&self, cmd: &mut Command) {
     {
-      let mut is_dirty_lock = self.is_dirty.lock().unwrap();
+      let mut is_dirty_lock = self.is_dirty.write();
       if *is_dirty_lock {
         let data: T = self.into.ref_into();
         self.raw_buffer.write_untyped(0, data.ub_data());
@@ -174,25 +174,25 @@ impl<T: BufferAttribute, I: RefInto<T>> UniformBufferTrait for IntoUniformBuffer
     }
   }
 }
-impl<T: BufferAttribute, I: RefInto<T>> UniformBufferTrait for ArcOwner<IntoUniformBuffer<T, I>> {
+impl<T: BufferAttribute, I: RefInto<T>> UniformBufferTrait for SOwner<IntoUniformBuffer<T, I>> {
   fn bind(&self, cmd: &mut Command) {
     self.read().bind(cmd);
   }
 }
-impl<T: BufferAttribute, I: RefInto<T>> UniformBufferTrait for ArcReader<IntoUniformBuffer<T, I>> {
+impl<T: BufferAttribute, I: RefInto<T>> UniformBufferTrait for SReader<IntoUniformBuffer<T, I>> {
   fn bind(&self, cmd: &mut Command) {
     self.read().bind(cmd);
   }
 }
 impl<T: BufferAttribute + 'static, I: RefInto<T> + 'static> PipelineBindable
-  for ArcOwner<IntoUniformBuffer<T, I>>
+  for SOwner<IntoUniformBuffer<T, I>>
 {
   fn bind_pipeline(&self, pipeline: &mut Pipeline) {
     pipeline.add_into_uniform_buffer_reader(&self.clone_reader());
   }
 }
 impl<T: BufferAttribute + 'static, I: RefInto<T> + 'static> PipelineBindable
-  for ArcReader<IntoUniformBuffer<T, I>>
+  for SReader<IntoUniformBuffer<T, I>>
 {
   fn bind_pipeline(&self, pipeline: &mut Pipeline) {
     pipeline.add_into_uniform_buffer_reader(&self);

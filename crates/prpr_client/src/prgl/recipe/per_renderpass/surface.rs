@@ -10,9 +10,9 @@ crate::shader_attr! {
   }
 }
 pub struct Surface {
-  ubo: ArcOwner<UniformBuffer<SurfaceOffset>>,
-  renderpass: ArcOwner<prgl::RenderPass>,
-  mapping: ArcOwner<TextureMapping<SurfaceMapping>>,
+  ubo: SOwner<UniformBuffer<SurfaceOffset>>,
+  renderpass: SOwner<prgl::RenderPass>,
+  mapping: SOwner<TextureMapping<SurfaceMapping>>,
 }
 // NOTE: 利便性のために最後のキャンバス出力をコピーで済ますもの
 // 最後ダイレクトに書いたほうが無駄な工程が減る
@@ -32,17 +32,17 @@ impl Surface {
     renderpass.set_use_default_buffer(true);
     let mut pipeline = FullScreen::new_pipeline();
     pipeline.add(&MayShader::new(Self::shader()));
-    let mapping = ArcOwner::new(TextureMapping::new(SurfaceMapping {
+    let mapping = SOwner::new(TextureMapping::new(SurfaceMapping {
       src_color: TextureRecipe::new_dummy().clone_reader(),
     }));
     pipeline.add(&mapping);
-    let ubo = ArcOwner::new(UniformBuffer::new(SurfaceOffset {
+    let ubo = SOwner::new(UniformBuffer::new(SurfaceOffset {
       surface_offset: Vec2::ZERO,
       surface_dummy: Vec2::ZERO,
     }));
     pipeline.add(&ubo);
     renderpass.own_pipeline(pipeline);
-    let renderpass = ArcOwner::new(renderpass);
+    let renderpass = SOwner::new(renderpass);
     RenderPassExecuter::add(&renderpass, usize::MAX);
     Self {
       ubo,
@@ -50,7 +50,7 @@ impl Surface {
       mapping,
     }
   }
-  pub fn set_texture(&mut self, src_color: &dyn ArcReaderTrait<Texture>) {
+  pub fn set_texture(&mut self, src_color: &dyn SReaderTrait<Texture>) {
     self.mapping.write().src_color = src_color.clone_reader();
   }
 }

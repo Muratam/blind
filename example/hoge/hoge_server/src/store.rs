@@ -134,7 +134,7 @@ impl<T> VersionControl<T> {
     unimplemented!();
   }
 
-  // 最新の安定データを取得(readonly)
+  // 最新の安定データを取得(SReader)
   pub fn latest(&self) -> &T {
     &self.latest
   }

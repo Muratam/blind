@@ -31,6 +31,7 @@ impl XorShift128Impl {
     self.w
   }
 }
+
 pub struct XorShift128 {
   data: std::sync::Mutex<XorShift128Impl>,
 }

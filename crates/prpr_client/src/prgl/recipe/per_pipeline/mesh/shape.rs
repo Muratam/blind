@@ -9,7 +9,7 @@ crate::shader_attr! {
   }
 }
 pub struct Shape {
-  vao: ArcOwner<Vao<ShapeVertex>>,
+  vao: SOwner<Vao<ShapeVertex>>,
 }
 impl Shape {
   pub fn new_cube() -> Self {
@@ -39,7 +39,7 @@ impl Shape {
     let i_buffer = IndexBuffer::new(i_data);
     let v_buffer = VertexBuffer::new(v_data);
     Self {
-      vao: ArcOwner::new(Vao::new(v_buffer, i_buffer)),
+      vao: SOwner::new(Vao::new(v_buffer, i_buffer)),
     }
   }
   pub fn new_sphere(xn: usize, yn: usize) -> Self {
@@ -77,7 +77,7 @@ impl Shape {
     let i_buffer = IndexBuffer::new(i_data);
     let v_buffer = VertexBuffer::new(v_data);
     Self {
-      vao: ArcOwner::new(Vao::new(v_buffer, i_buffer)),
+      vao: SOwner::new(Vao::new(v_buffer, i_buffer)),
     }
   }
 }

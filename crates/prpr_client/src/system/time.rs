@@ -1,5 +1,5 @@
 use super::*;
-static INSTANCE: OnceCell<RwLock<TimeImpl>> = OnceCell::new();
+static INSTANCE: OnceCell<MRwLock<TimeImpl>> = OnceCell::new();
 pub struct TimeImpl {
   frame: i64,
   started_milli_sec: f64,
@@ -8,23 +8,21 @@ pub struct TimeImpl {
   processed_milli_sec: f64,
 }
 impl TimeImpl {
-  pub fn read_global() -> RwLockReadGuard<'static, Self> {
+  pub fn read_global() -> MDerefable<'static, Self> {
     INSTANCE
       .get()
       .expect("time global is not initialized")
       .read()
-      .unwrap()
   }
-  pub fn write_global() -> RwLockWriteGuard<'static, Self> {
+  pub fn write_global() -> MDerefMutable<'static, Self> {
     INSTANCE
       .get()
       .expect("time global is not initialized")
       .write()
-      .unwrap()
   }
   pub fn initialize_global() {
     INSTANCE
-      .set(RwLock::new(Self {
+      .set(MRwLock::new(Self {
         started_milli_sec: js_sys::Date::now(),
         pre_now_milli_sec: 0.0,
         now_milli_sec: 0.0,

@@ -16,7 +16,7 @@ struct HtmlElementHolderInternal {
 
 pub struct HtmlElementHolder {
   raw_element: web_sys::HtmlElement,
-  internal: RwLock<HtmlElementHolderInternal>,
+  internal: SRwLock<HtmlElementHolderInternal>,
 }
 impl Drop for HtmlElementHolder {
   fn drop(&mut self) {
@@ -28,7 +28,7 @@ impl HtmlElementHolder {
   pub fn new(parent: &web_sys::HtmlElement, tag: &str) -> Self {
     Self {
       raw_element: js::html::append_tag(parent, tag),
-      internal: RwLock::new(HtmlElementHolderInternal {
+      internal: SRwLock::new(HtmlElementHolderInternal {
         display: None,
         box_shadow: None,
         box_inset_shadow: None,
@@ -89,7 +89,7 @@ impl HtmlElementHolder {
   fn update_filter_impl(&self) {
     let mut text = String::from("");
     {
-      let internal = self.internal.read().unwrap();
+      let internal = self.internal.read();
       if let Some(calc) = internal.filter_dropshadow.calc() {
         text += &calc.to_css_value();
       }
@@ -120,7 +120,7 @@ impl HtmlElementHolder {
   }
 
   fn update_transform_impl(&self) {
-    if let Some(calc) = self.internal.read().unwrap().transform.calc() {
+    if let Some(calc) = self.internal.read().transform.calc() {
       self.set_by_name_impl("transform", &calc.to_css_value());
     }
   }
@@ -150,39 +150,21 @@ impl HtmlElementHolder {
     self.set_by_name_impl("cursor", cursor.to_css_value());
   }
   pub fn set_translate(&self, translate: Vec2, why: Why) {
-    let mut pre = self
-      .internal
-      .read()
-      .unwrap()
-      .transform
-      .get(why)
-      .unwrap_or_default();
+    let mut pre = self.internal.read().transform.get(why).unwrap_or_default();
     pre.translate = translate;
-    self.internal.write().unwrap().transform.set(Some(pre), why);
+    self.internal.write().transform.set(Some(pre), why);
     self.update_transform_impl();
   }
   pub fn set_rotate_degree(&self, rotate_deg: f32, why: Why) {
-    let mut pre = self
-      .internal
-      .read()
-      .unwrap()
-      .transform
-      .get(why)
-      .unwrap_or_default();
+    let mut pre = self.internal.read().transform.get(why).unwrap_or_default();
     pre.rotate_deg = rotate_deg;
-    self.internal.write().unwrap().transform.set(Some(pre), why);
+    self.internal.write().transform.set(Some(pre), why);
     self.update_transform_impl();
   }
   pub fn set_scale(&self, scale: f32, why: Why) {
-    let mut pre = self
-      .internal
-      .read()
-      .unwrap()
-      .transform
-      .get(why)
-      .unwrap_or_default();
+    let mut pre = self.internal.read().transform.get(why).unwrap_or_default();
     pre.scale = scale;
-    self.internal.write().unwrap().transform.set(Some(pre), why);
+    self.internal.write().transform.set(Some(pre), why);
     self.update_transform_impl();
   }
   pub fn set_transform(&self, translate: Vec2, rotate_deg: f32, scale: f32, why: Why) {
@@ -191,19 +173,13 @@ impl HtmlElementHolder {
       rotate_deg,
       scale,
     };
-    self
-      .internal
-      .write()
-      .unwrap()
-      .transform
-      .set(Some(transform), why);
+    self.internal.write().transform.set(Some(transform), why);
     self.update_transform_impl();
   }
   pub fn set_filter_blur(&self, filter: Option<f32>, why: Why) {
     self
       .internal
       .write()
-      .unwrap()
       .filter_blur
       .set(filter.map(|x| FilterBlur(x)), why);
     self.update_filter_impl();
@@ -212,7 +188,6 @@ impl HtmlElementHolder {
     self
       .internal
       .write()
-      .unwrap()
       .filter_huerotate
       .set(filter.map(|x| FilterHueRotate(x)), why);
     self.update_filter_impl();
@@ -221,7 +196,6 @@ impl HtmlElementHolder {
     self
       .internal
       .write()
-      .unwrap()
       .filter_brightness
       .set(filter.map(|x| FilterBrightness(x)), why);
     self.update_filter_impl();
@@ -230,7 +204,6 @@ impl HtmlElementHolder {
     self
       .internal
       .write()
-      .unwrap()
       .filter_contrast
       .set(filter.map(|x| FilterContrast(x)), why);
     self.update_filter_impl();
@@ -239,7 +212,6 @@ impl HtmlElementHolder {
     self
       .internal
       .write()
-      .unwrap()
       .filter_grayscale
       .set(filter.map(|x| FilterGrayscale(x)), why);
   }
@@ -247,18 +219,12 @@ impl HtmlElementHolder {
     self
       .internal
       .write()
-      .unwrap()
       .filter_opacity
       .set(filter.map(|x| FilterOpacity(x)), why);
     self.update_filter_impl();
   }
   pub fn set_filter_dropshadow(&self, filter: Option<FilterDropShadow>, why: Why) {
-    self
-      .internal
-      .write()
-      .unwrap()
-      .filter_dropshadow
-      .set(filter, why);
+    self.internal.write().filter_dropshadow.set(filter, why);
     self.update_filter_impl();
   }
   pub fn set_visibility(&self, visibility: bool) {
@@ -268,12 +234,12 @@ impl HtmlElementHolder {
     if is_none {
       if let Some(pre) = self.raw_element.style().get_property_value("display").ok() {
         if pre != "none" {
-          self.internal.write().unwrap().display = Some(pre);
+          self.internal.write().display = Some(pre);
         }
       }
       self.set_by_name_impl("display", "none");
     } else {
-      if let Some(pre) = &self.internal.read().unwrap().display {
+      if let Some(pre) = &self.internal.read().display {
         self.set_by_name_impl("display", &pre);
       } else {
         self
@@ -297,20 +263,20 @@ impl HtmlElementHolder {
   pub fn set_box_shadow(&self, x: f32, y: f32, r: f32, rgba: Vec4) {
     let shadow = self.parse_shadow(FilterDropShadow { x, y, r, rgba }, false);
     let mut text = shadow.clone();
-    if let Some(another) = &self.internal.read().unwrap().box_inset_shadow {
+    if let Some(another) = &self.internal.read().box_inset_shadow {
       text += &format!(", {}", another);
     }
     self.set_by_name_impl("box-shadow", &text);
-    self.internal.write().unwrap().box_shadow = Some(shadow);
+    self.internal.write().box_shadow = Some(shadow);
   }
   pub fn set_box_shadow_inset(&self, x: f32, y: f32, r: f32, rgba: Vec4) {
     let shadow = self.parse_shadow(FilterDropShadow { x, y, r, rgba }, false);
     let mut text = shadow.clone();
-    if let Some(another) = &self.internal.read().unwrap().box_shadow {
+    if let Some(another) = &self.internal.read().box_shadow {
       text += &format!(", {}", another);
     }
     self.set_by_name_impl("box-shadow", &text);
-    self.internal.write().unwrap().box_inset_shadow = Some(shadow);
+    self.internal.write().box_inset_shadow = Some(shadow);
   }
   pub fn set_border_radius(&self, percent: f32) {
     self.set_float_percentage_parameter_impl("border-radius", percent);

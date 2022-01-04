@@ -6,7 +6,7 @@ const MAX_UNIFORM_TEXTURE_BINDINGS: usize = 64;
 pub struct Command {
   depth_func: Option<DepthFunc>,
   cull_mode: Option<CullMode>,
-  shader: Option<Arc<Shader>>,
+  shader: Option<SRc<Shader>>,
   vao: Option<u64>,
   // NOTE: この２つは同じものを取らない...はず
   uniform_buffers: [Option<u64>; MAX_UNIFORM_BUFFER_BINDINGS],
@@ -45,7 +45,7 @@ impl Command {
   pub fn set_draw_command(&mut self, v: &DrawCommand, t: PrimitiveToporogy) {
     v.apply(t);
   }
-  pub fn set_shader(&mut self, v: &Arc<Shader>) {
+  pub fn set_shader(&mut self, v: &SRc<Shader>) {
     if let Some(pre) = &self.shader {
       if pre.id() == v.id() {
         return;
@@ -54,7 +54,7 @@ impl Command {
     v.use_program();
     self.shader = Some(v.clone());
   }
-  pub fn current_shader(&self) -> &Option<Arc<Shader>> {
+  pub fn current_shader(&self) -> &Option<SRc<Shader>> {
     &self.shader
   }
   pub fn set_vao(&mut self, vao: &RawVao) {
