@@ -72,7 +72,7 @@ impl CasualScene {
     let shape1 = Shape::new_cube();
     let shape2 = Shape::new_sphere(20, 20);
     let mut objects = Vec::new();
-    const COUNT: u32 = 20;
+    const COUNT: u32 = 15;
     for x in 0..COUNT {
       for y in 0..COUNT {
         for z in 0..COUNT {
@@ -338,7 +338,6 @@ pub fn sample_world() {
   Updater::own(Pane2::new());
 }
 /* TODO:
-- Parallel (Web Worker)
 - particle
   - draw instanced
   - transform feedback
